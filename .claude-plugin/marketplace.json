@@ -1,0 +1,18 @@
+{
+  "name": "dryforge",
+  "description": "Say what you want to build. Two commands later, it's built.",
+  "owner": { "name": "fn-opt" },
+  "plugins": [
+    {
+      "name": "dryforge",
+      "description": "Intent-to-implementation: Ready or Set, then Go.",
+      "author": { "name": "fn-opt" },
+      "source": {
+        "source": "url",
+        "url": "https://github.com/fn-opt/dryforge.git",
+        "sha": "af106e99d612ca6a0fc225ead0adb1e6d5d686d4"
+      },
+      "homepage": "https://github.com/fn-opt/dryforge"
+    }
+  ]
+}
