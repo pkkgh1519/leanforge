@@ -4,7 +4,7 @@
 #   src/skills/        canonical, platform-neutral skills (single source of truth)
 #   platform/claude/   claude-only frontmatter values + plugin.json + LICENSE
 #   platform/codex/    codex-only openai.yaml + plugin.json + LICENSE
-#   README.md          single README source (repo root) — copied into both plugins
+#   README.md          repo-root README (+ README_KO.md) — GitHub landing only, NOT bundled into plugins
 #   claude/            generated Claude plugin   (committed; Claude installs this)
 #   codex/plugin/      generated Codex plugin    (committed; Codex installs this)
 #
@@ -36,7 +36,7 @@ for s in ready set go migration; do
     "$ROOT/claude/skills/$s/SKILL.md"
 done
 cp "$PLAT/claude/plugin.json" "$ROOT/claude/.claude-plugin/plugin.json"
-cp "$ROOT/README.md" "$PLAT/claude/LICENSE" "$ROOT/claude/"
+cp "$PLAT/claude/LICENSE" "$ROOT/claude/"
 
 # ── Codex → ./codex/plugin ──────────────────────────────────────────────────
 echo "=== build: codex ==="
@@ -45,7 +45,7 @@ mkdir -p "$ROOT/codex/plugin/.codex-plugin"
 cp -R "$SRC" "$ROOT/codex/plugin/skills"
 cp -R "$PLAT/codex/skills/." "$ROOT/codex/plugin/skills/"   # agents/openai.yaml overlay
 cp "$PLAT/codex/plugin.json" "$ROOT/codex/plugin/.codex-plugin/plugin.json"
-cp "$ROOT/README.md" "$PLAT/codex/LICENSE" "$ROOT/codex/plugin/"
+cp "$PLAT/codex/LICENSE" "$ROOT/codex/plugin/"
 
 find "$ROOT/claude" "$ROOT/codex" -name ".DS_Store" -delete 2>/dev/null || true
 echo "=== done → ./claude  ./codex/plugin ==="
