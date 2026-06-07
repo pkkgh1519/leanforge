@@ -107,22 +107,22 @@ The answer is simple — hand the strong model the **same context, every time**.
 
 ## However you start, `go` finishes
 
-Pick what fits. **`ready`** and **`set`** just start differently — both lead into **`go`**. Already have a project? **`migration`** brings it in.
+What you bring decides the door — an **idea**, **design docs**, or **existing code**. **`ready`** and **`set`** both lead into **`go`**; **`migration`** is a one-time on-ramp for code that already runs.
 
 ```
   ready ─┐
          ├──▶  go  ──▶  working software + the project harness
   set  ──┘
 
-  migration  ──▶  an existing project, brought into dryforge
+  migration  ──▶  existing code → the harness   (one-time onboarding)
 ```
 
-| | Command | What it does |
+| What you bring | Command | What it does |
 |---|---|---|
-| **You have just an idea** | `/dryforge:ready` | A senior-level brainstorm asks until nothing is ambiguous and turns a vague idea into a complete design — recommending a stack if you have none, scaled to your project. |
-| **You have something written** | `/dryforge:set` | Notes, or docs from any other tool — `set` reads them, points out what's missing, asks, and shapes them into something executable. |
-| **→ then both converge on** | `/dryforge:go` | Builds from the plan with zero waste: many tasks at once in a pre-computed order, the risky parts verified more thoroughly. → working software **+** the project harness. |
-| **You already built it** | `/dryforge:migration` | Reads your existing code and generates the project harness automatically — surfacing even the intent you never wrote down. No starting over; straight into dryforge. |
+| **An idea in your head** | `/dryforge:ready` | A senior-level brainstorm asks until nothing is ambiguous and turns a vague idea into a complete design — recommending a stack if you have none, scaled to your project. |
+| **Design docs you've written** | `/dryforge:set` | Spec, plan, or notes — from any tool. `set` reads them, points out what's missing, asks, and shapes them into something executable. *(Documents, not a codebase — for that, see `migration`.)* |
+| **→ both converge on** | `/dryforge:go` | Builds from the plan with zero waste: many tasks at once in a pre-computed order, the risky parts verified more thoroughly. → working software **+** the project harness. |
+| **Code that already runs** | `/dryforge:migration` | Reads your existing codebase and generates the project harness automatically — surfacing even the intent you never wrote down. A one-time on-ramp: after that, add or improve features with `ready` / `set` → `go`. |
 
 ---
 
