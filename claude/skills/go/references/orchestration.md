@@ -185,7 +185,7 @@ re-dispatching past the ladder.
 
 ## Context budget
 
-- **Resident**: the 3-doc (~1–3K) + wave schedule + accumulated per-task summaries
+- **Resident**: the 3-doc + wave schedule + accumulated per-task summaries
   (~100–200 tokens each) + spec-review verdicts (~20 tokens each).
 - **Temp-load → use → drop**: authoring an implementer prompt (the relevant plan+spec slice),
   analyzing a failure (the error output). Drop after the judgment.

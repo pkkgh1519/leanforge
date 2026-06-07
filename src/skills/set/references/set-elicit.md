@@ -27,9 +27,9 @@ ready's design system or set's targeted deepening.)
   does not pass — deepen it.
 - **Over-digging.** Don't re-interrogate an area the probe judged **sufficient**. Respect the probe's
   result; spend questions only on the flagged areas.
-- **Giving up in Cold mode.** Even with no live conversation (files only), find the ambiguous parts in
-  the files and ask the user about them. **Cold means "the files are the whole input," not "don't
-  ask."** Don't attribute intent to an unseen conversation — but do ask.
+- **Giving up because it's files-only.** The files being the whole input is never a reason not to ask:
+  find the ambiguous parts in the files and ask the user about them. **"The files are the whole input"
+  does not mean "don't ask."** Don't attribute intent to a conversation not in the files — but do ask.
 - **Missing the ready-redirect point.** Detect this condition: the probe result is **first cycle (no
   harness) + no code + many categories insufficient**, all at once. In that state, set does **not**
   attempt to deepen — it tells the user to switch to ready: *"This input is too thin a foundation to

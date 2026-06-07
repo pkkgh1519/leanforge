@@ -2,9 +2,8 @@
 name: set
 description: >
   Refine and validate a {spec, plan} against the real project code, then produce an
-  execution-ready 3-doc (handoff, spec, plan) for go. Use when the user invokes the `set` skill with a spec path and a plan path. Best run in the same session the spec/plan
-  were drafted (live design intent can be mined), but also handles cold files brought from
-  elsewhere — hand-written or from another tool. Requires git.
+  execution-ready 3-doc (handoff, spec, plan) for go. Use when the user invokes the `set` skill with a spec path and a plan path. Handles {spec, plan} files from any source — hand-written or
+  exported from another tool. Requires git.
 ---
 
 # set
@@ -18,23 +17,10 @@ Refine a `{spec, plan}` into an execution-ready **3-doc** (handoff + spec + plan
 grounded in the real project code. The output is consumed by `go`. The 3-doc contract is in
 `references/output-format.md`.
 
-**Two invocation contexts** (detect which you are in, and degrade gracefully):
-- **S1-live** — run in the same session the spec/plan were drafted, while the brainstorming/
-  planning context is still in view. This is the richer mode: mine the live conversation for
-  intent that never made it into the files (the rationale behind a decision, a constraint stated
-  out loud, a rejected alternative) and inject it into the handoff.
-- **Cold** — the `{spec, plan}` arrives as files from elsewhere (hand-written, or exported from
-  another tool) with no live design conversation. Then the files **are** the whole input: work
-  file-only, claim no S1 decision you can't see, and lean harder on escalation for any intent the
-  code and docs can't settle (there is no conversation to recover it from).
-
-Both modes converge on the same 3-doc; the difference is only *how much* un-captured intent you
-have access to. Don't invent S1 intent in cold mode — that is the fabrication trap.
-
-**Detection rule.** If the brainstorming/planning conversation that produced these docs is
-visible/scrollable in THIS session's history → **S1-live** (you may mine it). Otherwise → **Cold**
-(files only; never attribute intent to an unseen conversation; escalate when files can't settle
-intent). Notify the user which mode was detected at the start of Phase 1.
+**The input is the `{spec, plan}` files plus the project code — nothing else.** The files are the
+whole record of intent, whatever their source (hand-written or exported from another tool). Where
+the files and code can't settle an intent, **escalate to the user** — never invent it, and never
+attribute intent to a conversation that isn't in the files (the fabrication trap).
 
 ## Core principles (apply throughout)
 
@@ -139,8 +125,8 @@ Conditional — run only when Pass 4 flagged a category **insufficient**; if all
 to RESOLVE. Force-load `references/set-elicit.md`. Deepen each insufficient area through dialogue:
 **extract** where the thin area is domain, **present** options where it is technical, reaching the
 matching floor (domain: rules verifiable, no vague modifiers; technical: decisions closed by user
-confirmation). **Cold mode still asks** — find the ambiguities in the files and pose them; never
-attribute intent to an unseen conversation. **Ready-redirect:** if the probe shows first cycle (no
+confirmation). **The files being the only record never excuses not asking** — find the ambiguities
+in the files and pose them; never attribute intent to a conversation not in the files. **Ready-redirect:** if the probe shows first cycle (no
 harness) + no code + many categories insufficient, do **not** deepen — tell the user the input is too
 thin a foundation for set and to use `/dryforge:ready`.
 
@@ -151,10 +137,9 @@ Conversion & thinking-base rules: `references/refinement-rules.md`.
 - **Auto-fix** (non-structural): premature code → behavioral contract; convention
   violations → project pattern; simple spec↔plan wording/cross-refs.
 - **Thinking-base**: where the executing agent (reading only the 3-doc + code) could not derive a
-  decision, record *decision + reason*. **Never fabricate** — if the reason is not on the record (stated in the
-  spec/plan, or — in S1-live mode — in the live conversation), escalate to the user instead of
-  inventing one. (Cold mode: the docs are the only record; don't attribute a reason to a
-  conversation you can't see.)
+  decision, record *decision + reason*. **Never fabricate** — if the reason is not on the record
+  (stated in the spec/plan), escalate to the user instead of inventing one. The docs are the only
+  record of intent; don't attribute a reason to a conversation that isn't in them.
 - **Zero discovered verify commands** is itself a recorded decision, never left implicit: surface it
   and resolve to an explicit outcome — a custom check, human-approval evidence, or an explicit "none"
   — captured in the thinking-base.
@@ -167,9 +152,8 @@ Conversion & thinking-base rules: `references/refinement-rules.md`.
 3-doc contract: `references/output-format.md`. Execution Graph: `references/dependency-calc.md`.
 
 - **handoff first** (governing doc): document roles + conflict resolution, file locations
-  (project-root-relative, never machine-absolute) + execution shape, hard gates, and — **in
-  S1-live mode only** — the intent surfaced in the live conversation but not captured in
-  spec/plan. (Cold mode: there is no such conversation; omit this rather than invent it.)
+  (project-root-relative, never machine-absolute) + execution shape, and hard gates. Source intent
+  only from the spec/plan + project code; if it isn't on the record, omit it rather than invent it.
 - **spec**: finalize (auto-fixes + thinking-base + user answers + required-verification).
 - **plan**: finalize (behavioral contracts + thinking-base + phase narrative + shared-write
   prose guidance).
