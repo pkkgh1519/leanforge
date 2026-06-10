@@ -21,10 +21,12 @@ python scripts/dryforge_ops.py after-ready <repo>
 python scripts/dryforge_ops.py after-go <repo>
 python scripts/dryforge_ops.py dashboard <repo>
 python scripts/dryforge_ops.py handoff .agents/ops/handoffs/handoff-YYYY-MM-DD.md <repo>
+python scripts/dryforge_ops.py log <repo> --event event.json
 python scripts/dryforge_ops.py workflow suggest <repo>
 ```
 
 Common options: `--dry-run`, `--date YYYY-MM-DD`, `--task-id task-YYYY-MM-DD-slug`, `--json`, `--strict`.
+`log` also accepts `--event -` for stdin and `--idempotency-key` for re-run-safe appends.
 
 The subcommand form above is the canonical and only CLI surface. Author all hooks and docs with it;
 add new modes to `build_product_parser` only.
@@ -35,7 +37,8 @@ add new modes to `build_product_parser` only.
 - `preflight` detects blocked operations state and live/runtime risk before dryforge `go`.
 - `before-go` records a preflight event for active 3-docs without running dryforge.
 - `after-go` normalizes evidence, writes `.agents/ops/evidence/<task_id>.evidence.json`, updates `.agents/ops/ledger.json`, and appends the task-log event idempotently.
-- `workflow suggest` groups completed task-log events by `type`, emits repeated-evidence `task_id` values for candidates, and prints `delegate_to=harness skill` so reusable workflow design is handed to the harness skill.
+- `log` appends one caller-provided ad-hoc event into an existing ops plane with the same JSONL, idempotency, and evidence gates; it never bootstraps `.agents/ops/` and never accepts `completed/completed` without exit-0 command evidence or explicit manual evidence.
+- `workflow suggest` groups completed task-log events by `type`, emits repeated-evidence `task_id` values for candidates, and prints `delegate_to=harness skill` so reusable workflow design is handed to the harness skill. Candidates recorded as `workflow_adopted` are suppressed until new events accumulate after the adoption.
 
 ## Exit codes
 

@@ -19,6 +19,7 @@ python scripts/dryforge_ops.py preflight <repo>
 python scripts/dryforge_ops.py before-go <repo>
 python scripts/dryforge_ops.py after-ready <repo>
 python scripts/dryforge_ops.py after-go <repo>
+python scripts/dryforge_ops.py log <repo> --event event.json
 python scripts/dryforge_ops.py workflow suggest <repo>
 ```
 
@@ -64,7 +65,8 @@ Use `--json` when another tool will consume the output.
 5. For later phases, use:
    - `dashboard` to render a read-only operations dashboard
    - `handoff <path>` to create a no-overwrite handoff note
-   - `workflow suggest` to detect repeated task types and emit a `delegate_to=harness skill` signal when a workflow recurs
+   - `log --event <file|->` to append one guarded ad-hoc event — work done outside ready/go cycles, or a `workflow_adopted` record after the harness skill installs a suggested workflow; it refuses a missing `.agents/ops/` plane and refuses `completed/completed` without evidence
+   - `workflow suggest` to detect repeated task types and emit a `delegate_to=harness skill` signal when a workflow recurs; candidates already recorded as `workflow_adopted` stay suppressed until new repetition accumulates
 
 ## References
 

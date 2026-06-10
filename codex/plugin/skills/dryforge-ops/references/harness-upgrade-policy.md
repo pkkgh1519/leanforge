@@ -21,3 +21,8 @@ for each candidate:
 This bridge does not classify domains with hardcoded keyword lists and does not write
 `.agents/workflows/` or `.agents/skills/` artifacts. When a candidate recurs, invoke the
 `harness` skill to design, review, and install the reusable workflow with full judgment.
+
+After the harness skill installs the workflow, close the loop: append one
+`workflow_adopted`/`adopted` event through `log --event`, with the candidate name in its
+`workflow` field. `workflow suggest` then stops re-flagging that candidate and raises it
+again only when new repetition accumulates after the adoption event.

@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.3.0 (2026-06-10)
+
+- dryforge-ops: add the `log` mode — append one guarded ad-hoc task-log event (full JSONL parse, idempotency, secret redaction); refuses a missing `.agents/ops/` plane and refuses `completed/completed` without exit-0 command evidence or explicit manual evidence
+- dryforge-ops: `workflow suggest` closes the flywheel — `workflow_adopted`/`adopted` events suppress an adopted candidate until new repetition accumulates after the adoption, and adoption records no longer count as repetition signal
+- harness: record workflow adoption back into the dryforge-ops plane (Phase 7) so suggested candidates stop re-flagging once installed
+- harness: output language is discovered at runtime and never assumed; interviewing no longer depends on any specific installed skill; description is platform-neutral
+- benchmark: replace the stale workflow apply/validate case with the adoption-flywheel case
+
 ## v1.2.0 (2026-06-10)
 
 - bundle the `harness` skill (durable repo-local agent workflow design) into the plugin

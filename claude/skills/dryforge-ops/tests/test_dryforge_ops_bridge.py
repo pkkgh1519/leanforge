@@ -17,8 +17,8 @@ class BridgeCliTests(unittest.TestCase):
     def tearDown(self):
         shutil.rmtree(self.tmp, ignore_errors=True)
 
-    def run_cli(self, *args):
-        return subprocess.run([sys.executable, str(SCRIPT), *args], text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    def run_cli(self, *args, stdin=None):
+        return subprocess.run([sys.executable, str(SCRIPT), *args], text=True, input=stdin, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     def init_ops(self, repo):
         ops = repo / ".agents" / "ops"
@@ -248,6 +248,107 @@ class BridgeCliTests(unittest.TestCase):
         self.assertIn("evidence_task_ids=legacy-0,legacy-1,legacy-2", proc.stdout)
         self.assertEqual(legacy_log.read_text(encoding="utf-8"), original)
         self.assertFalse((repo / ".agents" / "ops" / "task-log.jsonl").exists())
+
+    def write_event(self, payload):
+        path = self.tmp / "event.json"
+        path.write_text(json.dumps(payload, ensure_ascii=False) + "\n", encoding="utf-8")
+        return path
+
+    def test_log_appends_adhoc_event_and_updates_summary(self):
+        repo = self.tmp / "repo"
+        repo.mkdir()
+        self.init_ops(repo)
+        event = self.write_event({"task_id": "task-adhoc", "event": "progress", "status": "open", "date": "2026-06-10", "type": "docs", "summary": "ad-hoc 문서 작업"})
+        proc = self.run_cli("log", "--event", str(event), str(repo))
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        events = self.read_events(repo)
+        self.assertEqual(len(events), 1)
+        self.assertEqual(events[0]["task_id"], "task-adhoc")
+        self.assertEqual(events[0]["type"], "docs")
+        summary = (repo / ".agents" / "ops" / "operations.md").read_text(encoding="utf-8")
+        self.assertIn("<!-- dryforge-ops:start -->", summary)
+
+    def test_log_fills_date_and_task_id_defaults(self):
+        repo = self.tmp / "repo"
+        repo.mkdir()
+        self.init_ops(repo)
+        event = self.write_event({"event": "progress", "status": "open", "summary": "기본값 채움"})
+        proc = self.run_cli("log", "--event", str(event), "--date", "2026-06-10", str(repo))
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        recorded = self.read_events(repo)[0]
+        self.assertEqual(recorded["date"], "2026-06-10")
+        self.assertEqual(recorded["task_id"], "task-2026-06-10-ops-log")
+
+    def test_log_refuses_completed_without_evidence(self):
+        repo = self.tmp / "repo"
+        repo.mkdir()
+        self.init_ops(repo)
+        event = self.write_event({"task_id": "task-x", "event": "completed", "status": "completed", "date": "2026-06-10", "summary": "증거 없음"})
+        proc = self.run_cli("log", "--event", str(event), str(repo))
+        self.assertEqual(proc.returncode, 2)
+        self.assertIn("completed/completed refused", proc.stderr)
+        self.assertEqual(self.read_events(repo), [])
+
+    def test_log_allows_completed_with_evidence_via_stdin(self):
+        repo = self.tmp / "repo"
+        repo.mkdir()
+        self.init_ops(repo)
+        payload = json.dumps({
+            "task_id": "task-x", "event": "completed", "status": "completed", "date": "2026-06-10",
+            "summary": "증거 포함", "evidence": {"commands": [{"command": "pytest", "exit_code": 0}]},
+        }, ensure_ascii=False)
+        proc = self.run_cli("log", "--event", "-", str(repo), stdin=payload)
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertEqual(self.read_events(repo)[0]["status"], "completed")
+
+    def test_log_refuses_missing_ops_plane(self):
+        repo = self.tmp / "repo"
+        repo.mkdir()
+        event = self.write_event({"task_id": "task-x", "event": "progress", "status": "open", "date": "2026-06-10", "summary": "plane 없음"})
+        proc = self.run_cli("log", "--event", str(event), str(repo))
+        self.assertEqual(proc.returncode, 2)
+        self.assertIn(".agents/ops", proc.stderr)
+        self.assertFalse((repo / ".agents").exists())
+
+    def test_log_idempotency_key_skips_duplicate(self):
+        repo = self.tmp / "repo"
+        repo.mkdir()
+        self.init_ops(repo)
+        event = self.write_event({"task_id": "task-x", "event": "progress", "status": "open", "date": "2026-06-10", "summary": "재실행 안전"})
+        first = self.run_cli("log", "--event", str(event), "--idempotency-key", "adhoc-1", str(repo))
+        second = self.run_cli("log", "--event", str(event), "--idempotency-key", "adhoc-1", str(repo))
+        self.assertEqual(first.returncode, 0, first.stderr)
+        self.assertEqual(second.returncode, 0, second.stderr)
+        self.assertEqual(len(self.read_events(repo)), 1)
+
+    def test_workflow_suggest_suppresses_adopted_until_recurrence(self):
+        repo = self.tmp / "repo"
+        repo.mkdir()
+        self.init_ops(repo)
+        log = repo / ".agents" / "ops" / "task-log.jsonl"
+
+        def qa_events(start, count):
+            return "".join(
+                json.dumps({"task_id": f"task-qa-{i}", "event": "completed", "status": "completed", "date": "2026-06-10", "type": "qa", "summary": "테스트"}, ensure_ascii=False) + "\n"
+                for i in range(start, start + count)
+            )
+
+        log.write_text(qa_events(0, 3), encoding="utf-8")
+        before = self.run_cli("workflow", "suggest", str(repo))
+        self.assertIn("workflow_candidate=qa", before.stdout)
+
+        adopted = self.write_event({"task_id": "task-qa-adopt", "event": "workflow_adopted", "status": "adopted", "date": "2026-06-10", "workflow": "qa", "summary": "qa workflow 채택"})
+        logged = self.run_cli("log", "--event", str(adopted), str(repo))
+        self.assertEqual(logged.returncode, 0, logged.stderr)
+        suppressed = self.run_cli("workflow", "suggest", str(repo))
+        self.assertNotIn("workflow_candidate=qa", suppressed.stdout)
+        self.assertIn("adopted_workflows=qa", suppressed.stdout)
+
+        with log.open("a", encoding="utf-8") as fh:
+            fh.write(qa_events(10, 3))
+        recurred = self.run_cli("workflow", "suggest", str(repo))
+        self.assertIn("workflow_candidate=qa", recurred.stdout)
+        self.assertIn("evidence_task_ids=task-qa-10,task-qa-11,task-qa-12", recurred.stdout)
 
     def test_unsafe_operations_symlink_rejected_when_supported(self):
         repo = self.tmp / "repo"

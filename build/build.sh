@@ -51,10 +51,10 @@ find "$ROOT/claude" "$ROOT/codex" -name ".DS_Store" -delete 2>/dev/null || true
 find "$ROOT/claude" "$ROOT/codex" -type d -name "__pycache__" -prune -exec rm -rf {} + 2>/dev/null || true
 
 # ── consistency guard ───────────────────────────────────────────────────────
-# Assert the version invariant promote.sh maintains: all 4 plugin.json carry the
-# same version AND it matches the CHANGELOG top entry. Catches the manual-edit
-# skew at build time instead of leaving it for a human (or another agent) to spot.
-# (tag side is promote.sh's job — kept out here so build stays git-free.)
+# Assert the release version invariant: all 4 plugin.json carry the same version
+# AND it matches the CHANGELOG top entry. Catches the manual-edit skew at build
+# time instead of leaving it for a human (or another agent) to spot.
+# (git tagging belongs to the release flow — kept out here so build stays git-free.)
 pj_ver() { perl -ne 'if(/"version"\s*:\s*"([^"]+)"/){print $1; last}' "$1"; }
 VERS="$(pj_ver "$PLAT/claude/plugin.json")
 $(pj_ver "$PLAT/codex/plugin.json")

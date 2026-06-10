@@ -1,6 +1,6 @@
 ---
 name: harness
-description: "Use for Codex harness architecture: designing, auditing, repairing, or comparing durable repo-local agent workflows with team specs, role briefs, specialist/orchestrator skills, custom agents, validation loops, benchmark packs, or multi-role handoff contracts. Korean triggers include 하네스 만들기/점검/검토/. Exclude one-off handoff document writing, skill install/update/review, standalone MCP/tool/plugin work, and local Codex update checks unless explicitly framed as harness architecture."
+description: "Use for agent harness architecture: designing, auditing, repairing, or comparing durable repo-local agent workflows with team specs, role briefs, specialist/orchestrator skills, custom agents, validation loops, benchmark packs, or multi-role handoff contracts. Korean triggers include 하네스 만들기/점검/검토. Exclude one-off handoff document writing, skill install/update/review, standalone MCP/tool/plugin work, and local runtime update checks unless explicitly framed as harness architecture."
 ---
 
 # Harness
@@ -13,9 +13,9 @@ The canonical skill tree is `.agents/skills/`, and Harness ships for both Claude
 
 ## Output Language Rule
 
-Write human-reviewable prose in generated harness artifacts in natural Korean by default, unless the user or repository explicitly requires another language. This includes `AGENTS.md`, team specs, role briefs, handoff files, benchmark descriptions, validation notes, maintenance notes, and design docs.
+Match the user's language — discovered at runtime, never assumed. Write all human-reviewable prose in generated harness artifacts in the language the user communicates in, natively (as a fluent speaker would, never translationese). This includes `AGENTS.md`, team specs, role briefs, handoff files, benchmark descriptions, validation notes, maintenance notes, and design docs. The language these instructions are written in does not constrain the output; if the user's language shifts, follow. An explicitly documented repository-level language convention outranks the session default.
 
-Keep machine-facing keys, filenames, paths, commands, code identifiers, schemas, YAML field names, and API fields in their required language. For Korean prose, prefer familiar terms such as "레포", "하네스", and "핸드오프" when they read more naturally than forced translations.
+Keep machine-facing keys, filenames, paths, commands, code identifiers, schemas, YAML field names, and API fields in their required language.
 
 ## When to Use
 
@@ -23,7 +23,7 @@ Use Harness when the user asks to:
 
 - design a reusable workflow for a repository or domain
 - create specialist skills, role briefs, team specs, or handoff conventions
-- adapt an existing workflow into Codex-discoverable repo skills
+- adapt an existing workflow into agent-discoverable repo skills
 - standardize recurring review, QA, research, experimentation, or harness-related documentation processes
 - compare a no-harness baseline against a structured harness-guided run
 - maintain or repair an existing harness that has path drift, overlapping skills, stale guidance, or missing validation
@@ -63,8 +63,10 @@ Treat this as evidence for choosing a harness architecture only. Do not turn Har
 Use the smallest discovery path:
 
 - Ask a direct clarification when one missing fact blocks a reversible change.
-- Use `grill-me` when an existing plan, design, or workflow needs decision-tree resolution.
-- Use `gstack-office-hours` when the product, problem, user, wedge, or value proposition is unclear.
+- Interview the user with focused questions when an existing plan, design, or workflow needs
+  decision-tree resolution, or when the product, problem, target user, or value proposition is
+  unclear — resolve each open branch before choosing an architecture. A dedicated interviewing
+  skill may be used when one is installed; never depend on one being available.
 
 Produce a compact Purpose Brief before choosing a harness pattern. Proceed only when the brief is clear enough to select the smallest fitting workflow.
 
@@ -321,11 +323,12 @@ Output:
 
 After validation, preserve a maintenance path:
 
-1. Record recurring failures and ambiguous triggers.
-2. Track path drift across `AGENTS.md`, `.agents/skills/`, `docs/harness/`, and `_workspace/`.
-3. Remove stale recovery logic when models or tools improve.
-4. Keep a small changelog for generated harness revisions.
-5. Update benchmarks when user goals, metrics, or accepted outputs change.
+1. When the repository has a dryforge-ops control plane (`.agents/ops/` exists), leave a concise instruction for the main agent to record the adoption through the dryforge-ops `log` mode: one `workflow_adopted`/`adopted` event whose `workflow` field names the adopted candidate, so `workflow suggest` stops re-flagging it until it recurs.
+2. Record recurring failures and ambiguous triggers.
+3. Track path drift across `AGENTS.md`, `.agents/skills/`, `docs/harness/`, and `_workspace/`.
+4. Remove stale recovery logic when models or tools improve.
+5. Keep a small changelog for generated harness revisions.
+6. Update benchmarks when user goals, metrics, or accepted outputs change.
 6. Preserve earlier useful artifacts instead of silently overwriting them.
 7. Re-run validation after each material change.
 

@@ -194,6 +194,20 @@ def run_benchmark(fixtures_dir: Path) -> list[str]:
             errors.append("workflow suggest benchmark failed")
         if "delegate_to=harness skill" not in suggest.stdout:
             errors.append("workflow suggest benchmark missing harness delegation signal")
+        adopted_event = {
+            "task_id": "task-qa-adopt",
+            "event": "workflow_adopted",
+            "status": "adopted",
+            "date": "2026-06-10",
+            "workflow": "qa",
+            "summary": "qa workflow를 harness 팀 스펙으로 채택",
+        }
+        event_path = root / "adopted-event.json"
+        event_path.write_text(json.dumps(adopted_event, ensure_ascii=False) + "\n", encoding="utf-8")
+        logged = run_cli(script, "log", "--event", str(event_path), str(repo))
+        after = run_cli(script, "workflow", "suggest", str(repo))
+        if logged.returncode != 0 or "workflow_candidate=qa" in after.stdout or "adopted_workflows=qa" not in after.stdout:
+            errors.append("workflow adopted suppression benchmark failed")
     return errors
 
 

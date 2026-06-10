@@ -18,8 +18,8 @@
       "assertion": "handoff path escaping the repo is rejected"
     },
     {
-      "name": "workflow-suggest-apply-validate",
-      "assertion": "repeated task ids produce a workflow suggestion, apply creates non-overwriting .agents workflow artifacts, and validate accepts them"
+      "name": "workflow-suggest-adoption-flywheel",
+      "assertion": "repeated task ids produce a workflow suggestion with harness delegation, and a workflow_adopted log event suppresses the candidate until new repetition accumulates"
     }
   ]
 }

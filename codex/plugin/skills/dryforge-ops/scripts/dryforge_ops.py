@@ -53,6 +53,8 @@ RUNTIME_RISK_RE = re.compile(
 )
 EVIDENCE_SCHEMA_VERSION = "dryforge-ops.evidence.v1"
 LEDGER_SCHEMA_VERSION = "dryforge-ops.ledger.v1"
+WORKFLOW_ADOPTED_EVENT = "workflow_adopted"
+REQUIRED_EVENT_FIELDS = ("task_id", "event", "status", "date", "summary")
 
 
 class BridgeError(Exception):
@@ -993,6 +995,59 @@ def run_after_go(repo: Path, args: argparse.Namespace) -> tuple[int, dict[str, A
     }
 
 
+def load_event_payload(raw: str, source: str) -> dict[str, Any]:
+    try:
+        data = json.loads(raw)
+    except json.JSONDecodeError as exc:
+        raise BridgeError(f"event JSON is invalid: {source} line {exc.lineno}: {exc.msg}")
+    if not isinstance(data, dict):
+        raise BridgeError(f"event JSON must be a single object: {source}")
+    return data
+
+
+def run_ops_log(repo: Path, args: argparse.Namespace) -> tuple[int, dict[str, Any]]:
+    ops_dir = repo / OPS_DIR_REL
+    if not ops_dir.is_dir():
+        raise BridgeError(
+            f"{OPS_DIR_REL.as_posix()} is missing: log only appends into an existing ops plane; run assess and after-ready first"
+        )
+    if args.event == "-":
+        event = load_event_payload(sys.stdin.read(), "stdin")
+    else:
+        event_path = Path(args.event)
+        if not event_path.is_file():
+            raise BridgeError(f"event file not found: {args.event}")
+        event = load_event_payload(event_path.read_text(encoding="utf-8"), args.event)
+    event.setdefault("date", args.date or today_iso())
+    event.setdefault("task_id", args.task_id or default_task_id(str(event["date"]), "ops-log"))
+    if args.idempotency_key:
+        event["idempotency_key"] = args.idempotency_key
+    missing = [field for field in REQUIRED_EVENT_FIELDS if not str(event.get(field) or "").strip()]
+    if missing:
+        raise BridgeError(f"event is missing required fields: {', '.join(missing)}")
+    commands: list[dict[str, Any]] = []
+    manual: list[str] = []
+    merge_evidence_from_json(event, "ops-log-event", commands, manual)
+    failed = [cmd for cmd in commands if cmd.get("exit_code") != 0]
+    if (str(event.get("event")), str(event.get("status"))) == ("completed", "completed") and (failed or not (commands or manual)):
+        raise BridgeError(
+            "completed/completed refused: the event needs command evidence with exit code 0 or explicit manual_evidence"
+        )
+    require_summary(repo)
+    dryforge = detect_dryforge(repo)
+    append_result = append_event(repo, event, dry_run=args.dry_run)
+    summary_result = update_operations_summary(
+        repo, dryforge, recent_verification_label({"commands": commands, "manual_evidence": manual}), dry_run=args.dry_run
+    )
+    return EXIT_OK, {
+        "mode": "log",
+        "event": event,
+        "append": dataclasses.asdict(append_result),
+        "summary": dataclasses.asdict(summary_result),
+        "dry_run": args.dry_run,
+    }
+
+
 def render_dashboard(repo: Path, args: argparse.Namespace) -> tuple[int, dict[str, Any]]:
     repo_ops = detect_repo_ops(repo)
     summary_path = repo / OPS_SUMMARY_REL
@@ -1074,10 +1129,19 @@ def slugify_domain(value: str) -> str:
 
 def suggest_harness(repo: Path, args: argparse.Namespace) -> tuple[int, dict[str, Any]]:
     repo_ops = detect_repo_ops(repo)
+    events = combined_task_events(repo_ops)
+    adopted_at: dict[str, int] = {}
+    for idx, event in enumerate(events):
+        if str(event.get("event")) == WORKFLOW_ADOPTED_EVENT:
+            adopted_at[slugify_domain(str(event.get("workflow") or event.get("type") or "general"))] = idx
     counts: Counter[str] = Counter()
     evidence: defaultdict[str, list[str]] = defaultdict(list)
-    for event in combined_task_events(repo_ops):
+    for idx, event in enumerate(events):
+        if str(event.get("event")) == WORKFLOW_ADOPTED_EVENT:
+            continue
         candidate = slugify_domain(str(event.get("type") or "general"))
+        if idx <= adopted_at.get(candidate, -1):
+            continue
         counts[candidate] += 1
         if len(evidence[candidate]) < 5:
             evidence[candidate].append(str(event.get("task_id") or event.get("idempotency_key") or "unknown"))
@@ -1094,6 +1158,7 @@ def suggest_harness(repo: Path, args: argparse.Namespace) -> tuple[int, dict[str
     return EXIT_OK, {
         "mode": "workflow-suggest",
         "candidates": candidates,
+        "adopted_workflows": sorted(adopted_at),
         "delegate_to": "harness skill",
         "legacy_sources": [item.path for item in repo_ops.legacy_task_logs if item.state == "valid"],
     }
@@ -1137,14 +1202,18 @@ def to_plain_lines(payload: dict[str, Any]) -> str:
         return "\n".join(lines)
     if mode == "workflow-suggest":
         candidates = payload.get("candidates") or []
-        if not candidates:
-            return "workflow_candidate=none"
+        adopted = payload.get("adopted_workflows") or []
         lines: list[str] = []
+        if not candidates:
+            lines.append("workflow_candidate=none")
         for item in candidates:
             lines.append(f"workflow_candidate={item['workflow_candidate']}")
             lines.append(f"confidence={item['confidence']}")
             lines.append(f"evidence_task_ids={','.join(item['evidence_task_ids'])}")
-        lines.append("delegate_to=harness skill (design the reusable workflow there)")
+        if adopted:
+            lines.append(f"adopted_workflows={','.join(adopted)}")
+        if candidates:
+            lines.append("delegate_to=harness skill (design the reusable workflow there)")
         return "\n".join(lines)
     if "event" in payload:
         event = payload["event"]
@@ -1183,6 +1252,10 @@ def build_product_parser() -> argparse.ArgumentParser:
     handoff = sub.add_parser("handoff")
     handoff.add_argument("handoff", nargs="?")
     add_common_options(handoff)
+    log_parser = sub.add_parser("log")
+    log_parser.add_argument("--event", required=True, help="path to one JSON event object, or '-' to read stdin")
+    log_parser.add_argument("--idempotency-key", dest="idempotency_key")
+    add_common_options(log_parser)
     workflow = sub.add_parser("workflow")
     wf_sub = workflow.add_subparsers(dest="workflow_command", required=True)
     suggest = wf_sub.add_parser("suggest")
@@ -1213,6 +1286,8 @@ def dispatch(repo: Path, args: argparse.Namespace) -> tuple[int, dict[str, Any]]
         return render_dashboard(repo, args)
     if command == "handoff":
         return create_handoff(repo, args)
+    if command == "log":
+        return run_ops_log(repo, args)
     if command == "workflow" and args.workflow_command == "suggest":
         return suggest_harness(repo, args)
     raise BridgeError("no mode selected", EXIT_ERROR)
