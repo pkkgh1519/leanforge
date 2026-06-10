@@ -6,14 +6,13 @@
 
 # dryforge
 
-### Intent in. _Verified software out._
+### A _plugin harness_ for Claude Code & Codex.
 
-A **plugin harness** for Claude Code & Codex.
+Your agent works like a **senior developer.**
 
-**Elicits until nothing is assumed — the decisions you never stated, found and asked.**<br/>
-**Floor, not ceiling: a better model means a better result.**<br/>
-**Memory that outlives the session — decisions and rationale, kept in the project's document system.**<br/>
-**Completion is evidence — exit codes and live responses, never "looks done".**
+**Zero-ceiling architecture, uncapped reasoning.**<br/>
+**Exhaustive elicitation, lossless intent.**<br/>
+**Bounded autonomy, zero-drift execution.**
 
 [Website](https://dryforge.vercel.app) · [한국어](https://github.com/fn-opt/dryforge/blob/main/README_KO.md)
 
