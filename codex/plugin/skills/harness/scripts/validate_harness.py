@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate generated Codex harness artifacts.
+"""Validate harness skill and generated harness artifacts.
 
 This script is intentionally lightweight: it checks structural contracts,
 frontmatter, link safety, optional custom-agent fields, and brittle runtime
@@ -54,6 +54,15 @@ CUSTOM_AGENT_REQUIRED_FIELDS = {"name", "description", "developer_instructions"}
 TRIGGERISH_DESCRIPTION_RE = re.compile(r"^(Use when|Use for|Use this when|Use this skill when)\b", re.IGNORECASE)
 REFERENCE_DIRECTORY_TARGETS = {"references", "references/"}
 TRAILING_REFERENCE_CHARS = (".", ",", ";", ":", "`", "\"", "'")
+CANONICAL_HARNESS_DIR = Path("src") / "skills" / "harness"
+CLAUDE_HARNESS_DIR = Path("claude") / "skills" / "harness"
+CODEX_HARNESS_DIR = Path("codex") / "plugin" / "skills" / "harness"
+CODEX_HARNESS_OVERLAY_DIR = Path("platform") / "codex" / "skills" / "harness"
+CODEX_ALLOWED_EXTRA_FILES = {"agents/openai.yaml"}
+CLAUDE_FRONTMATTER_INJECTION = {
+    "disable-model-invocation": "true",
+    "allowed-tools": "Read, Edit, Write, Bash, Grep, Glob, Agent, AskUserQuestion",
+}
 
 
 @dataclass(frozen=True)
@@ -185,6 +194,12 @@ def validate_skill_file(root: Path, path: Path) -> list[Issue]:
     issues.extend(validate_references_dir(root, path))
     issues.extend(validate_reference_links(root, path, text))
     return issues
+
+
+def split_issues(issues: list[Issue]) -> tuple[list[Issue], list[Issue]]:
+    errors = [issue for issue in issues if issue.severity == "error"]
+    warnings = [issue for issue in issues if issue.severity == "warning"]
+    return errors, warnings
 
 
 def validate_references_dir(root: Path, skill_path: Path) -> list[Issue]:
@@ -401,8 +416,12 @@ def files_to_scan(root: Path) -> Iterable[Path]:
 
 
 def validate_banned_patterns(root: Path) -> list[Issue]:
+    return validate_banned_patterns_in_files(root, files_to_scan(root))
+
+
+def validate_banned_patterns_in_files(root: Path, paths: Iterable[Path]) -> list[Issue]:
     issues: list[Issue] = []
-    for path in files_to_scan(root):
+    for path in paths:
         text = read_text(path)
         relative = relpath(path, root)
         if any(pattern.search(text) for pattern in FIXED_MODEL_PATTERNS):
@@ -453,6 +472,219 @@ def validate_agents_md(root: Path) -> list[Issue]:
     return []
 
 
+def safe_files_under(directory: Path, root: Path) -> dict[str, Path]:
+    if not is_safe_repo_dir(directory, root):
+        return {}
+    files: dict[str, Path] = {}
+    for path in sorted(directory.rglob("*")):
+        if "__pycache__" in path.parts:
+            continue
+        if is_safe_repo_file(path, root):
+            files[path.relative_to(directory).as_posix()] = path
+    return files
+
+
+def strip_frontmatter_fields(text: str, fields: set[str]) -> str:
+    lines = text.splitlines(keepends=True)
+    if not lines or lines[0].strip() != "---":
+        return text
+    for index in range(1, len(lines)):
+        if lines[index].strip() != "---":
+            continue
+        filtered = [lines[0]]
+        for line in lines[1:index]:
+            key = line.split(":", 1)[0].strip() if ":" in line else ""
+            if key not in fields:
+                filtered.append(line)
+        filtered.extend(lines[index:])
+        return "".join(filtered)
+    return text
+
+
+def validate_skill_dir(skill_dir: Path) -> tuple[list[Issue], list[Issue]]:
+    skill_dir = skill_dir.resolve(strict=False)
+    root = skill_dir
+    issues: list[Issue] = []
+    if not is_safe_repo_dir(skill_dir, root):
+        issues.append(Issue("error", "skill-dir-missing", relpath(skill_dir, root), "skill directory does not exist"))
+        return split_issues(issues)
+
+    skill_file = skill_dir / "SKILL.md"
+    if not is_safe_repo_file(skill_file, root):
+        issues.append(Issue("error", "skill-file-missing", "SKILL.md", "skill directory is missing SKILL.md"))
+    else:
+        issues.extend(validate_skill_file(root, skill_file))
+
+    scan_paths: list[Path] = []
+    if is_safe_repo_file(skill_file, root):
+        scan_paths.append(skill_file)
+    scan_paths.extend(safe_markdown_files_under(skill_dir / "references", root))
+    issues.extend(validate_banned_patterns_in_files(root, scan_paths))
+    return split_issues(issues)
+
+
+def validate_required_file(root: Path, path: Path, code: str, message: str) -> list[Issue]:
+    if is_safe_repo_file(path, root):
+        return []
+    return [Issue("error", code, relpath(path, root), message)]
+
+
+def compare_skill_dirs(
+    root: Path,
+    source_dir: Path,
+    generated_dir: Path,
+    label: str,
+    allowed_extra_files: set[str] | None = None,
+    overlay_dir: Path | None = None,
+    frontmatter_injection: dict[str, str] | None = None,
+) -> list[Issue]:
+    issues: list[Issue] = []
+    allowed_extra_files = allowed_extra_files or set()
+
+    if not is_safe_repo_dir(generated_dir, root):
+        return [
+            Issue(
+                "error",
+                "harness-generated-missing",
+                relpath(generated_dir, root),
+                f"missing generated {label} harness skill directory",
+            )
+        ]
+
+    source_files = safe_files_under(source_dir, root)
+    generated_files = safe_files_under(generated_dir, root)
+    source_keys = set(source_files)
+    generated_keys = set(generated_files)
+
+    for relative in sorted(source_keys - generated_keys):
+        issues.append(
+            Issue(
+                "error",
+                "harness-generated-missing",
+                relpath(generated_dir / relative, root),
+                f"generated {label} harness is missing canonical file: {relative}",
+            )
+        )
+
+    for relative in sorted(generated_keys - source_keys):
+        if relative not in allowed_extra_files:
+            issues.append(
+                Issue(
+                    "error",
+                    "harness-generated-extra",
+                    relpath(generated_files[relative], root),
+                    f"generated {label} harness has unexpected extra file: {relative}",
+                )
+            )
+            continue
+        if overlay_dir is None:
+            continue
+        overlay_path = overlay_dir / relative
+        if not is_safe_repo_file(overlay_path, root):
+            issues.append(
+                Issue(
+                    "error",
+                    "harness-overlay-missing",
+                    relpath(overlay_path, root),
+                    f"missing declared {label} overlay file: {relative}",
+                )
+            )
+        elif generated_files[relative].read_bytes() != overlay_path.read_bytes():
+            issues.append(
+                Issue(
+                    "error",
+                    "harness-overlay-drift",
+                    relpath(generated_files[relative], root),
+                    f"generated {label} overlay differs from declared platform overlay: {relative}",
+                )
+            )
+
+    if frontmatter_injection and "SKILL.md" in generated_files:
+        frontmatter, error = parse_frontmatter(read_text(generated_files["SKILL.md"]))
+        if error:
+            issues.append(
+                Issue(
+                    "error",
+                    "harness-generated-frontmatter-invalid",
+                    relpath(generated_files["SKILL.md"], root),
+                    f"generated {label} SKILL.md frontmatter could not be parsed",
+                )
+            )
+        else:
+            for key, expected in frontmatter_injection.items():
+                if frontmatter.get(key) != expected:
+                    issues.append(
+                        Issue(
+                            "error",
+                            "harness-generated-frontmatter-drift",
+                            relpath(generated_files["SKILL.md"], root),
+                            f"generated {label} SKILL.md is missing expected frontmatter field: {key}",
+                        )
+                    )
+
+    for relative in sorted(source_keys & generated_keys):
+        if frontmatter_injection and relative == "SKILL.md":
+            source_text = read_text(source_files[relative])
+            generated_text = strip_frontmatter_fields(read_text(generated_files[relative]), set(frontmatter_injection))
+            matches = source_text == generated_text
+        else:
+            matches = source_files[relative].read_bytes() == generated_files[relative].read_bytes()
+        if not matches:
+            issues.append(
+                Issue(
+                    "error",
+                    "harness-generated-drift",
+                    relpath(generated_files[relative], root),
+                    f"generated {label} harness differs from canonical file: {relative}",
+                )
+            )
+    return issues
+
+
+def validate_harness_install(root: Path) -> tuple[list[Issue], list[Issue]]:
+    root = root.resolve(strict=False)
+    issues: list[Issue] = []
+    if not root.exists() or not root.is_dir():
+        issues.append(Issue("error", "repo-not-found", relpath(root, root), "target repository path does not exist"))
+        return split_issues(issues)
+
+    source_dir = root / CANONICAL_HARNESS_DIR
+    if not is_safe_repo_dir(source_dir, root):
+        issues.append(
+            Issue(
+                "error",
+                "harness-source-missing",
+                relpath(source_dir, root),
+                "missing canonical src/skills/harness directory",
+            )
+        )
+        return split_issues(issues)
+
+    source_errors, source_warnings = validate_skill_dir(source_dir)
+    issues.extend(Issue(issue.severity, issue.code, f"{CANONICAL_HARNESS_DIR.as_posix()}/{issue.path}", issue.message) for issue in source_errors)
+    issues.extend(Issue(issue.severity, issue.code, f"{CANONICAL_HARNESS_DIR.as_posix()}/{issue.path}", issue.message) for issue in source_warnings)
+    issues.extend(
+        validate_required_file(
+            root,
+            source_dir / "scripts" / "validate_harness.py",
+            "harness-validator-missing",
+            "canonical harness skill is missing scripts/validate_harness.py",
+        )
+    )
+    issues.extend(compare_skill_dirs(root, source_dir, root / CLAUDE_HARNESS_DIR, "Claude", frontmatter_injection=CLAUDE_FRONTMATTER_INJECTION))
+    issues.extend(
+        compare_skill_dirs(
+            root,
+            source_dir,
+            root / CODEX_HARNESS_DIR,
+            "Codex",
+            allowed_extra_files=CODEX_ALLOWED_EXTRA_FILES,
+            overlay_dir=root / CODEX_HARNESS_OVERLAY_DIR,
+        )
+    )
+    return split_issues(issues)
+
+
 def validate(root: Path) -> tuple[list[Issue], list[Issue]]:
     root = root.resolve()
     issues: list[Issue] = []
@@ -468,9 +700,7 @@ def validate(root: Path) -> tuple[list[Issue], list[Issue]]:
     issues.extend(validate_banned_patterns(root))
     issues.extend(validate_agents_md(root))
 
-    errors = [issue for issue in issues if issue.severity == "error"]
-    warnings = [issue for issue in issues if issue.severity == "warning"]
-    return errors, warnings
+    return split_issues(issues)
 
 
 def render_text(status: str, errors: list[Issue], warnings: list[Issue]) -> str:
@@ -481,12 +711,25 @@ def render_text(status: str, errors: list[Issue], warnings: list[Issue]) -> str:
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Validate generated Codex harness artifacts.")
-    parser.add_argument("repo", type=Path, help="Repository root containing generated harness artifacts.")
+    parser = argparse.ArgumentParser(description="Validate harness skill and generated harness artifacts.")
+    parser.add_argument("repo", nargs="?", type=Path, default=Path("."), help="Repository root containing generated harness artifacts.")
     parser.add_argument("--json", action="store_true", help="Emit machine-readable JSON.")
+    parser.add_argument("--skill-dir", type=Path, help="Validate one standalone skill directory.")
+    parser.add_argument("--install-check", action="store_true", help="Validate this plugin's canonical harness source and generated platform copies.")
     args = parser.parse_args(argv)
 
-    errors, warnings = validate(args.repo)
+    if args.skill_dir and args.install_check:
+        parser.error("--skill-dir and --install-check cannot be used together")
+
+    if args.skill_dir:
+        errors, warnings = validate_skill_dir(args.skill_dir)
+    elif args.install_check:
+        repo_errors, repo_warnings = validate(args.repo)
+        install_errors, install_warnings = validate_harness_install(args.repo)
+        errors = [*repo_errors, *install_errors]
+        warnings = [*repo_warnings, *install_warnings]
+    else:
+        errors, warnings = validate(args.repo)
     status = "fail" if errors else "ok"
 
     if args.json:

@@ -1,6 +1,8 @@
 ---
 name: harness
 description: "Use for Codex harness architecture: designing, auditing, repairing, or comparing durable repo-local agent workflows with team specs, role briefs, specialist/orchestrator skills, custom agents, validation loops, benchmark packs, or multi-role handoff contracts. Korean triggers include 하네스 만들기/점검/검토/. Exclude one-off handoff document writing, skill install/update/review, standalone MCP/tool/plugin work, and local Codex update checks unless explicitly framed as harness architecture."
+disable-model-invocation: true
+allowed-tools: Read, Edit, Write, Bash, Grep, Glob, Agent, AskUserQuestion
 ---
 
 # Harness

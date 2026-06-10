@@ -17,12 +17,11 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 SRC="$ROOT/src/skills"
 PLAT="$ROOT/platform"
 
-# Per-skill allowed-tools for the Claude build. All three add Agent: ready dispatches the
-# intent-completeness + 3-doc-gate subagents, go dispatches implementers/reviewers, and migration
-# dispatches the final independent harness REVIEW subagent. bash 3.2 — no assoc arrays.
+# Per-skill allowed-tools for the Claude build. These skills perform file edits,
+# shell validation, and/or subagent dispatch. bash 3.2 — no assoc arrays.
 claude_tools() {
   case "$1" in
-    migration|ready|go) echo "Read, Edit, Write, Bash, Grep, Glob, Agent, AskUserQuestion" ;;
+    migration|ready|go|harness) echo "Read, Edit, Write, Bash, Grep, Glob, Agent, AskUserQuestion" ;;
   esac
 }
 
@@ -31,7 +30,7 @@ echo "=== build: claude ==="
 rm -rf "$ROOT/claude"
 mkdir -p "$ROOT/claude/.claude-plugin"
 cp -R "$SRC" "$ROOT/claude/skills"
-for s in ready go migration; do
+for s in ready go migration harness; do
   INJECT=$'disable-model-invocation: true\nallowed-tools: '"$(claude_tools "$s")" \
     perl -0777 -i -pe 'BEGIN{$j=$ENV{INJECT}} s/\A(---\r?\n.*?\r?\n)---\r?\n/$1$j\n---\n/s' \
     "$ROOT/claude/skills/$s/SKILL.md"
