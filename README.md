@@ -6,13 +6,15 @@
 
 # dryforge
 
-### A _plugin harness_ for Claude Code & Codex.
+### Intent-to-implementation for Claude Code & Codex.
 
-Your agent works like a **senior developer.**
+dryforge is a **multi-platform plugin harness**: it turns vague input into a
+reviewed 3-doc, executes it with evidence gates, and leaves durable project
+memory behind.
 
-**Zero-ceiling architecture, uncapped reasoning.**<br/>
-**Exhaustive elicitation, lossless intent.**<br/>
-**Bounded autonomy, zero-drift execution.**
+**Intent elicitation before implementation.**<br/>
+**Dependency-aware parallel execution with right-sized review.**<br/>
+**Project memory that future agents read first.**
 
 [Website](https://dryforge.vercel.app) · [한국어](https://github.com/fn-opt/dryforge/blob/main/README_KO.md)
 
@@ -33,6 +35,8 @@ codex plugin add dryforge@dryforge
 ```
 
 <sub>Requires `git` and Claude Code or Codex.</sub>
+
+<sub>Installs `/dryforge:ready`, `/dryforge:go`, `/dryforge:migration`, plus the bundled `harness` and `dryforge-ops` support skills.</sub>
 
 ---
 
@@ -83,6 +87,17 @@ rationale **at the path every future session reads first**.
 | `/dryforge:ready` | anything — one line to full documents | a reviewed, executable design contract |
 | `/dryforge:go` | the approved contract | verified code + the project harness |
 | `/dryforge:migration` | an existing codebase | the project harness (one-time) |
+
+The public lifecycle stays deliberately small. This repository also bundles
+two support skills:
+
+- **`harness`** — designs, audits, repairs, and validates durable
+  repo-local agent workflows: team specs, role briefs, specialist skills,
+  custom-agent helpers, validation loops, and benchmark packs.
+- **`dryforge-ops`** — syncs `ready` / `go` / `migration` outcomes into
+  `.agents/ops`: task logs, ledgers, evidence JSON, dashboard material,
+  handoffs, and repeatable workflow candidates. It records the control plane;
+  it does not reimplement execution.
 
 ---
 
@@ -166,6 +181,12 @@ run before it starts.
 When everything passes, `/go` writes or updates the project harness,
 runs one final independent review across the full change, and archives
 the design contract.
+
+If the target repository already has a `.agents/ops/` plane, `/go` can hand
+the completed `.dryforge/NNN/` archive to `dryforge-ops after-go` so the
+cycle's command evidence is normalized into an operations ledger, task log,
+and evidence file. If that plane does not exist, `/go` skips the sync instead
+of creating a second control system.
 
 ---
 
@@ -300,8 +321,12 @@ what each one trusts.
 - **Explicit invocation only.** The three commands never auto-trigger.
   Nothing runs unless you call it.
 - **One source, two platforms.** Claude Code and Codex artifacts build
-  from a single platform-neutral source; releases are verified for
-  parity between the two.
+  from the canonical `src/skills/` tree into committed `claude/` and
+  `codex/plugin/` bundles. The build checks plugin version parity and shared
+  reference-file parity before release.
+- **Bundled support, not another lifecycle.** `harness` and `dryforge-ops`
+  extend the operating surface around dryforge; `ready`, `go`, and
+  `migration` remain the lifecycle center.
 - **Requirements.** `git`, and Claude Code or Codex.
 
 ---
