@@ -17,7 +17,7 @@ memory behind — plus bundled support skills for workflow design and operations
 **Project memory that future agents read first.**<br/>
 **Operations sync & durable cycle ledger.**
 
-[Website](https://dryforge.vercel.app) · [한국어](https://github.com/fn-opt/dryforge/blob/main/README_KO.md)
+[Website](https://dryforge.vercel.app) · [한국어](https://github.com/pkkgh1519/dryforge-ops/blob/main/README_KO.md)
 
 </div>
 
