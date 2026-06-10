@@ -107,6 +107,7 @@ class RepoOpsState:
     dashboard: str
     legacy_summaries: list[str]
     legacy_task_logs: list[JsonlParseResult]
+    ledger_entries: list[dict[str, Any]] = dataclasses.field(default_factory=list)
 
 
 @dataclasses.dataclass
@@ -364,6 +365,12 @@ def detect_repo_ops(repo: Path) -> RepoOpsState:
                 legacy_summaries.append(rel(repo, path))
             except BridgeError:
                 legacy_summaries.append(f"unreadable:{legacy_rel.as_posix()}")
+    ledger_entries: list[dict[str, Any]] = []
+    if ledger_path.exists():
+        try:
+            ledger_entries = [e for e in parse_ledger(repo).get("entries", []) if isinstance(e, dict)]
+        except BridgeError:
+            ledger_entries = []
     return RepoOpsState(
         summary="present" if summary_path.exists() else "missing",
         task_log=parse_task_log(repo),
@@ -372,6 +379,7 @@ def detect_repo_ops(repo: Path) -> RepoOpsState:
         dashboard="present" if dashboard_path.exists() else "missing",
         legacy_summaries=legacy_summaries,
         legacy_task_logs=parse_legacy_task_logs(repo),
+        ledger_entries=ledger_entries,
     )
 
 
@@ -722,7 +730,17 @@ def update_ledger_index(repo: Path, entry: dict[str, Any], *, dry_run: bool) -> 
     return WriteResult(path=rel(repo, path), written=True, reason="updated" if replaced else "created")
 
 
+def open_ledger_entries(repo_ops: RepoOpsState) -> list[dict[str, Any]]:
+    return [e for e in repo_ops.ledger_entries if not e.get("completion_allowed", True) or e.get("blockers")]
+
+
 def recommend_next(dryforge: DryforgeState, repo_ops: RepoOpsState) -> str:
+    open_entries = open_ledger_entries(repo_ops)
+    if open_entries:
+        latest = open_entries[-1]
+        task = latest.get("task_id") or latest.get("archive") or "the last recorded cycle"
+        reason = ", ".join(str(b) for b in latest.get("blockers") or []) or "completion not allowed"
+        return f"resolve the open operations entry for {task} ({reason}) before the next dryforge cycle"
     if dryforge.active:
         return "run after-ready, then dryforge go"
     if dryforge.latest_archive:
@@ -1061,18 +1079,26 @@ def render_dashboard(repo: Path, args: argparse.Namespace) -> tuple[int, dict[st
     )
     if not rows:
         rows = "<tr><td colspan='5'>No task-log events recorded.</td></tr>"
+    ledger_rows = "\n".join(
+        f"<tr><td>{html.escape(str(e.get('date','')))}</td><td>{html.escape(str(e.get('task_id','')))}</td><td>{html.escape(str(e.get('status','')))}</td><td>{'yes' if e.get('completion_allowed') else 'no'}</td><td>{html.escape(', '.join(str(b) for b in e.get('blockers') or []) or '-')}</td><td>{html.escape(str(e.get('archive','') or '-'))}</td></tr>"
+        for e in repo_ops.ledger_entries[-20:]
+    )
+    if not ledger_rows:
+        ledger_rows = "<tr><td colspan='6'>No ledger entries recorded.</td></tr>"
     blockers = [e for e in repo_ops.task_log.events if e.get("status") == "blocked" or e.get("event") == "blocked"]
+    open_ledger = len(open_ledger_entries(repo_ops))
     content = f"""<!doctype html>
 <html lang="ko">
 <meta charset="utf-8">
 <title>Dryforge Ops Dashboard</title>
 <style>body{{font-family:system-ui,sans-serif;margin:32px;line-height:1.5;color:#111827}}.card{{border:1px solid #e5e7eb;border-radius:12px;padding:16px;margin:16px 0;background:#fff}}table{{border-collapse:collapse;width:100%}}td,th{{border:1px solid #e5e7eb;padding:8px;vertical-align:top}}th{{background:#f9fafb;text-align:left}}.badge{{display:inline-block;border-radius:999px;padding:2px 10px;background:#eef2ff}}pre{{white-space:pre-wrap;background:#f9fafb;border:1px solid #e5e7eb;padding:12px;border-radius:8px}}</style>
 <h1>Dryforge Ops Dashboard</h1>
-<div class="card"><strong>Current status</strong><br><span class="badge">events: {len(repo_ops.task_log.events)}</span> <span class="badge">blocked: {len(blockers)}</span> <span class="badge">ledger: {html.escape(repo_ops.ledger)}</span></div>
+<div class="card"><strong>Current status</strong><br><span class="badge">events: {len(repo_ops.task_log.events)}</span> <span class="badge">blocked: {len(blockers)}</span> <span class="badge">ledger: {html.escape(repo_ops.ledger)}</span> <span class="badge">open cycles: {open_ledger}</span></div>
 <div class="card"><h2>Recommended next action</h2><p>{html.escape(recommend_next(detect_dryforge(repo), repo_ops))}</p></div>
+<div class="card"><h2>Cycle ledger</h2><table><thead><tr><th>Date</th><th>Task</th><th>Status</th><th>Completion allowed</th><th>Blockers</th><th>Archive</th></tr></thead><tbody>{ledger_rows}</tbody></table></div>
 <div class="card"><h2>Recent events</h2><table><thead><tr><th>Date</th><th>Event</th><th>Status</th><th>Task</th><th>Summary</th></tr></thead><tbody>{rows}</tbody></table></div>
 <div class="card"><h2>Summary preview</h2><pre>{html.escape(summary_preview or 'No .agents/ops/operations.md yet.')}</pre></div>
-<p>Source: {html.escape(OPS_SUMMARY_REL.as_posix())}, {html.escape(TASK_LOG_REL.as_posix())}</p>
+<p>Source: {html.escape(OPS_SUMMARY_REL.as_posix())}, {html.escape(TASK_LOG_REL.as_posix())}, {html.escape(LEDGER_REL.as_posix())}</p>
 </html>
 """
     dashboard = repo / DASHBOARD_REL
@@ -1195,6 +1221,7 @@ def to_plain_lines(payload: dict[str, Any]) -> str:
             f"latest_archive={dryforge.get('latest_archive') or 'missing'}",
             f"repo_ops_summary={repo_ops.get('summary', 'unknown')}",
             f"task_log={repo_ops.get('task_log', {}).get('state', 'unknown')}",
+            f"ledger_open={sum(1 for e in repo_ops.get('ledger_entries', []) if not e.get('completion_allowed', True) or e.get('blockers'))}",
             f"recommendation={payload.get('recommendation')}",
         ]
         if repo_ops.get("task_log", {}).get("error"):

@@ -33,10 +33,11 @@ add new modes to `build_product_parser` only.
 
 ## Product lifecycle modes
 
-- `doctor` reports lifecycle health as `ok`, `warn`, or `blocked` and includes `recommended_next_action`.
+- `doctor` reports lifecycle health as `ok`, `warn`, or `blocked` and includes `recommended_next_action`. The recommendation is ledger-aware: when the ledger holds an open cycle (an entry that is incomplete or carries blockers), it points at that cycle before suggesting the next lifecycle step.
 - `preflight` detects blocked operations state and live/runtime risk before dryforge `go`.
 - `before-go` records a preflight event for active 3-docs without running dryforge.
 - `after-go` normalizes evidence, writes `.agents/ops/evidence/<task_id>.evidence.json`, updates `.agents/ops/ledger.json`, and appends the task-log event idempotently.
+- `dashboard` renders a read-only HTML dashboard from the task log and ledger — a cycle-ledger roll-up, the open-cycle count, recent events, and the recommended next action; it never overwrites an existing dashboard and writes a `.proposed` copy instead.
 - `log` appends one caller-provided ad-hoc event into an existing ops plane with the same JSONL, idempotency, and evidence gates; it never bootstraps `.agents/ops/` and never accepts `completed/completed` without exit-0 command evidence or explicit manual evidence.
 - `workflow suggest` groups completed task-log events by `type`, emits repeated-evidence `task_id` values for candidates, and prints `delegate_to=harness skill` so reusable workflow design is handed to the harness skill. Candidates recorded as `workflow_adopted` are suppressed until new events accumulate after the adoption.
 

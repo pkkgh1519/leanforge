@@ -350,6 +350,60 @@ class BridgeCliTests(unittest.TestCase):
         self.assertIn("workflow_candidate=qa", recurred.stdout)
         self.assertIn("evidence_task_ids=task-qa-10,task-qa-11,task-qa-12", recurred.stdout)
 
+    def write_ledger(self, repo, entries):
+        ledger = repo / ".agents" / "ops" / "ledger.json"
+        ledger.write_text(json.dumps({"schema_version": "dryforge-ops.ledger.v1", "entries": entries}, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        return ledger
+
+    def test_recommendation_points_to_open_ledger_entry(self):
+        repo = self.tmp / "repo"
+        repo.mkdir()
+        self.init_ops(repo)
+        self.write_ledger(repo, [
+            {"task_id": "task-2026-06-10-dryforge-go", "event": "needs_review", "status": "needs_review", "date": "2026-06-10", "archive": ".dryforge/001", "completion_allowed": False, "blockers": ["missing_verification_evidence"], "summary": "검토 필요"},
+        ])
+        proc = self.run_cli("assess", str(repo))
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertIn("ledger_open=1", proc.stdout)
+        self.assertIn("task-2026-06-10-dryforge-go", proc.stdout)
+        self.assertIn("missing_verification_evidence", proc.stdout)
+
+    def test_recommendation_ignores_resolved_ledger_entries(self):
+        repo = self.tmp / "repo"
+        repo.mkdir()
+        self.init_ops(repo)
+        self.write_ledger(repo, [
+            {"task_id": "task-done", "event": "completed", "status": "completed", "date": "2026-06-10", "archive": ".dryforge/001", "completion_allowed": True, "blockers": [], "summary": "완료"},
+        ])
+        proc = self.run_cli("assess", str(repo))
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertIn("ledger_open=0", proc.stdout)
+        self.assertIn("recommendation=run dryforge ready before syncing", proc.stdout)
+
+    def test_dashboard_renders_ledger_entries(self):
+        repo = self.tmp / "repo"
+        repo.mkdir()
+        self.init_ops(repo)
+        self.write_ledger(repo, [
+            {"task_id": "task-led-1", "event": "needs_review", "status": "needs_review", "date": "2026-06-10", "archive": ".dryforge/002", "completion_allowed": False, "blockers": ["failed_command_evidence"], "summary": "리뷰"},
+        ])
+        proc = self.run_cli("dashboard", str(repo))
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        dashboard_html = (repo / ".agents" / "ops" / "dashboard.html").read_text(encoding="utf-8")
+        self.assertIn("Cycle ledger", dashboard_html)
+        self.assertIn("task-led-1", dashboard_html)
+        self.assertIn("failed_command_evidence", dashboard_html)
+        self.assertIn("open cycles: 1", dashboard_html)
+
+    def test_corrupt_ledger_does_not_break_assess(self):
+        repo = self.tmp / "repo"
+        repo.mkdir()
+        self.init_ops(repo)
+        (repo / ".agents" / "ops" / "ledger.json").write_text("{bad json\n", encoding="utf-8")
+        proc = self.run_cli("assess", str(repo))
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertIn("ledger_open=0", proc.stdout)
+
     def test_unsafe_operations_symlink_rejected_when_supported(self):
         repo = self.tmp / "repo"
         repo.mkdir()

@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.4.0 (2026-06-11)
+
+- dryforge-ops: wire the ledger read-consume path — `dashboard` now renders cycle-ledger roll-up (task, status, blockers) with open-cycle count, and `doctor` recommendation is ledger-aware (points to latest unresolved entry before suggesting next lifecycle step)
+- dryforge-ops: `assess` and `dashboard` gracefully handle corrupt ledger.json (parses via try/except, never blocks)
+- All 28 dryforge-ops tests pass; 3-way install parity verified
+
 ## v1.3.0 (2026-06-10)
 
 - dryforge-ops: add the `log` mode — append one guarded ad-hoc task-log event (full JSONL parse, idempotency, secret redaction); refuses a missing `.agents/ops/` plane and refuses `completed/completed` without exit-0 command evidence or explicit manual evidence

@@ -45,6 +45,7 @@ Use `--json` when another tool will consume the output.
    - detect active `.dryforge/{handoff,spec,plan}.md`
    - detect numeric `.dryforge/NNN/` archives and `status.json`
    - validate `.agents/ops` summary, task-log, ledger, and evidence state
+   - surface open ledger cycles (entries that are incomplete or carry blockers) as the recommended next action
    - read `docs/operations*` (legacy repo-ops) and `docs/harness` (harness skill plane) context without modifying it
    - collect git branch/head/status/worktree evidence when available
 2. After dryforge `ready`, run `after-ready`:
@@ -63,7 +64,7 @@ Use `--json` when another tool will consume the output.
    - append `completed`, `validated`, `needs_review`, or `blocked` based on evidence
    - update the operations summary without duplicating the section
 5. For later phases, use:
-   - `dashboard` to render a read-only operations dashboard
+   - `dashboard` to render a read-only operations dashboard — a cycle-ledger roll-up, the open-cycle count, recent task-log events, and the recommended next action
    - `handoff <path>` to create a no-overwrite handoff note
    - `log --event <file|->` to append one guarded ad-hoc event — work done outside ready/go cycles, or a `workflow_adopted` record after the harness skill installs a suggested workflow; it refuses a missing `.agents/ops/` plane and refuses `completed/completed` without evidence
    - `workflow suggest` to detect repeated task types and emit a `delegate_to=harness skill` signal when a workflow recurs; candidates already recorded as `workflow_adopted` stay suppressed until new repetition accumulates
@@ -72,6 +73,7 @@ Use `--json` when another tool will consume the output.
 
 - `references/dryforge-ops-contract.md` for ownership boundaries and CLI modes.
 - `references/task-log-event-schema.md` for JSONL fields and idempotency.
+- `references/evidence-json-schema.md` for the normalized `after-go` evidence schema (`dryforge-ops.evidence.v1`).
 - `references/operations-summary-section.md` for the generated summary block.
 - `references/harness-upgrade-policy.md` for workflow suggestion and harness-delegation rules.
 - `references/dryforge-hook-guide.md` for bridge-first dryforge usage.
