@@ -95,7 +95,7 @@ The user names a fraction of what's load-bearing; you must surface the rest (the
 from tools that only tidy what was said). But **naming is where this fails silently** — you don't
 sweep what you never named (a real failure: an agent settled "one booking = one service" without ever
 surfacing booking *cardinality* as a decision). An implicit "did I cover enough?" feeling is the
-weakest move (self-judgment, design-principles §6). So **make the surface explicit: enumerate the
+weakest move (self-judgment). So **make the surface explicit: enumerate the
 load-bearing decisions this design is *obligated to answer*, then account for each.**
 
 **1. Name the entities first (a manifest).** List every entity, actor, state-holder, and external

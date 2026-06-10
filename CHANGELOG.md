@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.2.0 (2026-06-10)
+
+- bundle the `harness` skill (durable repo-local agent workflow design) into the plugin
+- dryforge-ops: `workflow suggest` now delegates reusable workflow design to the harness skill and removes the half-absorbed `apply`/`validate` modes
+- dryforge-ops: drop the legacy `--flag` CLI surface; subcommand form is the only CLI
+- wire `dryforge go` completion to an optional `dryforge-ops after-go` operations sync
+
 ## v1.1.0 (2026-06-09)
 
 - v1.1.0 large update

@@ -2,7 +2,7 @@
 
 After the 3-doc is complete, a fresh subagent that has **not seen the dialogue** verifies it
 independently — to structurally avoid the A=A trap where the author cannot see his own unknown
-unknowns (design-principles §6). This is **one of the skill's two** subagent dispatches — the other is
+unknowns. This is **one of the skill's two** subagent dispatches — the other is
 the earlier **intent-completeness** check; every other stage runs inline because intent grounding needs
 raw context, not a summary (Core principles).
 

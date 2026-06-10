@@ -1,0 +1,4 @@
+interface:
+  display_name: "dryforge ops"
+  short_description: "Sync dryforge outcomes into repo-ops records."
+  default_prompt: "Use dryforge-ops to sync the current dryforge result into repo-ops:"

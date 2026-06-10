@@ -41,7 +41,7 @@ independent piece of work, and a fresh session keeps the task-level dialogue cle
 - **Subagents only at the final REVIEW.** SCAN, ELICIT, and GENERATE run inline in the main session —
   generation needs the live conversation's *raw* grounding, not a summary. **REVIEW is the exception:**
   the finished harness is verified by **one independent subagent that did not author it.** Self-judging
-  your own harness is the weakest move (A=A, `design-principles.md §6`), and the harness is the **most
+  your own harness is the weakest move (A=A), and the harness is the **most
   durable artifact in the system** (every later agent works inside it), so it earns the one fresh-eye
   check — the same relaxation `ready` made (generate inline, verify independently). This is the *only*
   dispatch.

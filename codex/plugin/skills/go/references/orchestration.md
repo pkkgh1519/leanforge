@@ -34,7 +34,7 @@ long as each exit code is captured separately. The completion gate remains the f
     not done), advance. **You own conformance here — the final review is insurance, not your check.**
   - **Omitted `risk`** → the producer did *not* judge; treat it as **unclassified, not `MECHANICAL`** —
     judge at read time and bias toward dispatch / stronger verification if it shows any behavioral
-    surface (degrade-don't-corrupt, `design-principles.md §9`).
+    surface (degrade-don't-corrupt).
   - **`RISKY`** → **dispatch one subagent in a worktree** + merge-gate (independent verification, A=A
     avoidance; the merge-gate protects the base from risky work). This is the parallel-wave machinery
     with a single task — the final review must not be the *only* independent check on risky work.

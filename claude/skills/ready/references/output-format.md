@@ -39,7 +39,7 @@ lens: data-model fields and their constraints, the exact status/enum value **set
 identity rules, output keys, whether two conceptually distinct fields were collapsed into one). Pin
 each of those **here, the first time — as precisely as if no downstream gate existed.** Do **not** ship
 a half-pinned contract for the 3-doc-gate to tighten over rounds: a gate catching a precision gap is an
-*upstream failure* (design-principles §6), not the gate's job, and leaning on it is the reward-hack
+*upstream failure*, not the gate's job, and leaning on it is the reward-hack
 `elicitation.md` forbids. (A genuine tuning default with no user preference is *pinned* as a default
 **marked tunable** — D4 — which is settling it, not deferring it.)
 

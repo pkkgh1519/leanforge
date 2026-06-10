@@ -3,7 +3,7 @@
 ELICIT's job is to realize the user's intent with **no stranger-guess surviving on a load-bearing
 decision** (`elicitation.md`). But the author cannot fully police that himself: an agent's own guesses
 look to him like *reasonable understanding* ("of course I'd default it this way") — that is the A=A
-trap (design-principles §6). So before the spec freezes, an **independent perspective** hunts the one
+trap. So before the spec freezes, an **independent perspective** hunts the one
 thing the author can't see: **load-bearing decisions that are the agent's guess, not the user's
 intent** — and each is **looped back to the user** to decide, *while the user is still here*.
 

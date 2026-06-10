@@ -33,7 +33,7 @@ mkdir -p "$ROOT/claude/.claude-plugin"
 cp -R "$SRC" "$ROOT/claude/skills"
 for s in ready go migration; do
   INJECT=$'disable-model-invocation: true\nallowed-tools: '"$(claude_tools "$s")" \
-    perl -0777 -i -pe 'BEGIN{$j=$ENV{INJECT}} s/\A(---\n.*?\n)---\n/$1$j\n---\n/s' \
+    perl -0777 -i -pe 'BEGIN{$j=$ENV{INJECT}} s/\A(---\r?\n.*?\r?\n)---\r?\n/$1$j\n---\n/s' \
     "$ROOT/claude/skills/$s/SKILL.md"
 done
 cp "$PLAT/claude/plugin.json" "$ROOT/claude/.claude-plugin/plugin.json"
@@ -49,6 +49,7 @@ cp "$PLAT/codex/plugin.json" "$ROOT/codex/plugin/.codex-plugin/plugin.json"
 cp "$PLAT/codex/LICENSE" "$ROOT/codex/plugin/"
 
 find "$ROOT/claude" "$ROOT/codex" -name ".DS_Store" -delete 2>/dev/null || true
+find "$ROOT/claude" "$ROOT/codex" -type d -name "__pycache__" -prune -exec rm -rf {} + 2>/dev/null || true
 
 # ── consistency guard ───────────────────────────────────────────────────────
 # Assert the version invariant promote.sh maintains: all 4 plugin.json carry the
@@ -72,5 +73,26 @@ if [ "$UNIQ" != "$CL_VER" ]; then
   exit 1
 fi
 echo "✓ version OK: v$UNIQ (4 manifests + CHANGELOG)"
+
+# ── duplicate-reference parity guard ────────────────────────────────────────
+# Three reference files are intentionally shared across skills. A skill bundles
+# only its own references/, so each consumer keeps a physical copy — and a
+# one-sided edit is silent drift. Assert byte-parity on the canonical source so
+# the build fails fast instead of shipping two diverging copies.
+#   harness-format.md     go ↔ migration
+#   harness-review.md     go ↔ migration
+#   foundation-format.md  go ↔ ready
+parity_check() {
+  if ! cmp -s "$1" "$2"; then
+    echo "✗ reference drift (shared files must stay byte-identical):" >&2
+    echo "    $1" >&2
+    echo "    $2" >&2
+    exit 1
+  fi
+}
+parity_check "$SRC/go/references/harness-format.md"    "$SRC/migration/references/harness-format.md"
+parity_check "$SRC/go/references/harness-review.md"    "$SRC/migration/references/harness-review.md"
+parity_check "$SRC/go/references/foundation-format.md" "$SRC/ready/references/foundation-format.md"
+echo "✓ reference parity OK: 3 shared references identical across skills"
 
 echo "=== done → ./claude  ./codex/plugin ==="

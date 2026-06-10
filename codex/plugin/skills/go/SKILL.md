@@ -63,8 +63,8 @@ references load at their steps.
   review did not exist**: a blocking finding there is an **execution failure that escaped**, not the
   review doing its job — it should normally find nothing. Told "the review will catch it," an LLM
   drifts to the minimum that passes — that is **reward-hacking**, laziness in the costume of "the
-  backstop handles it," and you must actively resist it (the same discipline ready's ELICIT carries,
-  `design-principles.md §6`). The review catches only the *rare residual*; it is never the owner.
+  backstop handles it," and you must actively resist it (the same discipline ready's ELICIT carries).
+  The review catches only the *rare residual*; it is never the owner.
 - **Match the user's language (language-agnostic).** Like stack-agnosticism, the *method* is fixed
   and the *specific language* is discovered at runtime, never assumed: produce every user-facing
   output — your reports/escalations **and the harness** you create/update — in the language the user
@@ -190,7 +190,7 @@ when a lightweight fix would take seconds.
    - **Omitted `risk` (producer did not judge) → unclassified, *not* `MECHANICAL`.** Do **not** default
      it to the direct path: judge at read time and **bias toward dispatch / stronger verification** the
      moment any behavioral surface appears (`orchestration.md`, `graph-contract.md` —
-     degrade-don't-corrupt, `design-principles.md §9`).
+     degrade-don't-corrupt).
    - **`RISKY` (file-diff task) → one subagent in a worktree** (`implementer-prompt.md`), then
      **merge-gate** into the base — independent verification, so the final review is not the only
      check on risky work.
@@ -350,3 +350,10 @@ After the harness step, final review, user approval, and 3-doc archiving (steps 
   - **Open a PR / push →** push the feature branch; leave integration to the project's review flow.
   - **Hand off only →** keep the feature branch intact.
   Never integrate on your own.
+
+## Operations sync (optional)
+
+If this repository runs the `dryforge-ops` skill (an `.agents/ops/` operations plane already exists),
+after archiving (step 13) hand the just-created `.dryforge/NNN/` archive to it: run `dryforge-ops
+after-go` so this cycle's evidence is normalized into the operations ledger and task log. Skip
+silently when the repo has no `.agents/ops/` plane — go never creates one itself.
