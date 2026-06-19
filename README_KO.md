@@ -38,6 +38,8 @@ codex plugin add dryforge@dryforge
 
 <sub>`/dryforge:ready`, `/dryforge:go`, `/dryforge:migration`과 함께 번들된 `harness`, `dryforge-ops` 지원 스킬이 설치된다.</sub>
 
+<sub>Codex 번들에는 동작 변경 작업에 선택적 TDD 지침을 더해 `/dryforge:go`를 실행하는 Codex 전용 wrapper `dryforge-go-tdd`도 포함된다.</sub>
+
 ---
 
 ## 모든 프롬프트는 과소명세다

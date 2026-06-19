@@ -111,6 +111,13 @@ where the input came from. The 3-doc contract is in `references/output-format.md
   do **not** touch `.gitignore` and do **not** commit anything — `go` owns all git mechanics. Keep the
   produce=plan / run=do boundary: produce writes documents, run touches git.
 
+- **Active run / active 3-doc guard.** Before writing a new 3-doc, check for `.dryforge/run.json` and
+  root active 3-doc files (`.dryforge/handoff.md`, `.dryforge/spec.md`, `.dryforge/plan.md`). If an
+  active run marker exists, or if an active 3-doc exists without a completed archive, **do not overwrite**
+  it. Stop and ask the user whether to resume or abandon the previous `go` run, repair/archive the
+  existing active 3-doc, or explicitly discard it before generating a new one. This is a cheap guard:
+  existence checks only, not a full harness audit.
+
 ## Stage map + cycle-conditional reference loading
 
 Run the stages in order. Force-load each stage's references at that stage **(silently — reference
@@ -165,6 +172,10 @@ questions are ELICIT's. Everything ORIENT produces is *context*, not a conclusio
      harness already exists on disk (dryforge-structured `CLAUDE.md` / `AGENTS.md` + populated
      `docs/`), do **not** assume greenfield — **stop and ask** whether to treat it as existing context
      (delta) or regenerate (first cycle). Don't guess (same as go's clobber guard).
+
+   - If the user chooses existing context while `.dryforge/status.json` is absent, ensure the reason is
+     explicit: an existing dryforge harness is being trusted. If `.dryforge/run.json` or an active 3-doc
+     is present, do not proceed until the user chooses to resume or abandon that interrupted run.
 4. **Ground the code (inline, optional).** If code exists, read the *cheapest map first* — repo
    instructions, file list, manifests, verify scripts, the directories the input points at. **Stop
    broad reading the moment the completion bar is met** (inline ≠ "read everything" — suppress

@@ -100,6 +100,19 @@ references load at their steps.
 - **git required** — worktree isolation depends on it. If not a repo, offer `git init` **and make an
   initial commit** (an empty repo has no HEAD, so no worktree/branch can be created). If git is not
   installed, stop and say so.
+
+- **Interrupted-run preflight.** Before applying the first-cycle/delta rule, inspect `.dryforge/run.json`.
+  This file is a local-only interrupted-run marker, separate from `.dryforge/status.json`.
+  - If `.dryforge/status.json` is present, the harness is initialized and this is a delta. A stale
+    completed `run.json` may be ignored or cleaned up after the normal safety checks.
+  - If `status.json absent + run.json present`, treat it as an **interrupted go run**, **not a first cycle**.
+    Do not regenerate the Foundation or overwrite active docs. Re-read the active 3-doc, compare its
+    hashes against `run.json.activeDocs`, verify the recorded branch/commit facts against git, then
+    ask the user whether to resume or abandon the interrupted run.
+  - If both `status.json` and `run.json` are absent, continue with the normal first-cycle/delta
+    detection below.
+  The marker is advisory evidence, not authority: the actual git state, active 3-doc content, and file
+  existence still decide whether it is safe to continue.
 - **Base determination.** Identify the project's main branch (docs / remote default / ask — do not
   guess). Verify `main` has no unpushed commits and the working tree has no modified/staged **tracked**
   files; if either fails, **stop and report**. Then classify:
@@ -243,6 +256,12 @@ when a lightweight fix would take seconds.
    `status.json`, and `backup/` (no litter). → next wave.
 
 **After all waves:**
+
+At the durable milestones of a run, update `.dryforge/run.json` atomically (write a temp file, then
+rename). Use only coarse milestones: `in_progress`, `awaiting_user_approval`, `archive_in_progress`,
+`completed`, or `abandoned`. Do not write it after every command. Include `activeDocs` with
+`handoffSha256`, `specSha256`, and `planSha256`, plus the base branch/commit facts needed to detect
+whether a later invocation is looking at the same active 3-doc and git state.
 
 8. **Completion gate** — the full verify set on the base. **SHA reuse rule:** if the last parallel
    wave's integration gate passed, **ran the full verify set** (not the affected-only subset), AND the

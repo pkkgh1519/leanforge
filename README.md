@@ -39,6 +39,8 @@ codex plugin add dryforge@dryforge
 
 <sub>Installs the three lifecycle commands (`/dryforge:ready`, `/dryforge:go`, `/dryforge:migration`) plus two bundled support skills: `harness` (workflow design) and `dryforge-ops` (operations tracking).</sub>
 
+<sub>Codex also includes `dryforge-go-tdd`, a Codex-only wrapper that runs `/dryforge:go` with selective TDD guidance for behavior-changing work.</sub>
+
 ---
 
 ## Every prompt is underspecified

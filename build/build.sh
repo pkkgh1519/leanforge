@@ -31,8 +31,9 @@ rm -rf "$ROOT/claude"
 mkdir -p "$ROOT/claude/.claude-plugin"
 cp -R "$SRC" "$ROOT/claude/skills"
 for s in ready go migration harness; do
+  perl -0777 -i -pe 's/\r\n/\n/g' "$ROOT/claude/skills/$s/SKILL.md"
   INJECT=$'disable-model-invocation: true\nallowed-tools: '"$(claude_tools "$s")" \
-    perl -0777 -i -pe 'BEGIN{$j=$ENV{INJECT}} s/\A(---\r?\n.*?\r?\n)---\r?\n/$1$j\n---\n/s' \
+    perl -0777 -i -pe 'BEGIN{$j=$ENV{INJECT}} s/\A(---\r?\n.*?\r?\n)---\r?\n/$1$j\n---\n/s or die "failed to inject Claude frontmatter\n"' \
     "$ROOT/claude/skills/$s/SKILL.md"
 done
 cp "$PLAT/claude/plugin.json" "$ROOT/claude/.claude-plugin/plugin.json"

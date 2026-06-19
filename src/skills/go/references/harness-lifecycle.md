@@ -28,6 +28,58 @@ This is the whole detection rule — simple on purpose. Consequences:
   blindly overwrite it. Stop and ask the user whether to treat it as an existing harness (delta) or
   regenerate. (escalate-don't-guess; never destroy a harness you didn't just generate.)
 
+
+
+## Interrupted-run marker — `.dryforge/run.json`
+
+`.dryforge/run.json` is a local-only interrupted-run marker. It is not a replacement for
+`.dryforge/status.json`: `status.json` still means the harness was successfully initialized, while
+`run.json` records that `go` started and may need recovery if the session stops before approval or
+archive completion.
+
+Minimal schema:
+
+```json
+{
+  "schemaVersion": 1,
+  "status": "in_progress",
+  "cycle": "first|delta",
+  "activeDocs": {
+    "handoffSha256": "...",
+    "specSha256": "...",
+    "planSha256": "..."
+  },
+  "baseBranch": "...",
+  "featureBranch": "...",
+  "baseCommit": "...",
+  "lastCompletedStep": "...",
+  "pendingAction": "...",
+  "updatedAt": "..."
+}
+```
+
+Allowed statuses: `in_progress`, `awaiting_user_approval`, `archive_in_progress`, `completed`,
+`abandoned`.
+
+Preflight decision table:
+
+| State | Meaning | Action |
+|---|---|---|
+| `status.json` present | Harness already initialized | Continue as delta. Ignore a stale completed `run.json`, or clean it up after normal checks. |
+| `status.json absent + run.json present` | interrupted go run, not a first cycle | Verify active 3-doc hashes and git branch/commit facts, then ask whether to resume or abandon. |
+| no `status.json`, no `run.json`, handoff has Project Foundation | normal first cycle | Continue with first-cycle execution. |
+| no `status.json`, no `run.json`, existing harness on disk, no Project Foundation | marker-loss or invalid delta state | Stop and ask whether to run migration or perform a user-guaranteed marker repair. |
+| no marker files and no Foundation | producer-side defect | Ask the user to regenerate with `ready`. |
+
+`run.json` is a guardrail, not a source of truth. A mismatch between `run.json.activeDocs` and the
+root active 3-doc is a stop-and-ask condition. A branch or commit mismatch is also a stop-and-ask
+condition. Never use `run.json` alone to delete worktrees, reset branches, overwrite docs, or mark a
+run complete.
+
+Write `run.json` only at coarse milestones and write it atomically: write a temporary file in
+`.dryforge/`, then rename it into place. This keeps the preflight cheap: file existence checks, JSON
+parse, active 3-doc hashes, and a small git branch/HEAD check are enough. Do not scan the whole repo or
+hash the whole `docs/` tree during preflight.
 ## 3-doc re-read (mandatory, both modes)
 
 Before generating/updating, **re-read `.dryforge/{handoff,spec,plan}.md`.** By this point the session
@@ -88,6 +140,32 @@ the next producer just writes a fresh 3-doc. Then write `.dryforge/status.json`
 Foundation is archived with the handoff; from the next cycle the harness carries project context, so
 no Foundation is produced.)
 
+
+
+### Idempotent archive retry
+
+Archive must be safe to retry after interruption. Treat this as an **idempotent archive retry**:
+
+1. Compute hashes for the root active 3-doc: `.dryforge/handoff.md`, `.dryforge/spec.md`, and
+   `.dryforge/plan.md`.
+2. Set `run.json.status` to `archive_in_progress` before copying.
+3. If the target archive directory does not exist, create it and copy the three files.
+4. If the archive directory exists and all three archived files match the root active 3-doc hashes,
+   continue; this is a retry of the same archive.
+5. If the archive directory exists but is incomplete, fill only the missing files from the root active
+   3-doc.
+6. If an archived file exists but has a **hash mismatch** with the root active 3-doc, stop and ask the
+   user. Do not overwrite it and do not choose a winner.
+7. If the archive is complete but the root active 3-doc has already been removed and
+   `archive complete but marker missing` is the only remaining inconsistency, write
+   `.dryforge/status.json` and mark `run.json` completed.
+8. Delete root active 3-doc files only after the archive is complete and hash-verified.
+9. Write `.dryforge/status.json` only after the archive is complete. Then mark `run.json.status` as
+   `completed` or remove the completed marker after recording the result.
+
+A partial archive with missing root active 3-doc files and an incomplete archive is a blocker: preserve
+all files and ask the user. Never force-delete worktrees or branches during archive recovery; worktree
+cleanup still follows the ancestor checks in `orchestration.md`.
 ## Re-run after a fix
 
 If the final review triggers a fix:
