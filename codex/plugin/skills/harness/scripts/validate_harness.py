@@ -18,6 +18,12 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable
 
+SCRIPT_DIR = Path(__file__).resolve().parent
+if str(SCRIPT_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPT_DIR))
+
+from validate_go_compat import validate_custom_agent_name, validate_go_compatible_skill
+
 
 NAME_RE = re.compile(r"^[a-z0-9][a-z0-9-]*$")
 COMMONMARK_BACKSLASH_ESCAPE_RE = re.compile(r"\\([!\"#$%&'()*+,\-./:;<=>?@\[\]^_`{|}~])")
@@ -192,6 +198,7 @@ def validate_skill_file(root: Path, path: Path) -> list[Issue]:
 
     issues.extend(validate_references_dir(root, path))
     issues.extend(validate_reference_links(root, path, text))
+    issues.extend(validate_go_compatible_skill(root, path, text, description, Issue, relpath))
     return issues
 
 
@@ -352,6 +359,7 @@ def validate_custom_agents(root: Path) -> list[Issue]:
                     "missing required custom-agent field(s): " + ", ".join(missing),
                 )
             )
+        issues.extend(validate_custom_agent_name(root, path, data, Issue, relpath))
     return issues
 
 

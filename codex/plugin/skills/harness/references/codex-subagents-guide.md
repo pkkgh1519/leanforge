@@ -4,7 +4,7 @@ Use this guide when a harness might benefit from Codex subagents or project-scop
 
 ## Core rule
 
-Subagents are optional but may be spawned autonomously when the task is read-heavy, review-heavy, multi-part, or clearly parallelizable. A harness should still work as a single-agent workflow, and the parent agent always owns requirements, synthesis, integration, and final acceptance.
+Subagents are optional but may be spawned autonomously when the task is read-heavy, review-heavy, multi-part, or clearly parallelizable. A harness should still work as a single-agent workflow, and the parent agent always owns requirements, synthesis, integration, and final acceptance. In dryforge `go`, custom agents are reviewer/explorer lenses only; `go` keeps execution authority.
 
 Prefer repo-local custom agents over global `default`, `explorer`, `worker`, or `reviewer` roles when the repo-local agent description is more specific to the repository task. Use global roles only when no project-local agent is a better fit.
 
@@ -57,6 +57,8 @@ Use `<repo>/.codex/config.toml` only for repository-local delegation settings su
 - Parent agent remains responsible for final synthesis and acceptance.
 - Child agents should return concise findings with file paths, evidence, and uncertainty.
 - Do not let custom agents own persistent plan state unless the user explicitly requests delegated execution.
+- Do not use `default`, `worker`, `explorer`, or `reviewer` as project custom-agent names; prefix names by domain.
+- Do not design dryforge repo-local agents to replace `go` implementers, worktree handling, merge gates, or status lifecycle.
 
 ## Handoff files
 

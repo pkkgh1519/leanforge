@@ -20,7 +20,15 @@ class ValidateHarnessTests(unittest.TestCase):
     def tearDown(self):
         shutil.rmtree(self.tmp, ignore_errors=True)
 
-    def write_skill(self, path: Path, *, body: str = "", reference: str | None = None) -> Path:
+    def write_skill(
+        self,
+        path: Path,
+        *,
+        body: str = "",
+        reference: str | None = None,
+        name: str = "sample-skill",
+        description: str = "Use when validating a sample harness skill.",
+    ) -> Path:
         path.mkdir(parents=True, exist_ok=True)
         references = path / "references"
         references.mkdir(exist_ok=True)
@@ -28,7 +36,7 @@ class ValidateHarnessTests(unittest.TestCase):
             (references / "guide.md").write_text(reference, encoding="utf-8")
             body = body or "See references/guide.md.\n"
         (path / "SKILL.md").write_text(
-            "---\nname: sample-skill\ndescription: Use when validating a sample harness skill.\n---\n\n# Sample\n\n" + body,
+            f"---\nname: {name}\ndescription: {description}\n---\n\n# Sample\n\n" + body,
             encoding="utf-8",
         )
         return path
@@ -71,6 +79,58 @@ class ValidateHarnessTests(unittest.TestCase):
         agent_dir.mkdir(parents=True)
         (agent_dir / "reviewer.toml").write_text('name = "reviewer"\ndescription = "Review."\n', encoding="utf-8")
         self.assertIn("custom-agent-field-missing", self.issue_codes(module.validate(repo)))
+
+    def test_custom_agent_reserved_builtin_name_is_error(self):
+        repo = self.tmp / "repo"
+        agent_dir = repo / ".codex" / "agents"
+        agent_dir.mkdir(parents=True)
+        (agent_dir / "reviewer.toml").write_text(
+            'name = "reviewer"\n'
+            'description = "Review repository-specific API contracts."\n'
+            'developer_instructions = """Return concise findings only."""\n',
+            encoding="utf-8",
+        )
+        self.assertIn("custom-agent-name-reserved", self.issue_codes(module.validate(repo)))
+
+    def test_go_compatible_skill_missing_usage_contract_is_error(self):
+        skill = self.write_skill(
+            self.tmp / "api-contract-review",
+            name="api-contract-review",
+            description="Use when dryforge go needs a repository API contract review lens.",
+            body="Review API route, schema, client SDK, and generated type changes for dryforge go final_review.\n",
+        )
+        self.assertIn("go-compatible-skill-contract-missing", self.issue_codes(module.validate_skill_dir(skill)))
+
+    def test_go_compatible_skill_disallows_active_dryforge_doc_dependency(self):
+        skill = self.write_skill(
+            self.tmp / "api-contract-review",
+            name="api-contract-review",
+            description="Use when dryforge go needs a repository API contract review lens.",
+            body=(
+                "## Dryforge go usage\n\n"
+                "Allowed phases: final_review, conditional_spec_review, failure_exploration.\n"
+                "Never use for: implementer replacement, wave scheduling, merge gate, worktree lifecycle, .dryforge state management.\n"
+                "Inputs go must provide: changed files, relevant spec slice, verification evidence, diff or commit range.\n"
+                "Output: blocking findings, advisory findings, missing evidence, uncertainty.\n\n"
+                "Read .dryforge/spec.md before reviewing.\n"
+            ),
+        )
+        self.assertIn("go-compatible-active-doc-dependency", self.issue_codes(module.validate_skill_dir(skill)))
+
+    def test_go_compatible_skill_warns_on_broad_trigger(self):
+        skill = self.write_skill(
+            self.tmp / "api-contract-review",
+            name="api-contract-review",
+            description="Use for all API work in this repository, including ordinary implementation tasks.",
+            body=(
+                "## Dryforge go usage\n\n"
+                "Allowed phases: final_review, conditional_spec_review, failure_exploration.\n"
+                "Never use for: implementer replacement, wave scheduling, merge gate, worktree lifecycle, .dryforge state management.\n"
+                "Inputs go must provide: changed files, relevant spec slice, verification evidence, diff or commit range.\n"
+                "Output: blocking findings, advisory findings, missing evidence, uncertainty.\n"
+            ),
+        )
+        self.assertIn("go-compatible-skill-trigger-too-broad", self.issue_codes(module.validate_skill_dir(skill)))
 
     def test_team_spec_missing_contract_section(self):
         repo = self.tmp / "repo"

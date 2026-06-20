@@ -58,6 +58,10 @@ references load at their steps.
   (`orchestration.md`, "ROI collapse").
 - **Efficiency Budget.** Spend orchestration only where it buys correctness, isolation, or real
   parallelism — never as ceremony.
+- **Repo-local lenses are optional review/explore aids.** When a repository has harness-generated
+  `.agents/skills/` or `.codex/agents/` that match the changed scope, use
+  `references/repo-lens-routing.md`: go keeps execution authority; a matching artifact is a
+  review/explore/checklist lens, not an implementer.
 - **The final review is silent insurance — not a backstop you lean on.** Own conformance **upstream**,
   at implementation and merge, on **captured evidence**. Execute and verify each task **as if the final
   review did not exist**: a blocking finding there is an **execution failure that escaped**, not the
@@ -287,7 +291,10 @@ whether a later invocation is looking at the same active 3-doc and git state.
 
 10. **Final review** — one subagent checks the **full diff on the base** for spec conformance + code
     quality, **and the harness** (when created/updated this cycle) against `references/harness-review.md`
-    (`reviewer-prompt.md`, four lenses). **Clear = zero blocking findings, recorded.**
+    (`reviewer-prompt.md`, four lenses). If repo-local skills or custom agents match this cycle's
+    changed scope, apply them only as optional review/explore/checklist lenses per
+    `references/repo-lens-routing.md`; they are not an implementer and never replace `go`'s execution
+    authority. **Clear = zero blocking findings, recorded.**
 
 11. **Fix if needed** — lightweight fix path for trivial advisories (MUST triage); fix-dispatch
     substantive findings. Fixes may touch **code or harness**. Re-run per `harness-lifecycle.md`:
@@ -312,7 +319,7 @@ integration gate (`orchestration.md`, Advancing waves), but dispatch waits for a
 Fall back to fully serial advance if uncertain.
 
 Mechanics, subagent dispatch constraints, status protocol, context budget, and failure handling live in
-`references/orchestration.md`.
+`references/orchestration.md`. Repo-local lens selection lives in `references/repo-lens-routing.md`.
 
 ## Completion gate (avoid self-judgment A=A)
 
@@ -369,4 +376,3 @@ After the harness step, final review, user approval, and 3-doc archiving (steps 
   - **Open a PR / push →** push the feature branch; leave integration to the project's review flow.
   - **Hand off only →** keep the feature branch intact.
   Never integrate on your own.
-

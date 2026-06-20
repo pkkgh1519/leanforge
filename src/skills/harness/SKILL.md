@@ -7,7 +7,7 @@ description: "Use for agent harness architecture: designing, auditing, repairing
 
 Harness is a meta-skill for designing portable, repo-local agent workflows. Use it to analyze a project, decide which guidance belongs in `AGENTS.md`, choose the smallest collaboration pattern, generate reusable specialist skills, define deterministic handoff files, and preserve validation and maintenance evidence.
 
-Within the dryforge plugin, Harness is the upper design layer over the per-cycle project harness that `dryforge go` writes: `go` creates or updates a repo's harness each cycle, while Harness turns recurring or team-worthy patterns into durable workflow specs and specialist skills instead of re-deriving them each cycle.
+Within the dryforge plugin, Harness is the upper design layer over the per-cycle project harness that `dryforge go` writes: `go` creates or updates a repo's harness each cycle, while Harness turns recurring or team-worthy patterns into durable workflow specs and specialist skills instead of re-deriving them each cycle. For dryforge repositories, prefer repo-local review/explore/checklist skills that `go` can use as optional lenses; never generate a replacement execution scheduler.
 
 The canonical skill tree is `.agents/skills/`, and Harness ships for both Claude and Codex. Optional repo-local `.codex/agents/` and `.codex/config.toml` files may support bounded project-specific subagent workflows, but generated harnesses must not depend on runtime-specific peer messaging or fixed model pins.
 
@@ -24,6 +24,7 @@ Use Harness when the user asks to:
 - design a reusable workflow for a repository or domain
 - create specialist skills, role briefs, team specs, or handoff conventions
 - adapt an existing workflow into agent-discoverable repo skills
+- distill repeated dryforge archives into go-compatible repo-local review/explore/checklist skills
 - standardize recurring review, QA, research, experimentation, or harness-related documentation processes
 - compare a no-harness baseline against a structured harness-guided run
 - maintain or repair an existing harness that has path drift, overlapping skills, stale guidance, or missing validation
@@ -122,7 +123,8 @@ Before generating new artifacts, inspect current structure when available:
 4. Check `_workspace/` conventions and whether old handoff files should be preserved.
 5. Check optional `.codex/agents/` for custom-agent helpers.
 6. Look for stale runtime assumptions, missing frontmatter, broken links, and duplicated responsibilities.
-7. Classify the request as one of:
+7. If the repository uses dryforge, inspect `.dryforge/NNN` archives when available to identify repeated review findings, missing evidence, failed gates, or repo-specific risk patterns. Do not rewrite archives.
+8. Classify the request as one of:
    - new harness
    - extension of an existing harness
    - repair/refactor of a harness
@@ -250,7 +252,8 @@ Output:
    - workflow steps
    - expected outputs
    - validation notes
-6. Add helper scripts only when deterministic automation is safer than manual repetition.
+6. For a skill meant to help `dryforge go`, make it a review/explore/checklist lens and include a `## Dryforge go usage` section. Follow `references/go-compatible-skill-guide.md`.
+7. Add helper scripts only when deterministic automation is safer than manual repetition.
 
 Output:
 

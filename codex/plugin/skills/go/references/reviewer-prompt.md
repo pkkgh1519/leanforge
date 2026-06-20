@@ -5,6 +5,10 @@ After all waves merge, the integration gate passes, and the **harness has been c
 state to current) **plus the harness**. This is the single review pass — spec conformance, code
 quality, and (when the harness was created/updated this cycle) harness content and format.
 
+If the orchestrator supplies repo-local skill criteria from `repo-lens-routing.md`, treat them as
+additional review/explore/checklist lens material. go keeps execution authority: a repo-local lens is
+not an implementer, does not own merge decisions, and only adds repository-specific review focus.
+
 > You are in a fresh session with no live user conversation — do **not** ask the user directly.
 > Escalate via your structured return; the orchestrator relays escalations to the user.
 
@@ -26,6 +30,9 @@ present), and source-cross-check (omission vs. hallucination, future-scope conte
 shared `harness-review.md` keeps a single source of truth — `migration` verifies against the same
 criteria. Your dispatch states the user's language; flag a harness not written natively in it.
 Harness findings carry the same blocking/advisory split as code findings.
+
+**Optional repo-local lens.** Apply any orchestrator-supplied repo-local skill checklist only to its
+matching surface. Do not broaden the task beyond the active spec.
 
 ## No fixed checklist — derive the rubric
 

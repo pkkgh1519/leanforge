@@ -87,7 +87,10 @@ dispatch overhead, never the verification bar.
 
 A single-task wave runs in one of three modes (by `risk` + target type; see Wave scheduling).
 
-- **Orchestrator-direct** (`MECHANICAL` / `NONE` / omitted, file-diff task). The orchestrator
+- **Orchestrator-direct** (`MECHANICAL` / `NONE`, file-diff task; omitted only after read-time
+  judgment confirms the task is mechanical). Omitted `risk` remains unclassified, not `MECHANICAL`;
+  first judge the task at read time and bias toward dispatch / stronger verification if any
+  behavioral surface appears. The orchestrator
   implements directly on the base — it reads the task's behavioral contract + spec slice itself (no
   prompt authoring, no dispatch), writes the code, runs right-sized verification (capturing command +
   exit code), and commits on the base. No worktree, no dependency install, no integration gate, **no
@@ -214,8 +217,9 @@ re-dispatching past the ladder.
 
 ### Sequential wave (single task)
 
-1. **Pick the execution mode by `risk`** (see Wave scheduling): `MECHANICAL`/`NONE`/omitted →
-   orchestrator implements directly on the base; `RISKY` → a worktree subagent + merge-gate; a
+1. **Pick the execution mode by `risk`** (see Wave scheduling): `MECHANICAL`/`NONE` →
+   orchestrator implements directly on the base; omitted `risk` remains unclassified, not
+   `MECHANICAL`, until read-time judgment confirms the direct path; `RISKY` → a worktree subagent + merge-gate; a
    no-file-diff task → a base-pinned subagent. (Details in "Sequential wave — execution".)
 2. **Land it on the base** — orchestrator-direct / no-file-diff: verify the commit on the base
    (`git log`; file-diff touches declared targets; no-file-diff: commit message + captured external

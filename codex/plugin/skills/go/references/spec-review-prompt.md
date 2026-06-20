@@ -5,6 +5,10 @@ cascade a deviation. Checks the task's diff against the **spec requirement** bef
 violation caught late costs an undo/redo across dependent tasks. This is *conformance*, not code
 quality.
 
+If the orchestrator supplies repo-local criteria from `repo-lens-routing.md`, treat them as a narrow
+review/explore/checklist lens for this spec surface only. go keeps execution authority; the lens is
+not an implementer and does not decide scheduling, worktree, or merge-gate outcomes.
+
 ## Independence — what the reviewer is given
 
 To stay independent, the reviewer receives **only** (a) the spec requirement(s) for the task and
