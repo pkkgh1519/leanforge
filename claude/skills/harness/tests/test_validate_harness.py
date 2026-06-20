@@ -183,6 +183,54 @@ class ValidateHarnessTests(unittest.TestCase):
         errors, _ = module.validate_harness_install(repo)
         self.assertIn("harness-generated-drift", {issue.code for issue in errors})
 
+    def test_install_check_detects_generated_extra_file(self):
+        repo = self.tmp / "repo"
+        source = self.write_skill(repo / "src" / "skills" / "harness", reference="# Guide\n")
+        scripts = source / "scripts"
+        scripts.mkdir()
+        (scripts / "validate_harness.py").write_text("print('ok')\n", encoding="utf-8")
+        claude = repo / "claude" / "skills" / "harness"
+        shutil.copytree(source, claude)
+        self.add_claude_frontmatter_injection(claude)
+        codex = repo / "codex" / "plugin" / "skills" / "harness"
+        shutil.copytree(source, codex)
+        (codex / "unexpected.md").write_text("extra\n", encoding="utf-8")
+        errors, _ = module.validate_harness_install(repo)
+        self.assertIn("harness-generated-extra", {issue.code for issue in errors})
+
+    def test_install_check_detects_overlay_drift(self):
+        repo = self.tmp / "repo"
+        source = self.write_skill(repo / "src" / "skills" / "harness", reference="# Guide\n")
+        scripts = source / "scripts"
+        scripts.mkdir()
+        (scripts / "validate_harness.py").write_text("print('ok')\n", encoding="utf-8")
+        claude = repo / "claude" / "skills" / "harness"
+        shutil.copytree(source, claude)
+        self.add_claude_frontmatter_injection(claude)
+        codex = repo / "codex" / "plugin" / "skills" / "harness"
+        shutil.copytree(source, codex)
+        overlay = repo / "platform" / "codex" / "skills" / "harness" / "agents"
+        overlay.mkdir(parents=True)
+        (overlay / "openai.yaml").write_text("interface:\n  display_name: harness\n", encoding="utf-8")
+        codex_agents = codex / "agents"
+        codex_agents.mkdir()
+        (codex_agents / "openai.yaml").write_text("interface:\n  display_name: drift\n", encoding="utf-8")
+        errors, _ = module.validate_harness_install(repo)
+        self.assertIn("harness-overlay-drift", {issue.code for issue in errors})
+
+    def test_install_check_detects_claude_frontmatter_drift(self):
+        repo = self.tmp / "repo"
+        source = self.write_skill(repo / "src" / "skills" / "harness", reference="# Guide\n")
+        scripts = source / "scripts"
+        scripts.mkdir()
+        (scripts / "validate_harness.py").write_text("print('ok')\n", encoding="utf-8")
+        claude = repo / "claude" / "skills" / "harness"
+        shutil.copytree(source, claude)
+        codex = repo / "codex" / "plugin" / "skills" / "harness"
+        shutil.copytree(source, codex)
+        errors, _ = module.validate_harness_install(repo)
+        self.assertIn("harness-generated-frontmatter-drift", {issue.code for issue in errors})
+
 
 if __name__ == "__main__":
     unittest.main()
