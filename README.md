@@ -4,18 +4,18 @@
 
 <img src="https://dryforge.vercel.app/assets/icon-1024.png" width="84" height="84" alt="dryforge" />
 
-# dryforge v1.4.0
+# dryforge v1.5.0
 
 ### Intent-to-implementation for Claude Code & Codex.
 
 dryforge is a **multi-platform plugin harness**: it turns vague input into a
 reviewed 3-doc, executes it with evidence gates, and leaves durable project
-memory behind — plus bundled support skills for workflow design and operations tracking.
+memory behind through the project harness.
 
 **Intent elicitation before implementation.**<br/>
 **Dependency-aware parallel execution with right-sized review.**<br/>
 **Project memory that future agents read first.**<br/>
-**Operations sync & durable cycle ledger.**
+**Interrupted runs are recoverable from local dryforge state.**
 
 [Website](https://dryforge.vercel.app) · [한국어](https://github.com/pkkgh1519/dryforge-ops/blob/main/README_KO.md)
 
@@ -37,7 +37,7 @@ codex plugin add dryforge@dryforge
 
 <sub>Requires `git` and Claude Code or Codex.</sub>
 
-<sub>Installs the three lifecycle commands (`/dryforge:ready`, `/dryforge:go`, `/dryforge:migration`) plus two bundled support skills: `harness` (workflow design) and `dryforge-ops` (operations tracking).</sub>
+<sub>Installs the three lifecycle commands (`/dryforge:ready`, `/dryforge:go`, `/dryforge:migration`) plus the bundled `harness` workflow-design skill.</sub>
 
 <sub>Codex also includes `dryforge-go-tdd`, a Codex-only wrapper that runs `/dryforge:go` with selective TDD guidance for behavior-changing work.</sub>
 
@@ -73,12 +73,12 @@ rationale **at the path every future session reads first**.
 
 ---
 
-## Five commands: design, execute, extend, track
+## Four commands: design, execute, extend
 
 ```
-  /ready <INPUT>      ──▶  /go          ──▶  /migration      ──▶  working code
-                              ├─ ops              (one-time)        + project harness
-                              └─ harness
+  /ready <INPUT>      ──▶  /go          ──▶  working code + project harness
+                              ├─ /migration   (one-time onboarding)
+                              └─ harness      (workflow design)
 ```
 
 | Command | Consumes | Produces |
@@ -87,7 +87,6 @@ rationale **at the path every future session reads first**.
 | `/dryforge:go` | the approved contract | verified code + the project harness |
 | `/dryforge:migration` | an existing codebase | the project harness (one-time) |
 | `harness:*` | design briefs, specs, custom agents | validated agent workflows + skill specs |
-| `dryforge-ops:*` | `.dryforge/` cycles, evidence | task logs, ledgers, dashboards, reports |
 
 ---
 
@@ -170,11 +169,9 @@ run before it starts.
 
 When everything passes, `/go` writes or updates the project harness,
 runs one final independent review across the full change, and archives
-the design contract. Optional **operations sync**: if your project has a
-`.agents/ops/` plane, `/go` can delegate to `dryforge-ops after-go` to
-normalize evidence files into task logs and cycle ledgers — creating a
-durable record for future cycles. This is opt-in; `/go` never creates
-the ops plane itself.
+the design contract under `.dryforge/` for future cycles. If a run stops
+before approval or archive completion, `.dryforge/run.json` preserves the
+coarse recovery state so the next agent can resume or abandon deliberately.
 
 ---
 
@@ -195,7 +192,7 @@ then on, the project runs on `/ready` → `/go`.
 
 ---
 
-## Bundled support skills
+## Bundled support skill
 
 ### `harness` — Workflow design & team specifications
 
@@ -215,27 +212,6 @@ Use `harness` when you want to:
 - Capture team standards, domain expertise, or validation rules as executable specs
 - Audit a workflow for safety, consistency, or correctness
 - Build a skill that will be invoked by other agents or projects
-
-### `dryforge-ops` — Operations tracking & cycle ledger
-
-The operations skill syncs dryforge cycles into `.agents/ops/`: task logs,
-evidence files, cycle ledgers, and HTML dashboards. It records the
-control plane; it does not reimplement execution.
-
-**v1.4.0 improvements:**
-- **Cycle ledger is now readable:** `dashboard` renders a roll-up of cycle entries
-  (task ID, status, blockers, completion state) with an open-cycle count
-- **Recommendations are ledger-aware:** the `doctor` command checks for
-  unresolved operations before recommending the next lifecycle step
-- **Graceful degradation:** corrupt ledger entries do not block diagnosis or
-  reporting — they are logged and skipped
-
-Use `dryforge-ops` when you want to:
-
-- Archive design contracts and evidence across cycles for later reference
-- Track open blockers and unresolved cycles in an operations ledger
-- Generate HTML reports of recent execution history and current status
-- Handoff cycle state to the next session or agent
 
 ---
 
@@ -273,11 +249,8 @@ back to you.
 
 After `/go` completes, the contract is archived under `.dryforge/`,
 cycle by cycle — a durable record of what was decided, when, and why.
-
-If you enable operations sync via `dryforge-ops after-go`, the cycle
-archive is also normalized into a `.agents/ops/` ledger — a running
-record of task IDs, blockers, and completion state that future cycles
-can read and act on.
+Active work remains visible through root `.dryforge/{handoff,spec,plan}.md`
+and interrupted execution state is guarded by `.dryforge/run.json`.
 
 ---
 
@@ -336,10 +309,10 @@ what each one trusts.
 - **vs. parallel orchestrators** — parallelism without grounded intent
   ships the wrong thing faster. dryforge parallelizes only downstream of
   an approved spec, and merges only what survives the gates.
-- **vs. operations dashboards** — many track events after execution.
-  dryforge tracks *decisions* — the reasoning, the open questions, the
-  gates that were enforced. An ops ledger without the design contract is
-  an execution log; with it, you can re-derive intent.
+- **vs. status dashboards** — many track events after execution.
+  dryforge tracks *decisions* — the reasoning, the open questions, and the
+  gates that were enforced. Execution logs tell you what happened; the
+  design contract lets the next agent re-derive intent.
 
 ---
 
@@ -360,17 +333,16 @@ what each one trusts.
 
 ## Platform notes
 
-- **Explicit invocation only.** The five commands never auto-trigger.
+- **Explicit invocation only.** The core lifecycle and harness never auto-trigger.
   Nothing runs unless you call it.
 - **One source, two platforms.** Claude Code and Codex artifacts build
   from the canonical `src/skills/` tree into committed `claude/` and
   `codex/plugin/` bundles. The build checks plugin version parity and shared
   reference-file parity before release.
-- **Bundled support.** The `harness` and `dryforge-ops` skills are
-  included in the plugin and auto-discover from `.agents/` or as command
-  invocations. They are not separate installs.
+- **Bundled support.** The `harness` skill is included in the plugin for
+  workflow design, audit, repair, and reusable specialist-skill authoring.
 - **The three lifecycle commands** (`ready`, `go`, `migration`) are the
-  steady-state pipeline; support skills are optional extensions.
+  steady-state pipeline; harness is an optional extension around it.
 - **Requirements.** `git`, and Claude Code or Codex.
 
 ---

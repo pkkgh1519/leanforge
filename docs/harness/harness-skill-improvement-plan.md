@@ -41,7 +41,7 @@ This improvement cycle should not:
 - create a separate execution lifecycle competing with `ready`, `go`, or `migration`;
 - pin the workflow to a specific model, service tier, or proprietary runtime behavior;
 - introduce a large benchmark suite before small smoke scenarios exist;
-- move durable project operations into `harness`; `dryforge-ops` remains the operations plane.
+- move durable project operations into `harness`; core `.dryforge/` state remains the execution-history source of truth.
 
 ## 4. Design Principles
 

@@ -9,7 +9,7 @@ allowed-tools: Read, Edit, Write, Bash, Grep, Glob, Agent, AskUserQuestion
 
 Harness is a meta-skill for designing portable, repo-local agent workflows. Use it to analyze a project, decide which guidance belongs in `AGENTS.md`, choose the smallest collaboration pattern, generate reusable specialist skills, define deterministic handoff files, and preserve validation and maintenance evidence.
 
-Within the dryforge plugin, Harness is the upper design layer over the per-cycle harness that `dryforge go` writes: `go` creates or updates a repo's harness each cycle, and `dryforge-ops workflow suggest` flags recurring task types. When a workflow recurs, use Harness to lift it into a durable, reusable team spec and specialist skills instead of re-deriving it each cycle.
+Within the dryforge plugin, Harness is the upper design layer over the per-cycle project harness that `dryforge go` writes: `go` creates or updates a repo's harness each cycle, while Harness turns recurring or team-worthy patterns into durable workflow specs and specialist skills instead of re-deriving them each cycle.
 
 The canonical skill tree is `.agents/skills/`, and Harness ships for both Claude and Codex. Optional repo-local `.codex/agents/` and `.codex/config.toml` files may support bounded project-specific subagent workflows, but generated harnesses must not depend on runtime-specific peer messaging or fixed model pins.
 
@@ -325,7 +325,7 @@ Output:
 
 After validation, preserve a maintenance path:
 
-1. When the repository has a dryforge-ops control plane (`.agents/ops/` exists), leave a concise instruction for the main agent to record the adoption through the dryforge-ops `log` mode: one `workflow_adopted`/`adopted` event whose `workflow` field names the adopted candidate, so `workflow suggest` stops re-flagging it until it recurs.
+1. Record adopted workflows in the generated harness maintenance notes or changelog, including the trigger, owner, validation evidence, and when to revisit it.
 2. Record recurring failures and ambiguous triggers.
 3. Track path drift across `AGENTS.md`, `.agents/skills/`, `docs/harness/`, and `_workspace/`.
 4. Remove stale recovery logic when models or tools improve.

@@ -372,9 +372,3 @@ After the harness step, final review, user approval, and 3-doc archiving (steps 
   - **Hand off only →** keep the feature branch intact.
   Never integrate on your own.
 
-## Operations sync (optional)
-
-If this repository runs the `dryforge-ops` skill (an `.agents/ops/` operations plane already exists),
-after archiving (step 13) hand the just-created `.dryforge/NNN/` archive to it: run `dryforge-ops
-after-go` so this cycle's evidence is normalized into the operations ledger and task log. Skip
-silently when the repo has no `.agents/ops/` plane — go never creates one itself.

@@ -39,7 +39,6 @@ RUNTIME_PEER_PATTERNS = [
 
 OPERATION_COUPLING_PATTERNS = [
     re.compile(r"\bOPERATIONS_SUMMARY\b"),
-    re.compile(r"\btask-log\.jsonl\b"),
     re.compile(r"\bdocs/operations\b"),
 ]
 

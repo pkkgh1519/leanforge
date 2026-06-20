@@ -97,6 +97,17 @@ class GoRecoveryContractTests(unittest.TestCase):
                 read("claude/skills/go/references/harness-lifecycle.md"),
             )
 
+    def test_dryforge_ops_is_not_packaged(self):
+        removed_paths = [
+            ROOT / "src/skills/dryforge-ops",
+            ROOT / "platform/codex/skills/dryforge-ops",
+            ROOT / "claude/skills/dryforge-ops",
+            ROOT / "codex/plugin/skills/dryforge-ops",
+        ]
+        for path in removed_paths:
+            with self.subTest(path=path):
+                self.assertFalse(path.exists())
+
     def test_codex_only_go_tdd_wrapper_is_packaged(self):
         codex_skill = ROOT / "codex/plugin/skills/dryforge-go-tdd/SKILL.md"
         codex_agent = ROOT / "codex/plugin/skills/dryforge-go-tdd/agents/openai.yaml"

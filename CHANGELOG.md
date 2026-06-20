@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.5.0 (2026-06-20)
+
+- remove the `dryforge-ops` skill from the default Claude/Codex plugin surface
+- keep status, handoff, interrupted-run recovery, and cycle history in core `.dryforge/` state
+- decouple `go` and `harness` from `.agents/ops` ledgers, task logs, dashboards, and workflow-suggest adoption records
+
 ## v1.4.0 (2026-06-11)
 
 - dryforge-ops: wire the ledger read-consume path — `dashboard` now renders cycle-ledger roll-up (task, status, blockers) with open-cycle count, and `doctor` recommendation is ledger-aware (points to latest unresolved entry before suggesting next lifecycle step)
