@@ -1,4 +1,4 @@
 interface:
   display_name: "Leanforge:Run TDD"
   short_description: "Leanforge Run with selective TDD"
-  default_prompt: "Use Leanforge:Run TDD to execute the Leanforge plan with selective TDD for behavior changes."
+  default_prompt: "Use /leanforge:run-tdd to execute the Leanforge plan with selective TDD for behavior changes."

@@ -1,7 +1,7 @@
 interface:
   display_name: "Leanforge:Run"
   short_description: "Execute a Leanforge 3-doc."
-  default_prompt: "Use Leanforge:Run to execute the 3-doc in .leanforge/."
+  default_prompt: "Use /leanforge:run to execute the 3-doc in .leanforge/."
 
 policy:
   allow_implicit_invocation: false

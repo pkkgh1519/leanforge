@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.6.4 (2026-06-21)
+
+- standardize Harness user-facing invocation as `/leanforge:harness` in README and Codex prompts
+- keep Codex display names as `Leanforge:*` while using slash commands for invocation guidance
+
 ## v1.6.3 (2026-06-21)
 
 - remove site/homepage metadata and documentation links; no Leanforge site is declared until a dedicated site exists

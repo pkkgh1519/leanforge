@@ -1,6 +1,6 @@
 {
   "name": "leanforge",
-  "version": "1.6.3",
+  "version": "1.6.4",
   "description": "Intent-to-implementation: from a goal, design docs, notes, or a mix, elicit and validate intent into a grounded 3-doc, then orchestrate dependency-aware parallel execution with right-sized review.",
   "author": {
     "name": "fn-opt"
@@ -32,9 +32,9 @@
       "Write"
     ],
     "defaultPrompt": [
-      "Use Leanforge:Prime to turn this goal, doc, or notes into a 3-doc.",
-      "Use Leanforge:Run to execute the 3-doc.",
-      "Use Leanforge:Harness to design, audit, or repair a repo-local agent workflow."
+      "Use /leanforge:prime to turn this goal, doc, or notes into a 3-doc.",
+      "Use /leanforge:run to execute the 3-doc.",
+      "Use /leanforge:harness to design, audit, or repair a repo-local agent workflow."
     ],
     "brandColor": "#2563EB"
   }

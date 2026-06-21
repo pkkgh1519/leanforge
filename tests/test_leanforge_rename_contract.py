@@ -18,7 +18,7 @@ class LeanforgeRenameContractTests(unittest.TestCase):
         self.assertEqual("https://github.com/pkkgh1519/leanforge", codex_manifest["repository"])
 
         prompts = "\n".join(codex_manifest["interface"]["defaultPrompt"])
-        for call in ("Leanforge:Prime", "Leanforge:Run", "Leanforge:Harness"):
+        for call in ("/leanforge:prime", "/leanforge:run", "/leanforge:harness"):
             self.assertIn(call, prompts)
 
     def test_docs_use_leanforge_distribution_path_without_homepage_site(self):
@@ -50,6 +50,14 @@ class LeanforgeRenameContractTests(unittest.TestCase):
                     encoding="utf-8"
                 )
                 self.assertIn(f'display_name: "{display_name}"', yaml_text)
+
+    def test_readme_uses_harness_slash_command(self):
+        for rel in ("README.md", "README_KO.md"):
+            with self.subTest(rel=rel):
+                body = (ROOT / rel).read_text(encoding="utf-8")
+                self.assertIn("/leanforge:harness", body)
+                self.assertNotIn("harness:*", body)
+                self.assertNotIn("/leanforge:herness", body)
 
     def test_old_skill_directories_are_not_part_of_sources_or_packages(self):
         old_skill_names = ("ready", "go", "migration", "dryforge-go-tdd")

@@ -2,7 +2,7 @@
 
 <div align="center">
 
-# Leanforge v1.6.3
+# Leanforge v1.6.4
 
 ### Intent-to-implementation for Claude Code & Codex.
 
@@ -38,7 +38,7 @@ codex plugin add leanforge@leanforge
 <sub>Distribution: the marketplace package path is `fn-opt/leanforge`; the installed plugin identity is `leanforge` and the user-facing product is Leanforge.</sub>
 
 
-<sub>Installs the three lifecycle commands (`/leanforge:prime`, `/leanforge:run`, `/leanforge:set`) plus the bundled `Leanforge:Harness` (`/leanforge:harness`) workflow-design skill.</sub>
+<sub>Installs the three lifecycle commands (`/leanforge:prime`, `/leanforge:run`, `/leanforge:set`) plus the bundled `/leanforge:harness` workflow-design command.</sub>
 
 <sub>Codex also includes `Leanforge:Run TDD` (`/leanforge:run-tdd`), a Codex-only wrapper that runs `/leanforge:run` with selective TDD guidance for behavior-changing work.</sub>
 
@@ -79,7 +79,7 @@ rationale **at the path every future session reads first**.
 ```
   /leanforge:prime <INPUT> ──▶  /leanforge:run  ──▶  working code + project harness
                               ├─ /leanforge:set (one-time onboarding)
-                              └─ harness      (workflow design)
+                              └─ /leanforge:harness (workflow design)
 ```
 
 | Command | Consumes | Produces |
@@ -87,7 +87,7 @@ rationale **at the path every future session reads first**.
 | `Leanforge:Prime` (`/leanforge:prime`) | anything — one line to full documents | a reviewed, executable design contract |
 | `Leanforge:Run` (`/leanforge:run`) | the approved contract | verified code + the project harness |
 | `Leanforge:Set` (`/leanforge:set`) | an existing codebase | the project harness (one-time) |
-| `harness:*` | design briefs, specs, custom agents | validated agent workflows + skill specs |
+| `Leanforge:Harness` (`/leanforge:harness`) | design briefs, specs, custom agents | validated agent workflows + skill specs |
 
 ---
 
