@@ -53,16 +53,20 @@ where the input came from. The 3-doc contract is in `references/output-format.md
   inside. Do not hardcode question lists or verification checklists.
 - **Stack-agnostic.** No stack/framework/library name in this skill. Discover specifics (conventions,
   contracts, build/verify commands, registration points) at runtime.
-- **Subagents only at the two independent checks.** Every stage that *builds* intent — ORIENT,
+- **Bounded independent checks; authoring stays inline.** Every stage that *builds* intent — ORIENT,
   DECOMPOSE, ELICIT, SPEC+REVIEW, PLAN, HANDOFF — runs **inline in the main session** (intent grounding
-  must see *raw* context, not a summary — the same reason migration is inline-only). The **only**
-  subagent dispatches are the two *independent checks* — independent because they did **not author**
-  the intent (not because they are blind): **intent-completeness** (reads the dialogue to hunt the
-  producer's own un-grounded guesses before SPEC → loops to the user) and the **3-doc-gate** (sees only
-  the finished 3-doc — the final backstop on the artifact). Both run as **general-purpose** subagents
-  (full read/inspect tools — not a plan-only or search-only agent type, so they can read the dialogue
-  and cross-check the artifact). Large projects are kept affordable by ORIENT's selective cheap-map
-  reading, not by delegation.
+  must see *raw* context, not a summary — the same reason migration is inline-only). ready permits only
+  bounded, non-authoring dispatches: an **optional evidence-grounding scout** **after ORIENT** when the
+  main cheap-map has already run and material uncertainty remains; **intent-completeness** (reads the
+  dialogue to hunt the producer's own un-grounded guesses before SPEC → loops to the user); and the
+  **3-doc-gate** (sees only the finished 3-doc — the final backstop on the artifact). The optional
+  scout is **read-only repo-evidence QA**: it returns **evidence pointers only**, and **main ready
+  remains the authority**. It must not author, set, or decide intent. intent-completeness and
+  3-doc-gate run as **general-purpose** subagents (full read/inspect tools — not a plan-only or
+  search-only agent type, so they can read the dialogue and cross-check the artifact). This is a
+  **ready-only optional ORIENT evidence scout** and **does not change migration's inline-only
+  contract**. Large projects are kept affordable by ORIENT's selective cheap-map reading plus the
+  bounded scout's evidence pointers, not by delegating authoring.
 - **Harness-aware, two modes (cycle is the only branch).** The entry branches on **one** fact:
   `.dryforge/status.json`. **Delta** (present): load the harness (`CLAUDE.md` / `AGENTS.md` + `docs/`)
   as project context and don't re-ask what it answers — but do **not** resolve an input↔harness
@@ -126,9 +130,10 @@ in a first cycle (`status.json` absent). The cycle branches *scope and condition
 stage sequence is identical for first and delta.
 
 ```
-Core principles  inline (subagents only at intent-completeness + 3-doc-gate) · understand-not-guess ·
+Core principles  inline authoring + bounded non-authoring checks · understand-not-guess ·
                  stack/language-agnostic · conflict→ELICIT · floor not ceiling · user-language native
 ORIENT           absorb input + ground code/harness · branch on status.json     (no refs)
+evidence-grounding scout  evidence-grounding-scout.md  ← optional read-only repo-evidence QA after ORIENT
 DECOMPOSE        decompose.md · grounds-gate.md
 ELICIT           elicitation.md · gap-analysis.md · intent-review.md · grounds-gate.md
        [first]+  project-scoping.md · project-design-domain.md · project-design-technical.md ·
@@ -180,10 +185,19 @@ questions are ELICIT's. Everything ORIENT produces is *context*, not a conclusio
    instructions, file list, manifests, verify scripts, the directories the input points at. **Stop
    broad reading the moment the completion bar is met** (inline ≠ "read everything" — suppress
    flooding). Deep-read only the contract to preserve, one representative HOW pattern, and the verify
-   commands. Greenfield → minimal or skip. **No subagent.**
+   commands. Greenfield → minimal or skip. No subagent performs ORIENT authoring; the optional scout
+   below is a read-only evidence check only.
 5. **Find the verify command.** Discover the project's verify command. If none, surface that *absence*
    as a decision (a custom check / named human-approval evidence / "no automated gate") — recorded in
    SPEC, never left implicit.
+6. **Optional evidence-grounding scout (read-only).** Force-load
+   `references/evidence-grounding-scout.md` only after the **main ORIENT cheap-map completed** and
+   **material uncertainty** remains that repository evidence could materially change. **Skip for
+   greenfield**, **simple documentation-only** work, **small deltas**, or when **ORIENT already has
+   sufficient evidence**. Scout findings are **evidence pointers only**; main ready re-checks cited
+   sources/command slices inline before using them. Any **source conflict candidate**, **verify command
+   candidate**, **likely blast-radius candidate**, or unknown is routed to **DECOMPOSE or ELICIT** as
+   appropriate, never self-settled in ORIENT.
 
 **Completion bar:** input is loaded raw and the cycle is decided (+ delta: harness loaded); existing →
 you can state the goal's blast radius, the contract to honor, and the verify commands; greenfield →
@@ -268,7 +282,8 @@ cardinality settled silently)? It does **not** flag *tuning values* (executor in
 Each finding is **relayed to the user and closed by extract/present** (not patched into a document);
 **bounded local re-walk** of only the touched neighborhood, re-check once, then escalate — no open
 loop. This catches guesses *while the user is still here to decide*, so the final 3-doc-gate finds
-little. (This and the 3-doc-gate are the only subagent dispatches.)
+little. This is a required independent intent audit; it is separate from the optional ORIENT
+evidence-grounding scout, which returns evidence pointers and never authors intent.
 
 ## SPEC + REVIEW(A) — write ground truth, verify fidelity — `references/output-format.md`
 

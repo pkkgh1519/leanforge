@@ -59,8 +59,9 @@ ground.
 ## When a summary isn't enough
 
 If the in-session context can't settle whether an axis is thin (you need to see specific code),
-read the narrow, specific path inline — ELICIT is inline (no subagent dispatch — those belong to the
-two independent checks, intent-completeness and the 3-doc-gate). This is a pinpoint follow-up, kept small.
+read the narrow, specific path inline — ELICIT is inline and does not dispatch. The optional ORIENT
+evidence-grounding scout can only run earlier, after the main cheap-map, and cannot replace this
+pinpoint read or resolve ELICIT's user-owned questions.
 
 ## Universality guard
 
