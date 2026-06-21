@@ -1,11 +1,11 @@
 {
-  "name": "dryforge",
+  "name": "leanforge",
   "interface": {
-    "displayName": "dryforge"
+    "displayName": "Leanforge"
   },
   "plugins": [
     {
-      "name": "dryforge",
+      "name": "leanforge",
       "source": {
         "source": "local",
         "path": "./codex/plugin"

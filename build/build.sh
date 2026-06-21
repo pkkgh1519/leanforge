@@ -21,7 +21,7 @@ PLAT="$ROOT/platform"
 # shell validation, and/or subagent dispatch. bash 3.2 — no assoc arrays.
 claude_tools() {
   case "$1" in
-    migration|ready|go|harness) echo "Read, Edit, Write, Bash, Grep, Glob, Agent, AskUserQuestion" ;;
+    set|prime|run|harness) echo "Read, Edit, Write, Bash, Grep, Glob, Agent, AskUserQuestion" ;;
   esac
 }
 
@@ -30,7 +30,7 @@ echo "=== build: claude ==="
 rm -rf "$ROOT/claude"
 mkdir -p "$ROOT/claude/.claude-plugin"
 cp -R "$SRC" "$ROOT/claude/skills"
-for s in ready go migration harness; do
+for s in prime run set harness; do
   perl -0777 -i -pe 's/\r\n/\n/g' "$ROOT/claude/skills/$s/SKILL.md"
   INJECT=$'disable-model-invocation: true\nallowed-tools: '"$(claude_tools "$s")" \
     perl -0777 -i -pe 'BEGIN{$j=$ENV{INJECT}} s/\A(---\r?\n.*?\r?\n)---\r?\n/$1$j\n---\n/s or die "failed to inject Claude frontmatter\n"' \
@@ -79,9 +79,9 @@ echo "✓ version OK: v$UNIQ (4 manifests + CHANGELOG)"
 # only its own references/, so each consumer keeps a physical copy — and a
 # one-sided edit is silent drift. Assert byte-parity on the canonical source so
 # the build fails fast instead of shipping two diverging copies.
-#   harness-format.md     go ↔ migration
-#   harness-review.md     go ↔ migration
-#   foundation-format.md  go ↔ ready
+#   harness-format.md     run ↔ set
+#   harness-review.md     run ↔ set
+#   foundation-format.md  run ↔ prime
 parity_check() {
   if ! cmp -s "$1" "$2"; then
     echo "✗ reference drift (shared files must stay byte-identical):" >&2
@@ -90,9 +90,9 @@ parity_check() {
     exit 1
   fi
 }
-parity_check "$SRC/go/references/harness-format.md"    "$SRC/migration/references/harness-format.md"
-parity_check "$SRC/go/references/harness-review.md"    "$SRC/migration/references/harness-review.md"
-parity_check "$SRC/go/references/foundation-format.md" "$SRC/ready/references/foundation-format.md"
+parity_check "$SRC/run/references/harness-format.md"    "$SRC/set/references/harness-format.md"
+parity_check "$SRC/run/references/harness-review.md"    "$SRC/set/references/harness-review.md"
+parity_check "$SRC/run/references/foundation-format.md" "$SRC/prime/references/foundation-format.md"
 echo "✓ reference parity OK: 3 shared references identical across skills"
 
 echo "=== done → ./claude  ./codex/plugin ==="

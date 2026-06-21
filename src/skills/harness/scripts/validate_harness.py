@@ -21,7 +21,7 @@ if str(SCRIPT_DIR) not in sys.path:
 
 from validate_core import Issue, is_safe_repo_dir, is_safe_repo_file, read_text, relpath, safe_markdown_files_under, split_issues
 from validate_frontmatter import parse_frontmatter
-from validate_go_compat import validate_custom_agent_name, validate_go_compatible_skill
+from validate_run_compat import validate_custom_agent_name, validate_run_compatible_skill
 from validate_install_parity import compare_skill_dirs
 from validate_pattern_scan import find_skill_files, validate_banned_patterns, validate_banned_patterns_in_files
 from validate_references import validate_reference_links, validate_references_dir
@@ -73,7 +73,7 @@ def validate_skill_file(root: Path, path: Path) -> list[Issue]:
 
     issues.extend(validate_references_dir(root, path))
     issues.extend(validate_reference_links(root, path, text))
-    issues.extend(validate_go_compatible_skill(root, path, text, description, Issue, relpath))
+    issues.extend(validate_run_compatible_skill(root, path, text, description, Issue, relpath))
     return issues
 
 

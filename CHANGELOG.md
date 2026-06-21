@@ -1,10 +1,16 @@
 # Changelog
 
+## v1.6.0 (2026-06-21)
+
+- rename the plugin identity and visible command surface to Leanforge
+- rename lifecycle skills: ready → prime, go → run, migration → set, and dryforge-go-tdd → run-tdd
+- keep the local runtime state directory as `.dryforge/` for backward compatibility
+
 ## v1.5.0 (2026-06-20)
 
 - remove the `dryforge-ops` skill from the default Claude/Codex plugin surface
 - keep status, handoff, interrupted-run recovery, and cycle history in core `.dryforge/` state
-- decouple `go` and `harness` from `.agents/ops` ledgers, task logs, dashboards, and workflow-suggest adoption records
+- decouple `Run` and `harness` from `.agents/ops` ledgers, task logs, dashboards, and workflow-suggest adoption records
 
 ## v1.4.0 (2026-06-11)
 
@@ -25,7 +31,7 @@
 - bundle the `harness` skill (durable repo-local agent workflow design) into the plugin
 - dryforge-ops: `workflow suggest` now delegates reusable workflow design to the harness skill and removes the half-absorbed `apply`/`validate` modes
 - dryforge-ops: drop the legacy `--flag` CLI surface; subcommand form is the only CLI
-- wire `dryforge go` completion to an optional `dryforge-ops after-go` operations sync
+- wire `Leanforge Run` completion to an optional `dryforge-ops after-run` operations sync
 
 ## v1.1.0 (2026-06-09)
 

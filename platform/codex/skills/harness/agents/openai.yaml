@@ -1,7 +1,7 @@
 interface:
-  display_name: "dryforge harness"
+  display_name: "Leanforge:Harness"
   short_description: "Design durable repo-local agent workflows."
-  default_prompt: "Use dryforge harness to design, audit, or repair a repo-local agent workflow:"
+  default_prompt: "Use Leanforge:Harness to design, audit, or repair a repo-local agent workflow:"
 
 policy:
   allow_implicit_invocation: false

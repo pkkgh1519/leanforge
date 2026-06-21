@@ -1,12 +1,16 @@
 {
-  "name": "dryforge",
-  "description": "Say what you want to build. Two commands later, it's built.",
-  "owner": { "name": "fn-opt" },
+  "name": "leanforge",
+  "description": "Say what you want to build. Leanforge turns it into a plan, then executes it.",
+  "owner": {
+    "name": "fn-opt"
+  },
   "plugins": [
     {
-      "name": "dryforge",
-      "description": "Intent-to-implementation: Ready, then Go.",
-      "author": { "name": "fn-opt" },
+      "name": "leanforge",
+      "description": "Intent-to-implementation: Prime, then Run.",
+      "author": {
+        "name": "fn-opt"
+      },
       "source": "./claude",
       "homepage": "https://github.com/fn-opt/dryforge"
     }

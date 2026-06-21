@@ -1,4 +1,0 @@
-interface:
-  display_name: "Dryforge Go TDD"
-  short_description: "Dryforge Go with selective TDD"
-  default_prompt: "Use $dryforge-go-tdd to execute the Dryforge plan with selective TDD for behavior changes."

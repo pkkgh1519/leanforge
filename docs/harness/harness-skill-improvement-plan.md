@@ -2,7 +2,7 @@
 
 Date: 2026-06-10
 Status: active implementation plan
-Owner: dryforge maintainers
+Owner: Leanforge maintainers
 Scope: `src/skills/harness` and its generated Claude/Codex plugin copies
 
 ## 1. Purpose
@@ -28,7 +28,7 @@ The current design is directionally strong and already useful for experienced us
 - There are no dedicated tests for `validate_harness.py` itself.
 - Canonical source validation was not first-class at the time of this review; `validate_harness.py . --json` validates repo-local harness artifacts and docs, not the canonical `src/skills/harness` source tree.
 - Trigger/discoverability behavior is documented as an expectation but not captured as a maintained smoke matrix.
-- The Claude execution surface needed an explicit check; local Claude runtime smoke was unavailable, so the build now injects the same minimal Claude tool frontmatter for `harness` that `ready`, `go`, and `migration` already receive.
+- The Claude execution surface needed an explicit check; local Claude runtime smoke was unavailable, so the build now injects the same minimal Claude tool frontmatter for `harness` that `Prime`, `Run`, and `Set` already receive.
 - There is no short quickstart or worked example for new users.
 - There is no small benchmark/scenario pack that demonstrates what “better harness output” means.
 
@@ -38,7 +38,7 @@ This improvement cycle should not:
 
 - rewrite the `harness` skill from scratch;
 - add broad runtime orchestration features;
-- create a separate execution lifecycle competing with `ready`, `go`, or `migration`;
+- create a separate execution lifecycle competing with `Prime`, `Run`, or `Set`;
 - pin the workflow to a specific model, service tier, or proprietary runtime behavior;
 - introduce a large benchmark suite before small smoke scenarios exist;
 - move durable project operations into `harness`; core `.dryforge/` state remains the execution-history source of truth.
@@ -145,7 +145,7 @@ Goal: remove ambiguity about platform support.
 Current status:
 
 - Local Claude CLI smoke was unavailable in this workspace.
-- `build/build.sh` now treats `harness` as a Claude file-editing and validation skill and injects `disable-model-invocation` plus the same minimal `allowed-tools` set used by `ready`, `go`, and `migration`.
+- `build/build.sh` now treats `harness` as a Claude file-editing and validation skill and injects `disable-model-invocation` plus the same minimal `allowed-tools` set used by `Prime`, `Run`, and `Set`.
 - Codex remains unchanged: it uses plugin `Write` capability plus per-skill `agents/openai.yaml` overlay.
 
 Planned checks:
