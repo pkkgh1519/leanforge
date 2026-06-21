@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.6.1 (2026-06-21)
+
+- clarify that the external marketplace package path remains `fn-opt/dryforge` as a distribution-compatibility path while the installed plugin identity is `leanforge`
+- point plugin homepage/repository metadata at the current `pkkgh1519/dryforge-ops` remote
+
 ## v1.6.0 (2026-06-21)
 
 - rename the plugin identity and visible command surface to Leanforge

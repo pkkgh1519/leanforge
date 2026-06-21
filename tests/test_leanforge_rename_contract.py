@@ -14,10 +14,20 @@ class LeanforgeRenameContractTests(unittest.TestCase):
         self.assertEqual("leanforge", codex_manifest["name"])
         self.assertEqual("leanforge", claude_manifest["name"])
         self.assertEqual("Leanforge", codex_manifest["interface"]["displayName"])
+        self.assertEqual("https://github.com/pkkgh1519/dryforge-ops", codex_manifest["homepage"])
+        self.assertEqual("https://github.com/pkkgh1519/dryforge-ops", codex_manifest["repository"])
 
         prompts = "\n".join(codex_manifest["interface"]["defaultPrompt"])
         for call in ("Leanforge:Prime", "Leanforge:Run", "Leanforge:Harness"):
             self.assertIn(call, prompts)
+
+    def test_docs_explain_legacy_distribution_path(self):
+        for rel in ("README.md", "README_KO.md"):
+            with self.subTest(rel=rel):
+                body = (ROOT / rel).read_text(encoding="utf-8")
+                self.assertIn("fn-opt/dryforge", body)
+                self.assertIn("leanforge", body)
+                self.assertIn("Distribution compatibility" if rel == "README.md" else "배포 호환성", body)
 
     def test_codex_skill_display_names_are_colon_names(self):
         expected = {
