@@ -102,14 +102,16 @@ references load at their steps.
 
 - Invocation: the user invokes the `Run` skill.
   Load the 3-doc (handoff → spec → plan) from the project's
-  `.dryforge/` (project-root-relative). If absent, ask for the path.
+  `.leanforge/` (project-root-relative). If absent but legacy `.dryforge/` exists, run the state
+  directory compatibility preflight in `harness-lifecycle.md` before asking for another path. If both
+  directories contain active state, stop and ask which one is canonical.
 - **git required** — worktree isolation depends on it. If not a repo, offer `git init` **and make an
   initial commit** (an empty repo has no HEAD, so no worktree/branch can be created). If git is not
   installed, stop and say so.
 
-- **Interrupted-run preflight.** Before applying the first-cycle/delta rule, inspect `.dryforge/run.json`.
-  This file is a local-only interrupted-run marker, separate from `.dryforge/status.json`.
-  - If `.dryforge/status.json` is present, the harness is initialized and this is a delta. A stale
+- **Interrupted-run preflight.** Before applying the first-cycle/delta rule, inspect `.leanforge/run.json`.
+  This file is a local-only interrupted-run marker, separate from `.leanforge/status.json`.
+  - If `.leanforge/status.json` is present, the harness is initialized and this is a delta. A stale
     completed `run.json` may be ignored or cleaned up after the normal safety checks.
   - If `status.json absent + run.json present`, treat it as an **interrupted Run run**, **not a first cycle**.
     Do not regenerate the Foundation or overwrite active docs. Re-read the active 3-doc, compare its
@@ -119,20 +121,25 @@ references load at their steps.
     detection below.
   The marker is advisory evidence, not authority: the actual git state, active 3-doc content, and file
   existence still decide whether it is safe to continue.
+- **Legacy interrupted-run guard.** If `.leanforge/` is absent and legacy `.dryforge/run.json` exists,
+  treat it exactly like an interrupted Run run and do not migrate first. If `.dryforge/worktrees/`
+  exists, do not rename the directory; Git worktree metadata may depend on that path. Resume, abandon,
+  or complete the legacy run before migrating.
 - **Base determination.** Identify the project's main branch (docs / remote default / ask — do not
   guess). Verify `main` has no unpushed commits and the working tree has no modified/staged **tracked**
   files; if either fails, **stop and report**. Then classify:
   - **Greenfield** (main has no application code — only an init commit, `.gitignore`, or
-    producer-generated `.dryforge/`): **base = main**. No feature branch — there is no production
+    producer-generated `.leanforge/`): **base = main**. No feature branch — there is no production
     code to protect.
   - **Existing project** (main has meaningful committed code): **base = feature branch** created
     from main (`git checkout -b Leanforge/<feature>`). Protects main from incomplete work.
-  - **`.dryforge/` as untracked files** is the expected handoff state from the producer — do not
+  - **`.leanforge/` as untracked files** is the expected handoff state from the producer — do not
     treat it as a dirty tree. Anything else untracked or modified is foreign work → stop and report.
-  - **You own the `.dryforge/` git mechanics.** On the base, add `.dryforge/` to `.gitignore` and
-    commit. For existing projects this stays on the feature branch (never on main); for greenfield
-    it is on main (acceptable — main has no meaningful history to protect). If a prior run left
-    `.dryforge/` *tracked*, run `git rm -r --cached .dryforge/` first.
+  - **You own the `.leanforge/` git mechanics.** On the base, add `.leanforge/` and `.dryforge/` to
+    `.gitignore` and commit. For existing projects this stays on the feature branch (never on main);
+    for greenfield it is on main (acceptable — main has no meaningful history to protect). If a prior
+    run left `.leanforge/` or legacy `.dryforge/` *tracked*, run `git rm -r --cached` for the tracked
+    state directory first.
 - **Verify commands** — the project's build/test/lint commands are typically declared in the handoff
   (hard gates section) or discovered during scaffold from the project's build scripts. Identify them
   before the first wave; they are used in every integration gate and the completion gate.
@@ -164,8 +171,8 @@ since validation precedes worktree creation).
 
 Parse the graph → topological sort into waves (batches of **≤8 concurrent**). Set up the **base**
 (per Base determination): for existing projects create the feature branch, for greenfield stay on
-main. On the base, set up `.dryforge/` (copy the 3-doc, gitignore, commit). The orchestrator reads
-`.dryforge/` here — task subagents do **not**; they receive spec slices inline (`orchestration.md`).
+main. On the base, set up `.leanforge/` (copy the 3-doc, gitignore, commit). The orchestrator reads
+`.leanforge/` here — task subagents do **not**; they receive spec slices inline (`orchestration.md`).
 A task whose declared work targets are **state/external only** (no file diff) is handled on the base
 sequentially, **never dispatched into a parallel worktree** — the file-diff merge-gate cannot verify
 it and worktree isolation buys it nothing (`orchestration.md`, Wave scheduling). Then, per wave:
@@ -227,10 +234,10 @@ when a lightweight fix would take seconds.
 **Parallel wave** (multiple tasks — worktree isolation required):
 
 0. **Worktree pool** (first parallel wave only) — if the graph has multiple parallel waves,
-   pre-create `max(wave sizes)` worktrees once **under `.dryforge/worktrees/`**; recycle between waves
+   pre-create `max(wave sizes)` worktrees once **under `.leanforge/worktrees/`**; recycle between waves
    instead of remove+recreate (see `orchestration.md`). For a single parallel wave, create on demand.
 1. **Create task worktrees** — serially (avoid `.git/config.lock` contention), **under
-   `.dryforge/worktrees/<task-id>`** (inside the gitignored `.dryforge/`, so they never sprawl into
+   `.leanforge/worktrees/<task-id>`** (inside the gitignored `.leanforge/`, so they never sprawl into
    the project tree or get tracked), each branched off the base (or reset a pooled worktree to the
    current base tip). **If the project has an installable dependency tree**, install or share it
    (sharing guidance in `orchestration.md`).
@@ -257,13 +264,13 @@ when a lightweight fix would take seconds.
    (`git merge-base --is-ancestor`); if not, **do not remove** — escalate. Prefer safe `git worktree
    remove` (no `--force`). Remove dependency-share symlinks first (slash-less `<dir>` pattern).
    Delete merged task branches (`git branch -d`). A failed task's worktree and branch are preserved
-   for diagnosis. After the final batch-remove, also delete the now-empty `.dryforge/worktrees/`
-   directory and any task temp dirs — `.dryforge/` should hold only the active 3-doc, `NNN/` archives,
+   for diagnosis. After the final batch-remove, also delete the now-empty `.leanforge/worktrees/`
+   directory and any task temp dirs — `.leanforge/` should hold only the active 3-doc, `NNN/` archives,
    `status.json`, and `backup/` (no litter). → next wave.
 
 **After all waves:**
 
-At the durable milestones of a run, update `.dryforge/run.json` atomically (write a temp file, then
+At the durable milestones of a run, update `.leanforge/run.json` atomically (write a temp file, then
 rename). Use only coarse milestones: `in_progress`, `awaiting_user_approval`, `archive_in_progress`,
 `completed`, or `abandoned`. Do not write it after every command. Include `activeDocs` with
 `handoffSha256`, `specSha256`, and `planSha256`, plus the base branch/commit facts needed to detect
@@ -277,7 +284,7 @@ whether a later invocation is looking at the same active 3-doc and git state.
 
 9. **Harness create / update** (`references/harness-lifecycle.md` + `references/harness-format.md`,
    force-load). After the completion gate, before the final review: **re-read the 3-doc** (mandatory —
-   the session is now code-biased), then act on the local marker `.dryforge/status.json`:
+   the session is now code-biased), then act on the local marker `.leanforge/status.json`:
    - **First cycle** (marker absent): create the whole harness — CLAUDE.md / AGENTS.md + `docs/` +
      module AGENTS.md — from the handoff's Project Foundation + spec + code. The Foundation is a
      **first-cycle invariant** (`Prime` always writes it); if a first-cycle handoff has **no
@@ -309,10 +316,10 @@ whether a later invocation is looking at the same active 3-doc and git state.
     recorded in the harness as [this]"* — **not** a raw document dump. **Later cycle:** include a
     harness-change summary in the result report.
 
-13. **Archive (move) + mark.** On approval, **move** the active 3-doc into `.dryforge/NNN/` — copy
-    `.dryforge/{handoff,spec,plan}.md` into the new highest+1 dir, **then delete them from the
-    `.dryforge/` root** (archiving is a move, not a copy — leave no stale active 3-doc at root). Write
-    `.dryforge/status.json` (`{ "initialized": true }`) if absent — the local marker that makes the
+13. **Archive (move) + mark.** On approval, **move** the active 3-doc into `.leanforge/NNN/` — copy
+    `.leanforge/{handoff,spec,plan}.md` into the new highest+1 dir, **then delete them from the
+    `.leanforge/` root** (archiving is a move, not a copy — leave no stale active 3-doc at root). Write
+    `.leanforge/status.json` (`{ "initialized": true }`) if absent — the local marker that makes the
     next cycle a delta.
 
 **Advancing waves.** Sequential waves advance immediately after commit verification — no gate to

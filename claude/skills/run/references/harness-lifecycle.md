@@ -5,9 +5,48 @@ harness, and archiving the 3-doc. Runs **after the completion gate, before the f
 Load alongside `harness-format.md` (the harness spec) — this file is the *process*, that one is the
 *spec*.
 
+## State directory compatibility — `.leanforge/` canonical, `.dryforge/` legacy
+
+`.leanforge/` is the canonical Leanforge state directory. `.dryforge/` is a legacy Dryforge-era state
+directory and may appear in repositories that were initialized before the rename. Treat legacy state
+as user data: migrate only when it is safe, never delete it to make a run pass.
+
+Preflight order:
+
+1. If `.leanforge/` exists and `.dryforge/` does not, use `.leanforge/`.
+2. If neither directory exists, create/write only `.leanforge/` and ensure both `.leanforge/` and
+   `.dryforge/` are ignored.
+3. If `.leanforge/` is absent and `.dryforge/` exists with no active `run.json`, no root active
+   3-doc, and no `worktrees/`, migrate by moving `.dryforge/` to `.leanforge/` and write
+   `.leanforge/migration.json`.
+4. If legacy `.dryforge/run.json` is active (`in_progress`, `awaiting_user_approval`,
+   `archive_in_progress`) or `.dryforge/worktrees/` exists, do **not** rename the directory. Resume,
+   abandon, or complete the legacy run first; Git worktree metadata may depend on the old path.
+5. If both `.leanforge/` and `.dryforge/` contain active docs, marker files, or archives that disagree,
+   stop and ask the user which state is canonical. Do not merge or choose automatically.
+6. If `.dryforge/` contains only an inert marker such as `MIGRATED_TO_LEANFORGE.md`, ignore it and use
+   `.leanforge/`.
+
+Minimal migration marker:
+
+```json
+{
+  "schema": "leanforge.stateMigration.v1",
+  "from": ".dryforge",
+  "to": ".leanforge",
+  "mode": "directory-rename",
+  "createdAt": "ISO-8601 timestamp",
+  "legacyRunState": "none|completed|abandoned",
+  "notes": [
+    "The legacy .dryforge directory was migrated to .leanforge.",
+    "Active runs and worktrees are not migrated automatically."
+  ]
+}
+```
+
 ## First-cycle vs delta — the `status.json` marker
 
-`.dryforge/status.json` is a **local-only marker** (it lives inside the gitignored `.dryforge/`, so
+`.leanforge/status.json` is a **local-only marker** (it lives inside the gitignored `.leanforge/`, so
 it is not committed — local is by design). Its content is one fact: `{ "initialized": true }`. It is
 written at the **successful finish** of a first cycle (after the user approves the harness — see
 "Archiving" below) or by `Set` on completion.
@@ -30,10 +69,10 @@ This is the whole detection rule — simple on purpose. Consequences:
 
 
 
-## Interrupted-run marker — `.dryforge/run.json`
+## Interrupted-run marker — `.leanforge/run.json`
 
-`.dryforge/run.json` is a local-only interrupted-run marker. It is not a replacement for
-`.dryforge/status.json`: `status.json` still means the harness was successfully initialized, while
+`.leanforge/run.json` is a local-only interrupted-run marker. It is not a replacement for
+`.leanforge/status.json`: `status.json` still means the harness was successfully initialized, while
 `run.json` records that `Run` started and may need recovery if the session stops before approval or
 archive completion.
 
@@ -77,12 +116,12 @@ condition. Never use `run.json` alone to delete worktrees, reset branches, overw
 run complete.
 
 Write `run.json` only at coarse milestones and write it atomically: write a temporary file in
-`.dryforge/`, then rename it into place. This keeps the preflight cheap: file existence checks, JSON
+`.leanforge/`, then rename it into place. This keeps the preflight cheap: file existence checks, JSON
 parse, active 3-doc hashes, and a small git branch/HEAD check are enough. Do not scan the whole repo or
 hash the whole `docs/` tree during preflight.
 ## 3-doc re-read (mandatory, both modes)
 
-Before generating/updating, **re-read `.dryforge/{handoff,spec,plan}.md`.** By this point the session
+Before generating/updating, **re-read `.leanforge/{handoff,spec,plan}.md`.** By this point the session
 context is code-biased (you just implemented); re-reading restores the design intent so the harness
 reflects the *intended* project, not just the code as written.
 
@@ -98,7 +137,7 @@ intent) → code (implementation fact). The Foundation's richness sets the harne
   `Prime`** (escalate-don't-guess). This is a one-line precondition check, not a fallback mode.
 
 Generate to `harness-format.md`:
-1. If a CLAUDE.md exists, back it up to `.dryforge/backup/`, review it critically, propose the
+1. If a CLAUDE.md exists, back it up to `.leanforge/backup/`, review it critically, propose the
    disposition to the user, and rewrite only approved content.
 2. The whole `docs/` structure (all files).
 3. CLAUDE.md / AGENTS.md (identical content).
@@ -129,13 +168,13 @@ elsewhere — updating stale content matters as much as adding new content.
 
 ## Archiving the 3-doc (after user approval)
 
-After the user approves (final user gate), **move** the active 3-doc into `.dryforge/NNN/`: copy
-`.dryforge/{handoff,spec,plan}.md` into the new `.dryforge/NNN/` (sequential number: highest existing
-+ 1, e.g. `001`, `002`, …) **and then delete them from the `.dryforge/` root.** Archiving is a *move,
+After the user approves (final user gate), **move** the active 3-doc into `.leanforge/NNN/`: copy
+`.leanforge/{handoff,spec,plan}.md` into the new `.leanforge/NNN/` (sequential number: highest existing
++ 1, e.g. `001`, `002`, …) **and then delete them from the `.leanforge/` root.** Archiving is a *move,
 not a copy* — after it, the root holds **no active 3-doc** (only `NNN/` archives, `status.json`,
 `backup/`). This matters: if the root copies are left, the next cycle's producer finds a stale
 previous-cycle 3-doc at the root and has to disambiguate + overwrite it; moving leaves a clean root so
-the next producer just writes a fresh 3-doc. Then write `.dryforge/status.json`
+the next producer just writes a fresh 3-doc. Then write `.leanforge/status.json`
 (`{ "initialized": true }`) if not already present — the marker for the next cycle. (First cycle: the
 Foundation is archived with the handoff; from the next cycle the harness carries project context, so
 no Foundation is produced.)
@@ -146,8 +185,8 @@ no Foundation is produced.)
 
 Archive must be safe to retry after interruption. Treat this as an **idempotent archive retry**:
 
-1. Compute hashes for the root active 3-doc: `.dryforge/handoff.md`, `.dryforge/spec.md`, and
-   `.dryforge/plan.md`.
+1. Compute hashes for the root active 3-doc: `.leanforge/handoff.md`, `.leanforge/spec.md`, and
+   `.leanforge/plan.md`.
 2. Set `run.json.status` to `archive_in_progress` before copying.
 3. If the target archive directory does not exist, create it and copy the three files.
 4. If the archive directory exists and all three archived files match the root active 3-doc hashes,
@@ -158,9 +197,9 @@ Archive must be safe to retry after interruption. Treat this as an **idempotent 
    user. Do not overwrite it and do not choose a winner.
 7. If the archive is complete but the root active 3-doc has already been removed and
    `archive complete but marker missing` is the only remaining inconsistency, write
-   `.dryforge/status.json` and mark `run.json` completed.
+   `.leanforge/status.json` and mark `run.json` completed.
 8. Delete root active 3-doc files only after the archive is complete and hash-verified.
-9. Write `.dryforge/status.json` only after the archive is complete. Then mark `run.json.status` as
+9. Write `.leanforge/status.json` only after the archive is complete. Then mark `run.json.status` as
    `completed` or remove the completed marker after recording the result.
 
 A partial archive with missing root active 3-doc files and an incomplete archive is a blocker: preserve

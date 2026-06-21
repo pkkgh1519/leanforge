@@ -57,7 +57,7 @@ that reads as generic boilerplate, restates what code shows, or fills a section 
 - **Each file at one altitude** — no upper-altitude detail replicated below, no lower-altitude
   implementation mentioned above. The same topic appearing in two files is fine *only* if each
   treats it at its own altitude.
-- **No 3-doc references** — nothing points at `.dryforge/` (the 3-doc is archived after the task;
+- **No 3-doc references** — nothing points at `.leanforge/` (the 3-doc is archived after the task;
   the pointer would dangle).
 - **No constraint-ID labels (blocking).** Flag any constraint-ID carried into the harness — the
   3-doc's `INV-N` / `T-N`, or any `XXX-N` scheme — and any reference to another doc's invariant/rule

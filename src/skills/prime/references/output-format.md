@@ -14,7 +14,7 @@ stack-agnostic — project specifics are discovered while reading the project, n
 Must convey (structure is the agent's to design — 3 hard gates or 30):
 - **Document Roles** table + conflict resolution: spec defines *behavior*; plan defines
   *order and work targets*.
-- File locations (as project-root-relative paths, e.g. `.dryforge/spec.md` — never
+- File locations (as project-root-relative paths, e.g. `.leanforge/spec.md` — never
   machine-absolute, so the 3-doc stays portable and survives archiving) + the big
   picture (execution shape).
 - **Hard gates**: non-negotiable constraints the executing agent cannot derive from code alone.

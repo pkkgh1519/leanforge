@@ -22,8 +22,8 @@ request must never be processed twice.
 only with user approval). `plan.md` = task order + file targets (provisional; revise freely).
 Existing code = HOW reference, never the authority for WHAT.
 
-**File locations** (project-root-relative): `.dryforge/spec.md`, `.dryforge/plan.md`,
-`.dryforge/handoff.md`.
+**File locations** (project-root-relative): `.leanforge/spec.md`, `.leanforge/plan.md`,
+`.leanforge/handoff.md`.
 
 **Execution shape.** One feature; 4 tasks; 2 waves. Wave 1: store + dedup key (parallel). Wave 2:
 endpoint + worker (parallel), then a single wiring step registers both.

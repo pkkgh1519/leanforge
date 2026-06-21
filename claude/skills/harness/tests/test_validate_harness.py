@@ -102,20 +102,22 @@ class ValidateHarnessTests(unittest.TestCase):
         self.assertIn("run-compatible-skill-contract-missing", self.issue_codes(module.validate_skill_dir(skill)))
 
     def test_run_compatible_skill_disallows_active_leanforge_doc_dependency(self):
-        skill = self.write_skill(
-            self.tmp / "api-contract-review",
-            name="api-contract-review",
-            description="Use when Leanforge Run needs a repository API contract review lens.",
-            body=(
-                "## Leanforge Run usage\n\n"
-                "Allowed phases: final_review, conditional_spec_review, failure_exploration.\n"
-                "Never use for: implementer replacement, wave scheduling, merge gate, worktree lifecycle, .dryforge state management.\n"
-                "Inputs Run must provide: changed files, relevant spec slice, verification evidence, diff or commit range.\n"
-                "Output: blocking findings, advisory findings, missing evidence, uncertainty.\n\n"
-                "Read .dryforge/spec.md before reviewing.\n"
-            ),
-        )
-        self.assertIn("run-compatible-active-doc-dependency", self.issue_codes(module.validate_skill_dir(skill)))
+        for state_dir in (".leanforge", ".dryforge"):
+            with self.subTest(state_dir=state_dir):
+                skill = self.write_skill(
+                    self.tmp / f"api-contract-review-{state_dir.strip('.')}",
+                    name=f"api-contract-review-{state_dir.strip('.')}",
+                    description="Use when Leanforge Run needs a repository API contract review lens.",
+                    body=(
+                        "## Leanforge Run usage\n\n"
+                        "Allowed phases: final_review, conditional_spec_review, failure_exploration.\n"
+                        "Never use for: implementer replacement, wave scheduling, merge gate, worktree lifecycle, .leanforge state management.\n"
+                        "Inputs Run must provide: changed files, relevant spec slice, verification evidence, diff or commit range.\n"
+                        "Output: blocking findings, advisory findings, missing evidence, uncertainty.\n\n"
+                        f"Read {state_dir}/spec.md before reviewing.\n"
+                    ),
+                )
+                self.assertIn("run-compatible-active-doc-dependency", self.issue_codes(module.validate_skill_dir(skill)))
 
     def test_run_compatible_skill_warns_on_broad_trigger(self):
         skill = self.write_skill(
@@ -125,7 +127,7 @@ class ValidateHarnessTests(unittest.TestCase):
             body=(
                 "## Leanforge Run usage\n\n"
                 "Allowed phases: final_review, conditional_spec_review, failure_exploration.\n"
-                "Never use for: implementer replacement, wave scheduling, merge gate, worktree lifecycle, .dryforge state management.\n"
+                "Never use for: implementer replacement, wave scheduling, merge gate, worktree lifecycle, .leanforge state management.\n"
                 "Inputs Run must provide: changed files, relevant spec slice, verification evidence, diff or commit range.\n"
                 "Output: blocking findings, advisory findings, missing evidence, uncertainty.\n"
             ),

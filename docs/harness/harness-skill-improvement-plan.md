@@ -41,7 +41,7 @@ This improvement cycle should not:
 - create a separate execution lifecycle competing with `Prime`, `Run`, or `Set`;
 - pin the workflow to a specific model, service tier, or proprietary runtime behavior;
 - introduce a large benchmark suite before small smoke scenarios exist;
-- move durable project operations into `harness`; core `.dryforge/` state remains the execution-history source of truth.
+- move durable project operations into `harness`; core `.leanforge/` state remains the execution-history source of truth.
 
 ## 4. Design Principles
 

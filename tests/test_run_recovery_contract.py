@@ -12,7 +12,7 @@ def read(rel: str) -> str:
 class RunRecoveryContractTests(unittest.TestCase):
     def test_run_documents_run_marker_recovery_model(self):
         required_terms = [
-            ".dryforge/run.json",
+            ".leanforge/run.json",
             "in_progress",
             "awaiting_user_approval",
             "archive_in_progress",
@@ -30,7 +30,7 @@ class RunRecoveryContractTests(unittest.TestCase):
                 missing = [term for term in required_terms if term not in combined]
                 self.assertFalse(missing, f"missing recovery contract terms: {missing}")
 
-    def test_go_preflight_distinguishes_interrupted_run_from_first_cycle(self):
+    def test_run_preflight_distinguishes_interrupted_run_from_first_cycle(self):
         for surface in SURFACES:
             with self.subTest(surface=surface):
                 run = read(f"{surface}/run/SKILL.md")
@@ -56,7 +56,7 @@ class RunRecoveryContractTests(unittest.TestCase):
 
     def test_prime_warns_before_overwriting_active_run_or_docs(self):
         required = [
-            ".dryforge/run.json",
+            ".leanforge/run.json",
             "active 3-doc",
             "do not overwrite",
             "resume or abandon",
@@ -108,7 +108,7 @@ class RunRecoveryContractTests(unittest.TestCase):
             with self.subTest(path=path):
                 self.assertFalse(path.exists())
 
-    def test_codex_only_go_tdd_wrapper_is_packaged(self):
+    def test_codex_only_run_tdd_wrapper_is_packaged(self):
         codex_skill = ROOT / "codex/plugin/skills/run-tdd/SKILL.md"
         codex_agent = ROOT / "codex/plugin/skills/run-tdd/agents/openai.yaml"
         platform_skill = ROOT / "platform/codex/skills/run-tdd/SKILL.md"

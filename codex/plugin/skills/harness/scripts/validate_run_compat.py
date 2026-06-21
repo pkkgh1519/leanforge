@@ -15,7 +15,7 @@ RUN_COMPATIBLE_REQUIRED_TERMS = {
     "output": ["output", "blocking findings"],
 }
 RUN_COMPATIBLE_ACTIVE_DOC_RE = re.compile(
-    r"\b(?:read|load|open|inspect)\s+`?\.dryforge/(?:handoff|spec|plan)\.md`?",
+    r"\b(?:read|load|open|inspect)\s+`?\.(?:leanforge|dryforge)/(?:handoff|spec|plan)\.md`?",
     re.IGNORECASE,
 )
 RUN_COMPATIBLE_IMPLEMENTER_TAKEOVER_RE = re.compile(
@@ -51,7 +51,7 @@ def validate_run_compatible_skill(
         details = ", ".join(missing) if missing else "Leanforge Run usage"
         issues.append(issue("error", "run-compatible-skill-contract-missing", relative, "run-compatible repo skills must declare a Leanforge Run usage contract: " + details))
     if RUN_COMPATIBLE_ACTIVE_DOC_RE.search(text):
-        issues.append(issue("error", "run-compatible-active-doc-dependency", relative, "run-compatible repo skills must receive current task context from Run, not read active .dryforge docs directly"))
+        issues.append(issue("error", "run-compatible-active-doc-dependency", relative, "run-compatible repo skills must receive current task context from Run, not read active .leanforge or legacy .dryforge docs directly"))
     if RUN_COMPATIBLE_IMPLEMENTER_TAKEOVER_RE.search(text):
         issues.append(issue("error", "run-compatible-implementer-takeover", relative, "run-compatible repo skills may not replace the Leanforge Run implementer"))
     if RUN_COMPATIBLE_BROAD_TRIGGER_RE.search(description):

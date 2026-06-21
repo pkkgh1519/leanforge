@@ -66,7 +66,7 @@ independent piece of work, and a fresh session keeps the task-level dialogue cle
   emit *nothing* there, don't translate it. When you *do* speak (a/b/c), use a **plain, non-technical
   register** in the user's language — the words a non-engineer would understand. This is your default
   voice, not a per-line check, so it costs nothing. **Never surface internal tokens:** Leanforge mechanism / coined terms (harness,
-  ledger, decision surface, grounding, lens, invariant, `.dryforge`), phase / step labels (SCAN /
+  ledger, decision surface, grounding, lens, invariant, `.leanforge`), phase / step labels (SCAN /
   ELICIT / GENERATE / REVIEW), or project-internal jargon a non-engineer wouldn't recognize
   (library/tool names, config flags, test-framework internals). **Don't soften internal logic into
   user-ish words — just omit it.** E.g. "Starting a git repo here." — not "Initializing git and adding
@@ -82,11 +82,16 @@ independent piece of work, and a fresh session keeps the task-level dialogue cle
 - **git required.** If the project is not a git repo, offer to run `git init` **and make an initial
   commit** (later `Run` needs a HEAD for worktrees). If git is not installed, stop and say so.
 - **git posture — Set writes files, it does not commit.** Set creates the harness files,
-  backs up any existing entry file to `.dryforge/backup/`, adds `.dryforge/` to `.gitignore` (so the
-  local marker and backups aren't accidentally committed), and writes the `.dryforge/status.json`
-  marker on completion. It performs **no commits and no branch operations** — whether and when to
+  backs up any existing entry file to `.leanforge/backup/`, adds `.leanforge/` and `.dryforge/` to
+  `.gitignore` (so local markers and backups aren't accidentally committed), and writes the
+  `.leanforge/status.json` marker on completion. It performs **no commits and no branch operations** — whether and when to
   commit the harness is the user's choice. (This differs from `Prime`, which never touches
   `.gitignore`: Set may not be immediately followed by `Run`, so it sets up the ignore itself.)
+- **Legacy state preflight.** `.leanforge/` is canonical. If `.leanforge/` is absent and legacy
+  `.dryforge/` exists with no active `run.json` and no `worktrees/`, move it to `.leanforge/` and write
+  `.leanforge/migration.json` (`schema: "leanforge.stateMigration.v1"`). If legacy active state exists,
+  do not migrate or overwrite it; ask the user to resolve the legacy run first. Keep both `.leanforge/`
+  and `.dryforge/` ignored.
 
 ## Phase 1 — SCAN (build the technical map)
 
@@ -122,12 +127,12 @@ what to improve — then present the review to the user, explain it, and get app
 
 **Force-load `references/harness-format.md`** and generate the whole harness to its spec, in order:
 
-1. If a CLAUDE.md exists, back it up to `.dryforge/backup/`.
+1. If a CLAUDE.md exists, back it up to `.leanforge/backup/`.
 2. Create `docs/` and every file in it (harness-format spec).
 3. Create CLAUDE.md / AGENTS.md (identical content).
 4. Create a module AGENTS.md per module identified in SCAN.
 5. Record the current state in `tracking/status.md` (done vs. remaining, against full scope).
-6. Create the `.dryforge/` directory if absent.
+6. Create the `.leanforge/` directory if absent.
 
 Explore sources fully before writing; verify each file against the code both ways (omission /
 hallucination) as you go — this self-check is separate from Phase 4.
@@ -157,10 +162,10 @@ Present the whole harness to the user — not a raw document dump, but a walk-th
 decisions captured (what SCAN/ELICIT found, what each doc records, what was dropped from old docs and
 why). Resolve any Phase-4 questions that need user intent. On approval:
 
-- Write `.dryforge/status.json` with the initialized marker — `{ "initialized": true }`. This is a
-  **local-only** marker (inside the gitignored `.dryforge/`): its presence tells a later `Run` that
+- Write `.leanforge/status.json` with the initialized marker — `{ "initialized": true }`. This is a
+  **local-only** marker (inside the gitignored `.leanforge/`): its presence tells a later `Run` that
   the harness already exists, so every change is a **delta**; its absence means first-cycle creation.
-- Confirm `.dryforge/` is in `.gitignore`.
+- Confirm `.leanforge/` and `.dryforge/` are in `.gitignore`.
 
 Then Set is complete. Remind the user to clear the session before running `Prime` → `Run`.
 
@@ -174,4 +179,5 @@ Done only when ALL hold:
 - The **independent** REVIEW passes (no blocking finding under `references/harness-review.md`; any
   surviving blocker was escalated to the user, not looped).
 - The user has approved.
-- `.dryforge/status.json` written (initialized) and `.dryforge/` is gitignored.
+- `.leanforge/status.json` written (initialized) and `.leanforge/` plus legacy `.dryforge/` are
+  gitignored.

@@ -68,7 +68,7 @@ where the input came from. The 3-doc contract is in `references/output-format.md
   contract**. Large projects are kept affordable by ORIENT's selective cheap-map reading plus the
   bounded scout's evidence pointers, not by delegating authoring.
 - **Harness-aware, two modes (cycle is the only branch).** The entry branches on **one** fact:
-  `.dryforge/status.json`. **Delta** (present): load the harness (`CLAUDE.md` / `AGENTS.md` + `docs/`)
+  `.leanforge/status.json`. **Delta** (present): load the harness (`CLAUDE.md` / `AGENTS.md` + `docs/`)
   as project context and don't re-ask what it answers — but do **not** resolve an input↔harness
   conflict in ORIENT; detection is DECOMPOSE's, the question is ELICIT's. **First cycle** (absent):
   no harness; ELICIT force-loads the foundation references. Prime never learns the `docs/` structure —
@@ -111,16 +111,24 @@ where the input came from. The 3-doc contract is in `references/output-format.md
   commit** (an empty repo has no HEAD, so Run could not create a worktree later). If git is not
   installed, stop and say so. This holds for both greenfield and existing projects — code presence is
   *not* the deciding factor.
-- **Output location.** The 3-doc is written to `.dryforge/` at the project root as plain files. You
+- **State directory.** `.leanforge/` is the canonical Leanforge state directory. Before writing,
+  perform the compatibility preflight: if `.leanforge/` is absent and a legacy `.dryforge/` exists
+  with no active `run.json` and no `worktrees/`, move it to `.leanforge/` and write
+  `.leanforge/migration.json` (`schema: "leanforge.stateMigration.v1"`). If the legacy directory has
+  an active `run.json`, active 3-doc files, or `worktrees/`, **do not migrate or overwrite**; ask the
+  user to resume, abandon, or complete that legacy run first. If both directories contain active state,
+  stop and ask which one is canonical.
+- **Output location.** The 3-doc is written to `.leanforge/` at the project root as plain files. You
   do **not** touch `.gitignore` and do **not** commit anything — `Run` owns all git mechanics. Keep the
   produce=plan / run=do boundary: produce writes documents, run touches git.
 
-- **Active run / active 3-doc guard.** Before writing a new 3-doc, check for `.dryforge/run.json` and
-  root active 3-doc files (`.dryforge/handoff.md`, `.dryforge/spec.md`, `.dryforge/plan.md`). If an
+- **Active run / active 3-doc guard.** Before writing a new 3-doc, check for `.leanforge/run.json` and
+  root active 3-doc files (`.leanforge/handoff.md`, `.leanforge/spec.md`, `.leanforge/plan.md`). If an
   active run marker exists, or if an active 3-doc exists without a completed archive, **do not overwrite**
   it. Stop and ask the user whether to resume or abandon the previous `Run` run, repair/archive the
-  existing active 3-doc, or explicitly discard it before generating a new one. This is a cheap guard:
-  existence checks only, not a full harness audit.
+  existing active 3-doc, or explicitly discard it before generating a new one. A legacy
+  `.dryforge/run.json` or legacy root 3-doc is the same stop condition until it is migrated or
+  abandoned. This is a cheap guard: existence checks only, not a full harness audit.
 
 ## Stage map + cycle-conditional reference loading
 
@@ -169,7 +177,7 @@ questions are ELICIT's. Everything ORIENT produces is *context*, not a conclusio
    - **Large input.** "Load raw" means *preserve the original losslessly and keep it quotable*, not
      paste a huge file into live context. For large/multi-file input, keep an **index and read
      section-by-section** — don't kill signal by summarizing, but don't ingest it all at once either.
-3. **Branch on the cycle.** `.dryforge/status.json` present → **delta**: load the harness (`CLAUDE.md`
+3. **Branch on the cycle.** `.leanforge/status.json` present → **delta**: load the harness (`CLAUDE.md`
    / `AGENTS.md` + `docs/`) as project context — *load only*; do not ask or resolve an input↔harness
    conflict here (DECOMPOSE catches it, ELICIT asks it). Absent → **first cycle**: no harness; ELICIT
    will force-load the foundation refs.
@@ -178,8 +186,8 @@ questions are ELICIT's. Everything ORIENT produces is *context*, not a conclusio
      `docs/`), do **not** assume greenfield — **stop and ask** whether to treat it as existing context
      (delta) or regenerate (first cycle). Don't guess (same as Run's clobber guard).
 
-   - If the user chooses existing context while `.dryforge/status.json` is absent, ensure the reason is
-     explicit: an existing Leanforge Harness is being trusted. If `.dryforge/run.json` or an active 3-doc
+   - If the user chooses existing context while `.leanforge/status.json` is absent, ensure the reason is
+     explicit: an existing Leanforge Harness is being trusted. If `.leanforge/run.json` or an active 3-doc
      is present, do not proceed until the user chooses to resume or abandon that interrupted run.
 4. **Ground the code (inline, optional).** If code exists, read the *cheapest map first* — repo
    instructions, file list, manifests, verify scripts, the directories the input points at. **Stop
@@ -290,7 +298,7 @@ evidence-grounding scout, which returns evidence pointers and never authors inte
 Force-load `references/output-format.md` and `references/review-fidelity.md` (+ first cycle:
 `references/foundation-format.md`).
 
-1. **Write `.dryforge/spec.md` — from the *validated intent*, not the input.** Dense; premature
+1. **Write `.leanforge/spec.md` — from the *validated intent*, not the input.** Dense; premature
    implementation excluded. Contents (the `output-format.md` contract): objective + motivation /
    invariants and preserved contract (load-bearing) / behavior rules (edges as explicit rules) / scope
    boundaries / thinking-base for non-derivable decisions (decision + reason — judged by derivability;
@@ -299,7 +307,7 @@ Force-load `references/output-format.md` and `references/review-fidelity.md` (+ 
 2. **First cycle — write the Foundation too, into `handoff.md`.** Write ELICIT's Foundation 4 sections
    (identity / domain / technical / future) into `handoff.md`'s Foundation section **now** (the rest
    of the handoff's governing parts wait for the plan and are filled at HANDOFF; the Foundation does
-   not depend on the plan). **No separate `.dryforge/foundation.md`.** Into the spec, lift only **this
+   not depend on the plan). **No separate `.leanforge/foundation.md`.** Into the spec, lift only **this
    task's WHAT** (the part of the domain this task actually implements); the project-wide context (the
    rest of the domain, future scope) stays in the Foundation. (Written here so REVIEW(A) can verify a
    *written* Foundation.)
@@ -312,7 +320,7 @@ Force-load `references/output-format.md` and `references/review-fidelity.md` (+ 
 ## PLAN — decomposition for parallel execution — `references/dependency-calc.md`
 
 Force-load `references/output-format.md`, `references/dependency-calc.md`, `references/example-3doc.md`.
-Write `.dryforge/plan.md` from the frozen spec. Per task: a **behavioral contract** (goal, work
+Write `.leanforge/plan.md` from the frozen spec. Per task: a **behavioral contract** (goal, work
 targets [files | state | external], verification gate), thinking-base where not code-derivable,
 shared-write guidance (prose). Compute the **Execution Graph** last — a **fenced `yaml` block** with
 `depends` (the only encoded judgment), `regen_barriers`, and the optional per-task `risk` using
@@ -327,7 +335,7 @@ Execution Graph parses.
 
 Force-load `references/output-format.md` and `references/foundation-format.md`.
 
-1. **Write `.dryforge/handoff.md`** — Document Roles (spec = behavior / plan = order·targets) +
+1. **Write `.leanforge/handoff.md`** — Document Roles (spec = behavior / plan = order·targets) +
    conflict resolution + file locations (project-root-relative) + hard gates (non-negotiable
    constraints not derivable from code) + intentionality not captured in spec/plan. (Because produce
    captures intent directly, this handoff is richer.)
@@ -335,13 +343,13 @@ Force-load `references/output-format.md` and `references/foundation-format.md`.
    it.** HANDOFF does **not** originate the Foundation — it *assembles*. Keep the Foundation clearly
    labeled "Non-executable project context," separated from the governing parts, so `Run` never mistakes
    a hard gate for project context. Delta: there is no Foundation.
-3. **Write the 3-doc to `.dryforge/` — do not touch git.** Do not touch `.gitignore` and commit
+3. **Write the 3-doc to `.leanforge/` — do not touch git.** Do not touch `.gitignore` and commit
    nothing (`Run` owns git; produce=documents / run=git). If an input file is an untracked file *inside*
    the repo, advise the user to move it out or add it to `.gitignore` (produce does not delete the
    user's input itself).
 
 **Completion bar:** handoff written (+ first cycle: Foundation assembled), the three files in
-`.dryforge/`, git untouched.
+`.leanforge/`, git untouched.
 
 ## 3-doc-gate — the final backstop — `references/3-doc-gate.md`
 

@@ -55,7 +55,7 @@ project-root/
     └── AGENTS.md                 ← per-module scope, boundaries, invariants
 ```
 
-`.dryforge/` (the 3-doc, `NNN/` archives, `backup/`, the local `status.json` marker) is the
+`.leanforge/` (the 3-doc, `NNN/` archives, `backup/`, the local `status.json` marker) is the
 per-task workspace, **not** part of the harness — the harness never references it (see
 self-containment).
 
@@ -141,7 +141,7 @@ Must contain:
   the user immediately; everything else → record in `docs/tracking/findings.md`. Not generic
   boilerplate.
 
-Handling an existing CLAUDE.md: (1) back it up to `.dryforge/backup/`; (2) review the old content
+Handling an existing CLAUDE.md: (1) back it up to `.leanforge/backup/`; (2) review the old content
 **critically** — do not transcribe it. Decide which Leanforge document each piece belongs in, drop
 what the new `docs/` already covers, and improve/re-state what is worth keeping; (3) present the
 review to the user (what went where, what was dropped and why) and get approval; (4) rewrite into

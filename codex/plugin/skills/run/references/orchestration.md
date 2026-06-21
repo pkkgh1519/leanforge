@@ -122,20 +122,20 @@ cross-wave interactions at the end.
 - **Do not pass `isolation: worktree` to implementer dispatch** — omit isolation so the
   implementer runs in place, **pinned to the pre-created absolute worktree path**, and verify
   location with `git rev-parse --show-toplevel` at the subagent's start.
-- **Create worktrees serially, under `.dryforge/worktrees/`.** Each task worktree lives at
-  `.dryforge/worktrees/<task-id>` — inside the gitignored `.dryforge/`, so worktrees never sprawl into
+- **Create worktrees serially, under `.leanforge/worktrees/`.** Each task worktree lives at
+  `.leanforge/worktrees/<task-id>` — inside the gitignored `.leanforge/`, so worktrees never sprawl into
   the project tree or get tracked, and cleanup stays contained. Concurrent `git worktree add` contends
   on `.git/config.lock` → create serially. **Worktree pool:** when multiple parallel waves exist,
-  create the maximum number needed by any single wave **once** (under `.dryforge/worktrees/`) before
+  create the maximum number needed by any single wave **once** (under `.leanforge/worktrees/`) before
   the first parallel wave. Between waves, reset a pooled worktree with `git checkout <new-base-tip> &&
   git reset --hard` instead of remove + recreate. Gitignored symlinks (dependency shares) survive
   `reset --hard`. After all waves complete, **clean up all pooled worktrees in one batch** (not
-  per-wave): remove the worktree entries, the now-empty `.dryforge/worktrees/` directory itself, and
-  any task scratch/temp dirs created under `.dryforge/`. **Leave no litter** — once the run finishes
-  (3-doc moved into `NNN/` at archiving), `.dryforge/` holds only `NNN/` archives, `status.json`, and
+  per-wave): remove the worktree entries, the now-empty `.leanforge/worktrees/` directory itself, and
+  any task scratch/temp dirs created under `.leanforge/`. **Leave no litter** — once the run finishes
+  (3-doc moved into `NNN/` at archiving), `.leanforge/` holds only `NNN/` archives, `status.json`, and
   `backup/` (the active 3-doc lives at the root only between the producer writing it and archiving).
-  This avoids repeated create/remove cycles and a cluttered `.dryforge/`.
-- **Task worktrees do not contain the 3-doc.** `.dryforge/` is gitignored, so a freshly-added task
+  This avoids repeated create/remove cycles and a cluttered `.leanforge/`.
+- **Task worktrees do not contain the 3-doc.** `.leanforge/` is gitignored, so a freshly-added task
   worktree has **no** `spec.md` / `plan.md` / `handoff.md`. Pass every spec slice, task contract,
   and hard gate **inline in the subagent prompt**.
 - **Verify the work before merging (objective, not existence-only)** — the task branch must be

@@ -4,7 +4,7 @@
 
 <img src="https://dryforge.vercel.app/assets/icon-1024.png" width="84" height="84" alt="Leanforge" />
 
-# Leanforge v1.6.1
+# Leanforge v1.6.2
 
 ### 입력은 의도. _출력은 검증된 소프트웨어._
 
@@ -162,8 +162,8 @@ main은 직접 쓰이지 않으며, 최종 통합 — merge, PR, 수동 — 은 
 실행을 시작 전에 중단시킨다.
 
 전부 통과하면 `/leanforge:run`는 프로젝트 하네스를 생성 또는 갱신하고, 변경 전체에
-대한 최종 독립 리뷰를 한 번 더 돌린 뒤, 설계 계약을 `.dryforge/` 아래에
-아카이브한다. 승인이나 아카이브 전에 실행이 끊기면 `.dryforge/run.json`이
+대한 최종 독립 리뷰를 한 번 더 돌린 뒤, 설계 계약을 `.leanforge/` 아래에
+아카이브한다. 승인이나 아카이브 전에 실행이 끊기면 `.leanforge/run.json`이
 거친 복구 상태를 보존해 다음 에이전트가 재개 또는 폐기를 명시적으로 고를 수 있다.
 
 ---
@@ -219,7 +219,7 @@ harness 스킬은 팀 스펙, 역할 브리프, specialist skill, custom-agent h
           → ▶ 당신의 승인 → 계약 아카이브
 ```
 
-`/leanforge:prime`가 디스크에 남기는 것은 `.dryforge/`의 3문서 **설계 계약**이다:
+`/leanforge:prime`가 디스크에 남기는 것은 `.leanforge/`의 3문서 **설계 계약**이다:
 
 - **spec** — *무엇*의 권위: 행위 규칙, 불변식, API 표면, 명시적 처분이
   달린 모든 엣지 케이스, 그리고 결과가 통과해야 할 검증.
@@ -234,9 +234,15 @@ harness 스킬은 팀 스펙, 역할 브리프, specialist skill, custom-agent h
 spec이 이긴다. spec 자체가 틀려 보이면 에이전트는 그것을 고치지 않는다 —
 당신에게 돌아온다.
 
-`/leanforge:run`가 완료되면 계약은 `.dryforge/` 아래 사이클 단위로 아카이브된다 —
+`/leanforge:run`가 완료되면 계약은 `.leanforge/` 아래 사이클 단위로 아카이브된다 —
 무엇이, 언제, 왜 결정됐는지의 영속 기록이다. 진행 중 작업은 루트
-`.dryforge/{handoff,spec,plan}.md`로 드러나고, 중단된 실행은 `.dryforge/run.json`으로 보호된다.
+`.leanforge/{handoff,spec,plan}.md`로 드러나고, 중단된 실행은 `.leanforge/run.json`으로 보호된다.
+
+Legacy 상태 호환성: Leanforge rename 이전에 만든 저장소에는 `.dryforge/`가 남아 있을 수 있다.
+Leanforge의 canonical 상태 디렉터리는 `.leanforge/`다. `.leanforge/`가 없고 `.dryforge/`만 있으며
+active `run.json`, 루트 3문서, `worktrees/`가 없을 때만 `Run`/`Set`이 `.leanforge/`로 이동하고
+`.leanforge/migration.json`을 기록한다. 진행 중인 legacy run은 자동 migration하지 않는다 —
+먼저 완료, 재개, 또는 폐기해야 한다.
 
 ---
 

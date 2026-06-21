@@ -16,9 +16,10 @@ Hard stops:
 - A repo-local lens MUST NOT replace implementer dispatch.
 - A repo-local lens MUST NOT manage worktrees.
 - A repo-local lens MUST NOT run the merge gate or decide that a merge is safe.
-- A repo-local lens MUST NOT manage `.dryforge/run.json`, `.dryforge/status.json`, or archives.
-- A repo-local lens MUST NOT read .dryforge active docs; pass the needed spec slice, changed files,
-  diff or commit range, and verification evidence inline.
+- A repo-local lens MUST NOT manage `.leanforge/run.json`, `.leanforge/status.json`, archives, or
+  legacy `.dryforge` migration state.
+- A repo-local lens MUST NOT read .leanforge active docs or legacy .dryforge active docs; pass the
+  needed spec slice, changed files, diff or commit range, and verification evidence inline.
 - A repo-local lens MUST NOT broaden the task beyond the active spec.
 
 ## Allowed phases
@@ -51,7 +52,7 @@ Selection rules:
 - Prefer read-only custom agents for exploration or review.
 - If selection is ambiguous, skip the lens and rely on the normal final review.
 - If a lens asks for missing context, provide a bounded inline slice; do not let it fetch active
-  `.dryforge` task docs directly.
+  `.leanforge` or legacy `.dryforge` task docs directly.
 
 ## Inputs supplied by Run
 

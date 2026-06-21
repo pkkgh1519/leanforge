@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.6.2 (2026-06-21)
+
+- make `.leanforge/` the canonical local state directory for Prime/Run/Set lifecycle docs
+- keep `.dryforge/` only as a guarded legacy migration source; active legacy runs and worktrees are never migrated automatically
+- update repo-local Run-compatible skill validation to block direct reads from both `.leanforge` and legacy `.dryforge` active docs
+
 ## v1.6.1 (2026-06-21)
 
 - clarify that the external marketplace package path remains `fn-opt/dryforge` as a distribution-compatibility path while the installed plugin identity is `leanforge`

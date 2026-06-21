@@ -59,7 +59,7 @@ Foundation is a **conditional expansion inside the handoff's "supplement" role**
 ## Lifetime
 
 Created in the first cycle only. After `Run` creates the harness, the 3-doc (handoff included, with
-its Foundation) is archived to `.dryforge/NNN/`. From the next cycle on, the harness takes over the
+its Foundation) is archived to `.leanforge/NNN/`. From the next cycle on, the harness takes over the
 project-context role, so no Foundation is written.
 
 ## First-cycle precondition (Foundation is always present — no degrade)

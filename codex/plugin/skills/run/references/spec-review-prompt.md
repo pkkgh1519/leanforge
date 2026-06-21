@@ -12,8 +12,8 @@ not an implementer and does not decide scheduling, worktree, or merge-gate outco
 ## Independence — what the reviewer is given
 
 To stay independent, the reviewer receives **only** (a) the spec requirement(s) for the task and
-(b) the raw diff / task branch — both **passed inline** (the worktree has no `.dryforge/` files;
-`.dryforge/` is gitignored). It is **not** given the implementer's summary, `concerns`, or test
+(b) the raw diff / task branch — both **passed inline** (the worktree has no `.leanforge/` files;
+`.leanforge/` is gitignored). It is **not** given the implementer's summary, `concerns`, or test
 claims — re-derive conformance from the diff itself, do not anchor on the author's narrative.
 
 For a declared **no-file-diff task** (state / operational / external — work whose result lives

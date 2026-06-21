@@ -16,7 +16,7 @@ and **wording you adapt** (the example below is one phrasing, not a fixed script
   (command exit / render / API or state response), not necessarily a file diff — the
   captured-evidence floor still holds.
 - **Spec section** — the spec requirement this task realizes, **quoted inline in this prompt**
-  (the task worktree has no `.dryforge/` files to read — `.dryforge/` is gitignored). Build to the
+  (the task worktree has no `.leanforge/` files to read — `.leanforge/` is gitignored). Build to the
   spec, not just to the task line ("correct" = matches the spec).
 - **Hard gates** — the relevant non-negotiable constraints from the handoff.
 - **Verify-first, right-sized** — drive the work against the task's **real verification gate**: the

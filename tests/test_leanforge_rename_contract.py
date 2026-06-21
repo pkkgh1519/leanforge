@@ -57,17 +57,27 @@ class LeanforgeRenameContractTests(unittest.TestCase):
                 with self.subTest(root=root, skill=skill):
                     self.assertFalse((root / skill).exists())
 
-    def test_local_state_directory_stays_backward_compatible(self):
+    def test_local_state_directory_is_leanforge_with_guarded_legacy_migration(self):
         combined = "\n".join(
             [
                 (ROOT / "src/skills/prime/SKILL.md").read_text(encoding="utf-8"),
                 (ROOT / "src/skills/run/SKILL.md").read_text(encoding="utf-8"),
                 (ROOT / "src/skills/set/SKILL.md").read_text(encoding="utf-8"),
+                (ROOT / "src/skills/run/references/harness-lifecycle.md").read_text(encoding="utf-8"),
             ]
         )
-        self.assertIn(".dryforge/status.json", combined)
+        self.assertIn(".leanforge/status.json", combined)
+        self.assertIn(".leanforge/run.json", combined)
+        self.assertIn('schema": "leanforge.stateMigration.v1"', combined)
         self.assertIn(".dryforge/run.json", combined)
+        self.assertIn(".dryforge/worktrees/", combined)
+        self.assertIn("do **not** rename the directory", combined)
         self.assertNotIn("__" + "LEANFORGE", combined)
+
+    def test_target_repo_gitignore_ignores_canonical_and_legacy_state(self):
+        ignore = (ROOT / ".gitignore").read_text(encoding="utf-8")
+        self.assertIn(".leanforge/", ignore)
+        self.assertIn(".dryforge/", ignore)
 
 
 if __name__ == "__main__":

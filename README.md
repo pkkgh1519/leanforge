@@ -4,7 +4,7 @@
 
 <img src="https://dryforge.vercel.app/assets/icon-1024.png" width="84" height="84" alt="Leanforge" />
 
-# Leanforge v1.6.1
+# Leanforge v1.6.2
 
 ### Intent-to-implementation for Claude Code & Codex.
 
@@ -172,8 +172,8 @@ run before it starts.
 
 When everything passes, `/leanforge:run` writes or updates the project harness,
 runs one final independent review across the full change, and archives
-the design contract under `.dryforge/` for future cycles. If a run stops
-before approval or archive completion, `.dryforge/run.json` preserves the
+the design contract under `.leanforge/` for future cycles. If a run stops
+before approval or archive completion, `.leanforge/run.json` preserves the
 coarse recovery state so the next agent can resume or abandon deliberately.
 
 ---
@@ -233,7 +233,7 @@ yours. Everything between them runs autonomously.
 ```
 
 What `/leanforge:prime` leaves on disk is a three-document **design contract** in
-`.dryforge/`:
+`.leanforge/`:
 
 - **spec** — the authority on *what*: behavior rules, invariants, API
   surface, every edge case with an explicit disposition, and the
@@ -250,10 +250,16 @@ authority hierarchy is explicit: when spec and code disagree, spec wins.
 When the spec itself looks wrong, the agent does not patch it — it comes
 back to you.
 
-After `/leanforge:run` completes, the contract is archived under `.dryforge/`,
+After `/leanforge:run` completes, the contract is archived under `.leanforge/`,
 cycle by cycle — a durable record of what was decided, when, and why.
-Active work remains visible through root `.dryforge/{handoff,spec,plan}.md`
-and interrupted execution state is guarded by `.dryforge/run.json`.
+Active work remains visible through root `.leanforge/{handoff,spec,plan}.md`
+and interrupted execution state is guarded by `.leanforge/run.json`.
+
+Legacy state compatibility: repositories created before the Leanforge rename may still contain
+`.dryforge/`. Leanforge treats `.leanforge/` as canonical. If only `.dryforge/` exists and it has no
+active `run.json`, active root 3-doc, or `worktrees/`, `Run`/`Set` migrate it to `.leanforge/` and
+record `.leanforge/migration.json`. Active legacy runs are never migrated automatically; finish,
+resume, or abandon them first.
 
 ---
 

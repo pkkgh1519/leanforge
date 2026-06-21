@@ -125,7 +125,7 @@ Before generating new artifacts, inspect current structure when available:
 4. Check `_workspace/` conventions and whether old handoff files should be preserved.
 5. Check optional `.codex/agents/` for custom-agent helpers.
 6. Look for stale runtime assumptions, missing frontmatter, broken links, and duplicated responsibilities.
-7. If the repository uses Leanforge, inspect `.dryforge/NNN` archives when available to identify repeated review findings, missing evidence, failed gates, or repo-specific risk patterns. Do not rewrite archives.
+7. If the repository uses Leanforge, inspect `.leanforge/NNN` archives when available to identify repeated review findings, missing evidence, failed gates, or repo-specific risk patterns. Legacy `.dryforge/NNN` archives may be read only as migration history. Do not rewrite archives.
 8. Classify the request as one of:
    - new harness
    - extension of an existing harness

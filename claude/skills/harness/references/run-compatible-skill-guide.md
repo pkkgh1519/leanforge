@@ -28,7 +28,8 @@ Never use for:
 - wave scheduling
 - merge gate
 - worktree lifecycle
-- .dryforge state management
+- .leanforge state management
+- legacy .dryforge migration state
 
 Inputs Run must provide:
 - changed files
@@ -59,8 +60,9 @@ description: "Use for all API work in this repository."
 
 ## Context boundary
 
-The skill must not read active `.dryforge/handoff.md`, `.dryforge/spec.md`, or `.dryforge/plan.md`
-directly. `Run` passes the relevant spec slice, changed files, diff, and verification evidence inline.
+The skill must not read active `.leanforge/handoff.md`, `.leanforge/spec.md`, or `.leanforge/plan.md`
+directly. It must also avoid legacy `.dryforge/{handoff,spec,plan}.md` active docs. `Run` passes the
+relevant spec slice, changed files, diff, and verification evidence inline.
 
 ## When to generate a custom agent too
 

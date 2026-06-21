@@ -18,7 +18,8 @@ class RunRepoLensContractTests(unittest.TestCase):
             "failure exploration",
             "MUST NOT replace implementer",
             "MUST NOT manage worktrees",
-            "MUST NOT read .dryforge active docs",
+            "MUST NOT read .leanforge active docs",
+            "legacy .dryforge",
         ]
         for surface in SURFACES:
             with self.subTest(surface=surface):
