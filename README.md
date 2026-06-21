@@ -2,7 +2,7 @@
 
 <div align="center">
 
-# Leanforge v1.6.4
+# Leanforge v1.6.5
 
 ### Intent-to-implementation for Claude Code & Codex.
 
@@ -22,20 +22,20 @@ memory behind through the project harness.
 **Install** — Claude Code
 
 ```
-/plugin marketplace add fn-opt/leanforge
+/plugin marketplace add pkkgh1519/leanforge
 /plugin install leanforge
 ```
 
 Codex
 
 ```
-codex plugin marketplace add fn-opt/leanforge
+codex plugin marketplace add pkkgh1519/leanforge
 codex plugin add leanforge@leanforge
 ```
 
 <sub>Requires `git` and Claude Code or Codex.</sub>
 
-<sub>Distribution: the marketplace package path is `fn-opt/leanforge`; the installed plugin identity is `leanforge` and the user-facing product is Leanforge.</sub>
+<sub>Distribution: the marketplace source is `pkkgh1519/leanforge`; the installed plugin identity is `leanforge` and the user-facing product is Leanforge.</sub>
 
 
 <sub>Installs the three lifecycle commands (`/leanforge:prime`, `/leanforge:run`, `/leanforge:set`) plus the bundled `/leanforge:harness` workflow-design command.</sub>

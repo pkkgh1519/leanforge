@@ -16,6 +16,9 @@ class LeanforgeRenameContractTests(unittest.TestCase):
         self.assertEqual("Leanforge", codex_manifest["interface"]["displayName"])
         self.assertNotIn("homepage", codex_manifest)
         self.assertEqual("https://github.com/pkkgh1519/leanforge", codex_manifest["repository"])
+        self.assertEqual("pkkgh1519", codex_manifest["author"]["name"])
+        self.assertEqual("pkkgh1519", codex_manifest["interface"]["developerName"])
+        self.assertEqual("pkkgh1519", claude_manifest["author"]["name"])
 
         prompts = "\n".join(codex_manifest["interface"]["defaultPrompt"])
         for call in ("/leanforge:prime", "/leanforge:run", "/leanforge:harness"):
@@ -25,7 +28,8 @@ class LeanforgeRenameContractTests(unittest.TestCase):
         for rel in ("README.md", "README_KO.md"):
             with self.subTest(rel=rel):
                 body = (ROOT / rel).read_text(encoding="utf-8")
-                self.assertIn("fn-opt/leanforge", body)
+                self.assertIn("pkkgh1519/leanforge", body)
+                self.assertNotIn("fn-opt/leanforge", body)
                 self.assertNotIn("fn-opt/dryforge", body)
                 self.assertNotIn("dryforge.vercel.app", body)
                 self.assertNotIn("Website (legacy URL)", body)
@@ -34,6 +38,8 @@ class LeanforgeRenameContractTests(unittest.TestCase):
 
     def test_marketplace_metadata_does_not_declare_homepage_site(self):
         claude_marketplace = json.loads((ROOT / ".claude-plugin/marketplace.json").read_text(encoding="utf-8"))
+        self.assertEqual("pkkgh1519", claude_marketplace["owner"]["name"])
+        self.assertEqual("pkkgh1519", claude_marketplace["plugins"][0]["author"]["name"])
         self.assertNotIn("homepage", claude_marketplace["plugins"][0])
 
     def test_codex_skill_display_names_are_colon_names(self):

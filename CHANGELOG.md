@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.6.5 (2026-06-21)
+
+- switch public marketplace source documentation from `fn-opt/leanforge` to `pkkgh1519/leanforge`
+- update plugin author/developer marketplace metadata to `pkkgh1519` while preserving original LICENSE notices
+
 ## v1.6.4 (2026-06-21)
 
 - standardize Harness user-facing invocation as `/leanforge:harness` in README and Codex prompts
@@ -8,7 +13,7 @@
 ## v1.6.3 (2026-06-21)
 
 - remove site/homepage metadata and documentation links; no Leanforge site is declared until a dedicated site exists
-- switch marketplace install documentation to `fn-opt/leanforge`
+- switch marketplace install documentation to `fn-opt/leanforge` (superseded by v1.6.5)
 - switch repository metadata and README links to `pkkgh1519/leanforge`
 
 ## v1.6.2 (2026-06-21)

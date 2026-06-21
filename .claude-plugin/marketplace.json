@@ -2,14 +2,14 @@
   "name": "leanforge",
   "description": "Say what you want to build. Leanforge turns it into a plan, then executes it.",
   "owner": {
-    "name": "fn-opt"
+    "name": "pkkgh1519"
   },
   "plugins": [
     {
       "name": "leanforge",
       "description": "Intent-to-implementation: Prime, then Run.",
       "author": {
-        "name": "fn-opt"
+        "name": "pkkgh1519"
       },
       "source": "./claude"
     }
