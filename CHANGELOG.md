@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.6.3 (2026-06-21)
+
+- remove site/homepage metadata and documentation links; no Leanforge site is declared until a dedicated site exists
+- switch marketplace install documentation to `fn-opt/leanforge`
+- switch repository metadata and README links to `pkkgh1519/leanforge`
+
 ## v1.6.2 (2026-06-21)
 
 - make `.leanforge/` the canonical local state directory for Prime/Run/Set lifecycle docs

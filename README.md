@@ -2,9 +2,7 @@
 
 <div align="center">
 
-<img src="https://dryforge.vercel.app/assets/icon-1024.png" width="84" height="84" alt="Leanforge" />
-
-# Leanforge v1.6.2
+# Leanforge v1.6.3
 
 ### Intent-to-implementation for Claude Code & Codex.
 
@@ -17,27 +15,27 @@ memory behind through the project harness.
 **Project memory that future agents read first.**<br/>
 **Interrupted runs are recoverable from local Leanforge state.**
 
-[Website (legacy URL)](https://dryforge.vercel.app) · [Repository](https://github.com/pkkgh1519/dryforge-ops) · [한국어](https://github.com/pkkgh1519/dryforge-ops/blob/main/README_KO.md)
+[Repository](https://github.com/pkkgh1519/leanforge) · [한국어](https://github.com/pkkgh1519/leanforge/blob/main/README_KO.md)
 
 </div>
 
 **Install** — Claude Code
 
 ```
-/plugin marketplace add fn-opt/dryforge
+/plugin marketplace add fn-opt/leanforge
 /plugin install leanforge
 ```
 
 Codex
 
 ```
-codex plugin marketplace add fn-opt/dryforge
+codex plugin marketplace add fn-opt/leanforge
 codex plugin add leanforge@leanforge
 ```
 
 <sub>Requires `git` and Claude Code or Codex.</sub>
 
-<sub>Distribution compatibility: the marketplace package path remains `fn-opt/dryforge` until the external listing is renamed; the installed plugin identity is `leanforge` and the user-facing product is Leanforge.</sub>
+<sub>Distribution: the marketplace package path is `fn-opt/leanforge`; the installed plugin identity is `leanforge` and the user-facing product is Leanforge.</sub>
 
 
 <sub>Installs the three lifecycle commands (`/leanforge:prime`, `/leanforge:run`, `/leanforge:set`) plus the bundled `Leanforge:Harness` (`/leanforge:harness`) workflow-design skill.</sub>

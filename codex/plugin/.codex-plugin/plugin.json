@@ -1,12 +1,11 @@
 {
   "name": "leanforge",
-  "version": "1.6.2",
+  "version": "1.6.3",
   "description": "Intent-to-implementation: from a goal, design docs, notes, or a mix, elicit and validate intent into a grounded 3-doc, then orchestrate dependency-aware parallel execution with right-sized review.",
   "author": {
     "name": "fn-opt"
   },
-  "homepage": "https://github.com/pkkgh1519/dryforge-ops",
-  "repository": "https://github.com/pkkgh1519/dryforge-ops",
+  "repository": "https://github.com/pkkgh1519/leanforge",
   "license": "MIT",
   "keywords": [
     "spec",
