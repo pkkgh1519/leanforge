@@ -34,7 +34,8 @@
     ],
     "defaultPrompt": [
       "Use dryforge ready to turn this goal, doc, or notes into a 3-doc.",
-      "Use dryforge go to execute the 3-doc."
+      "Use dryforge go to execute the 3-doc.",
+      "Use dryforge harness to design, audit, or repair a repo-local agent workflow."
     ],
     "brandColor": "#2563EB"
   }
