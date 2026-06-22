@@ -1,6 +1,6 @@
 ---
 name: harness
-description: "Use for agent harness architecture: designing, auditing, repairing, or comparing durable repo-local agent workflows with team specs, role briefs, specialist/orchestrator skills, custom agents, validation loops, benchmark packs, or multi-role handoff contracts. Korean triggers include 하네스 만들기/점검/검토. Exclude one-off handoff document writing, skill install/update/review, standalone MCP/tool/plugin work, and local runtime update checks unless explicitly framed as harness architecture."
+description: "Use for agent harness architecture: designing, auditing, repairing, or comparing durable repo-local agent workflows with team specs, role briefs, specialist/orchestrator skills, validation loops, benchmark packs, or multi-role handoff contracts. Korean triggers include 하네스 만들기/점검/검토. Exclude one-off handoff document writing, skill install/update/review, standalone MCP/tool/plugin work, and local runtime update checks unless explicitly framed as harness architecture."
 disable-model-invocation: true
 allowed-tools: Read, Edit, Write, Bash, Grep, Glob, Agent, AskUserQuestion
 ---
@@ -11,7 +11,7 @@ Harness is a meta-skill for designing portable, repo-local agent workflows. Use 
 
 Within the Leanforge plugin, Harness is the upper design layer over the per-cycle project harness that `Leanforge Run` writes: `Run` creates or updates a repo's harness each cycle, while Harness turns recurring or team-worthy patterns into durable workflow specs and specialist skills instead of re-deriving them each cycle. For Leanforge repositories, prefer repo-local review/explore/checklist skills that `Run` can use as optional lenses; never generate a replacement execution scheduler.
 
-The canonical skill tree is `.agents/skills/`, and Harness ships for both Claude and Codex. Optional repo-local `.codex/agents/` and `.codex/config.toml` files may support bounded project-specific subagent workflows, but generated harnesses must not depend on runtime-specific peer messaging or fixed model pins.
+The canonical skill tree is `.agents/skills/`, and Harness ships for both Claude and Codex. Durable repository-specific guidance belongs in repo-local skills or docs, while bounded subagents remain execution-time helpers. Generated harnesses must not depend on runtime-specific peer messaging or fixed model pins.
 
 ## Output Language Rule
 
@@ -42,7 +42,7 @@ Discover or ask for the smallest missing set of inputs:
 - quality bar and failure tolerance
 - existing repo guidance, skills, docs, and generated artifacts
 - likely user expertise level and preferred explanation density
-- whether repo-local subagents may improve read-heavy, review-heavy, or parallelizable work
+- whether bounded execution-time subagents may improve read-heavy, review-heavy, or parallelizable work
 - whether benchmarking or baseline comparison is needed
 
 When inputs are missing but the repository is available, inspect the repository first and make the narrowest reasonable assumption. Record assumptions in the generated team spec or validation note.
@@ -92,8 +92,6 @@ examples/benchmark-pack/scenarios.tsv       # when baseline comparison is part o
 examples/benchmark-pack/rubric.tsv
 examples/benchmark-pack/expected-artifacts.md
 _workspace/experiments/{run}/results.tsv    # benchmark run ledger
-.codex/agents/{custom-agent}.toml           # optional repo-local helper only
-.codex/config.toml                          # optional repo-local delegation config only
 ```
 
 Every generated `SKILL.md` must begin with YAML frontmatter containing at least `name` and `description`. Keep descriptions concise and trigger-focused.
@@ -105,7 +103,6 @@ Every generated `SKILL.md` must begin with YAML frontmatter containing at least 
 - Prefer file-based handoffs over assumed peer-to-peer runtime messaging.
 - Keep the main agent responsible for requirements, synthesis, integration, and final acceptance.
 - Allow bounded subagents when work is read-heavy, review-heavy, multi-part, or clearly parallelizable; do not ask for permission unless policy or user instructions require it.
-- Prefer repo-local custom agents over global `default`, `explorer`, `worker`, or `reviewer` roles when the repo-local agent description is more specific to the task.
 - Keep model-specific retries, brittle heuristics, and temporary recovery rules in removable reference sections.
 - Keep task contracts model-agnostic: express outcome, success criteria, evidence, retrieval budget, validation, side-effect boundaries, and stop rules without pinning guidance to a specific model version.
 - Avoid separate role files for roles that are too narrow, unstable, or single-use.
@@ -123,7 +120,6 @@ Before generating new artifacts, inspect current structure when available:
 2. List `.agents/skills/` and identify overlapping skill names or descriptions.
 3. List `docs/harness/` and find team specs, role briefs, examples, or output contracts.
 4. Check `_workspace/` conventions and whether old handoff files should be preserved.
-5. Check optional `.codex/agents/` for custom-agent helpers.
 6. Look for stale runtime assumptions, missing frontmatter, broken links, and duplicated responsibilities.
 7. If the repository uses Leanforge, inspect `.leanforge/NNN` archives when available to identify repeated review findings, missing evidence, failed gates, or repo-specific risk patterns. Legacy `.dryforge/NNN` archives may be read only as migration history. Do not rewrite archives.
 8. Classify the request as one of:
@@ -169,7 +165,7 @@ Output an instruction inventory, findings, keep/merge/move/remove/upgrade plan, 
    - several specialist skills
    - role briefs plus a team spec
    - a benchmark/evaluation loop
-   - optional Codex custom agents
+   - repo-local review/explore/checklist skills
 5. Capture assumptions and constraints before generating files.
 6. Define a model-agnostic outcome-first task contract with outcome, success criteria, scope, evidence requirements, retrieval budget, validation, side-effect boundary, stop/report rule, and completion packet.
 
@@ -190,7 +186,7 @@ Use work depth deliberately:
 
 - Lite: purpose clarification, audit, reversible recommendations, or a minimal repair plan.
 - Standard: one orchestrator skill or team spec with handoff and validation contracts.
-- Full: specialist skills, optional custom agents, benchmark packs, or review loops when final success requires repeatable multi-role execution or measured quality.
+- Full: specialist skills, benchmark packs, or review loops when final success requires repeatable multi-role execution or measured quality.
 
 If the required depth is ambiguous, present 2-3 options instead of choosing silently. For each option, state the final success criteria it satisfies, what it does not satisfy, repository evidence, expected validation, overbuild/underbuild risk, and the recommended choice.
 
@@ -213,7 +209,7 @@ Output:
 - role list
 - handoff plan
 - artifact naming convention
-- optional subagent/custom-agent decision, including autonomous-use conditions
+- optional subagent decision, including autonomous-use conditions
 
 ## Phase 3: Role and Artifact Definition
 
@@ -222,7 +218,6 @@ Define each stable role as one of:
 - reusable specialist skill under `.agents/skills/`
 - reusable orchestrator skill under `.agents/skills/`
 - role brief under `docs/harness/{domain}/roles/`
-- optional Codex custom agent under `.codex/agents/`
 
 For each role, specify:
 
@@ -275,7 +270,7 @@ Include:
 - owner role for each artifact
 - review and repair loops
 - fallback rules
-- optional subagent spawning instructions, including repo-local agent preference over generic global roles
+- optional subagent spawning instructions, including how repo-local skill criteria are passed to generic reviewers
 - what stays stable versus what is removable recovery logic
 
 For debate/synthesis tasks, use deterministic positions before synthesis:
@@ -308,7 +303,7 @@ Every generated harness should pass a structure and behavior review:
 - at least one normal scenario and one failure scenario are described
 - QA/reviewer behavior is explicit when quality risk is high
 - no platform-specific runtime assumption is required
-- optional custom agents have `name`, `description`, and `developer_instructions`
+- repo-local skills have valid frontmatter and clear usage contracts
 - benchmark loops keep baseline, metric, and results ledger separate
 
 When useful, compare:
@@ -356,14 +351,14 @@ A finished harness is acceptable when:
 - handoff files are deterministic
 - review loops are bounded
 - user expertise needs are reflected in public instructions
-- subagent usage is bounded, optional, scoped, and aligned with repo-local agent preference rules
+- subagent usage is bounded, optional, and scoped
 - benchmark claims are backed by recorded results
 - stale or legacy runtime assumptions are absent from canonical guidance
 
 ## Reference Pointers
 
 - `references/agents-md-guide.md` for root guidance.
-- `references/codex-subagents-guide.md` for optional custom agents and bounded subagent workflows.
+- `references/codex-subagents-guide.md` for bounded subagent workflows.
 - `references/agent-design-patterns.md` for architecture choice.
 - `references/maintenance-and-drift.md` for Phase 0 and Phase 7 details.
 - `references/user-expertise-and-tone.md` for adapting explanations.

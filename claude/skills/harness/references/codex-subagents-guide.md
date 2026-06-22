@@ -1,12 +1,12 @@
-# Codex Subagents and Custom Agents Guide
+# Codex Subagents Guide
 
-Use this guide when a harness might benefit from Codex subagents or project-scoped custom agents.
+Use this guide when a harness might benefit from bounded Codex subagents.
 
 ## Core rule
 
-Subagents are optional but may be spawned autonomously when the task is read-heavy, review-heavy, multi-part, or clearly parallelizable. A harness should still work as a single-agent workflow, and the parent agent always owns requirements, synthesis, integration, and final acceptance. In Leanforge `Run`, custom agents are reviewer/explorer lenses only; `Run` keeps execution authority.
+Subagents are optional but may be spawned autonomously when the task is read-heavy, review-heavy, multi-part, or clearly parallelizable. A harness should still work as a single-agent workflow, and the parent agent always owns requirements, synthesis, integration, and final acceptance. In Leanforge `Run`, repo-local skills may provide reviewer/explorer lenses only; `Run` keeps execution authority.
 
-Prefer repo-local custom agents over global `default`, `explorer`, `worker`, or `reviewer` roles when the repo-local agent description is more specific to the repository task. Use global roles only when no project-local agent is a better fit.
+Durable repository-specific guidance belongs in `.agents/skills/` or `docs/harness/`. Subagents are execution-time helpers, not persistent project configuration.
 
 ## When to use subagents
 
@@ -24,41 +24,14 @@ Avoid subagents for:
 - sensitive changes requiring one owner
 - cases where extra threads add cost but not quality
 
-## Custom agent files
-
-Project-scoped custom agents live under the target repository, not the user-level Codex home:
-
-```text
-<repo>/.codex/agents/{agent-name}.toml
-```
-
-Every file should define:
-
-```toml
-name = "agent_name"
-description = "Short description of when to use this agent."
-developer_instructions = """
-Instructions for the spawned agent.
-"""
-```
-
-Optional fields can include `nickname_candidates`, `model`, `model_reasoning_effort`, `sandbox_mode`, and tool or skill configuration. Prefer omitting model pins so the parent Codex setup can choose the active model.
-
-## Project-scoped config
-
-Use `<repo>/.codex/config.toml` only for repository-local delegation settings such as `[agents] max_depth = 1` or `max_threads`. Do not create or modify user-level `~/.codex/config.toml` from a generated harness. If the target repository already has `.codex/config.toml`, preserve it and make the smallest additive change instead of replacing it.
-
 ## Safe defaults
 
-- Read-only agents should set `sandbox_mode = "read-only"`.
-- Keep `max_depth = 1` in repo-local `.codex/config.toml` unless recursive delegation is explicitly needed.
-- Keep custom agents narrow and opinionated.
-- Prefer read-only `sandbox_mode` for explorer/reviewer agents.
+- Keep subagent roles narrow and evidence-focused.
+- Prefer read-only behavior for explorer/reviewer work.
 - Parent agent remains responsible for final synthesis and acceptance.
 - Child agents should return concise findings with file paths, evidence, and uncertainty.
-- Do not let custom agents own persistent plan state unless the user explicitly requests delegated execution.
-- Do not use `default`, `worker`, `explorer`, or `reviewer` as project custom-agent names; prefix names by domain.
-- Do not design Leanforge repo-local agents to replace `Run` implementers, worktree handling, merge gates, or status lifecycle.
+- Do not let child agents own persistent plan state unless the user explicitly requests delegated execution.
+- Do not design Leanforge repo-local skills to replace `Run` implementers, worktree handling, merge gates, or status lifecycle.
 
 ## Handoff files
 

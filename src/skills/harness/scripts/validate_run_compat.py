@@ -6,7 +6,6 @@ import re
 from pathlib import Path
 from typing import Any, Callable
 
-CUSTOM_AGENT_RESERVED_NAMES = {"default", "worker", "explorer", "reviewer"}
 RUN_COMPATIBLE_USAGE_SECTION_RE = re.compile(r"(?im)^##\s+Leanforge Run usage\s*$")
 RUN_COMPATIBLE_REQUIRED_TERMS = {
     "allowed phases": ["allowed phases", "final_review"],
@@ -57,23 +56,3 @@ def validate_run_compatible_skill(
     if RUN_COMPATIBLE_BROAD_TRIGGER_RE.search(description):
         issues.append(issue("warning", "run-compatible-skill-trigger-too-broad", relative, "run-compatible repo skill descriptions must avoid broad ordinary implementation triggers"))
     return issues
-
-
-def validate_custom_agent_name(
-    root: Path,
-    path: Path,
-    data: dict[str, Any],
-    issue: Callable[[str, str, str, str], Any],
-    relpath: Callable[[Path, Path], str],
-) -> list[Any]:
-    name = str(data.get("name", path.stem)).strip()
-    if name not in CUSTOM_AGENT_RESERVED_NAMES:
-        return []
-    return [
-        issue(
-            "error",
-            "custom-agent-name-reserved",
-            relpath(path, root),
-            f"custom agent name conflicts with a built-in role: {name}",
-        )
-    ]

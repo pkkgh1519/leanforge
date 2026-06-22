@@ -46,6 +46,32 @@ class RunRepoLensContractTests(unittest.TestCase):
                 missing = [term for term in required_terms if term not in combined]
                 self.assertFalse(missing, f"missing Run repo lens references: {missing}")
 
+
+    def test_legacy_delegation_surface_is_absent_from_skill_surfaces(self):
+        forbidden = [
+            "custom" + " agent",
+            "custom-" + "agent",
+            "." + "codex/" + "agents",
+            "." + "codex/" + "config.toml",
+        ]
+        checked = [
+            "README.md",
+            "README_KO.md",
+            "docs/harness/harness-skill-improvement-plan.md",
+        ]
+        for surface in SURFACES:
+            root = ROOT / surface
+            checked.extend(
+                str(path.relative_to(ROOT)).replace("\\", "/")
+                for path in root.rglob("*")
+                if path.is_file() and "__pycache__" not in path.parts
+            )
+        for rel in checked:
+            with self.subTest(rel=rel):
+                body = read(rel).lower()
+                present = [term for term in forbidden if term in body]
+                self.assertFalse(present, f"removed delegation surface terms remain: {present}")
+
     def test_omitted_risk_is_unclassified_not_direct_mechanical_path(self):
         forbidden = "Orchestrator-direct (`MECHANICAL` / `NONE` / omitted, file-diff task)"
         required = "Omitted `risk` remains unclassified, not `MECHANICAL`"

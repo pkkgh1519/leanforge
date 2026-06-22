@@ -64,9 +64,8 @@ The skill must not read active `.leanforge/handoff.md`, `.leanforge/spec.md`, or
 directly. It must also avoid legacy `.dryforge/{handoff,spec,plan}.md` active docs. `Run` passes the
 relevant spec slice, changed files, diff, and verification evidence inline.
 
-## When to generate a custom agent too
+## Generation boundary
 
-Generate `.codex/agents/{domain}-reviewer.toml` only when an independent read-heavy review or
-failure exploration thread is valuable. Prefer skills first; custom agents cost another thread.
-
-Do not name a custom agent `default`, `worker`, `explorer`, or `reviewer`.
+Generate Run-compatible repository lenses only as repo-local skills under `.agents/skills/`.
+Keep independent review or failure exploration needs inside the skill's `## Leanforge Run usage`
+contract so `Run` can pass a bounded context slice to a generic reviewer or explorer.

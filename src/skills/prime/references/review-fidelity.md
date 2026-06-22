@@ -32,8 +32,8 @@ dialogue (`elicitation.md`, the "unsaid" engines), and **independent** checking 
 fresh-eyes passes — `intent-completeness.md` (before SPEC, hunts the agent's un-grounded guesses and
 loops them to the *user*) and the `3-doc-gate` (final backstop on the artifact). REVIEW(A) does
 **neither** completeness half — it checks fidelity only. The optional ORIENT evidence-grounding scout
-is also not a fidelity or completeness audit: it can only return repository evidence pointers before
-DECOMPOSE/ELICIT. (Both completeness files stay live and own their half: `intent-review.md` is the
+is evidence collection, not review: it is not a fidelity or completeness audit and can only return
+repository evidence pointers before DECOMPOSE/ELICIT. (Both completeness files stay live and own their half: `intent-review.md` is the
 risk-proportional **lenses ELICIT presses** during dialogue — generation — and
 `first-cycle-review.md` is the **foundation-sufficiency rubric** that both ELICIT and the 3-doc-gate
 press against — independent audit. Neither is REVIEW(A)'s fidelity job.)

@@ -87,7 +87,7 @@ rationale **at the path every future session reads first**.
 | `Leanforge:Prime` (`/leanforge:prime`) | anything — one line to full documents | a reviewed, executable design contract |
 | `Leanforge:Run` (`/leanforge:run`) | the approved contract | verified code + the project harness |
 | `Leanforge:Set` (`/leanforge:set`) | an existing codebase | the project harness (one-time) |
-| `Leanforge:Harness` (`/leanforge:harness`) | design briefs, specs, custom agents | validated agent workflows + skill specs |
+| `Leanforge:Harness` (`/leanforge:harness`) | design briefs, specs, repo-local skills | validated agent workflows + skill specs |
 
 ---
 
@@ -199,7 +199,7 @@ then on, the project runs on `/leanforge:prime` → `/leanforge:run`.
 
 The harness skill designs, audits, repairs, and validates durable
 repo-local agent workflows: team specs, role briefs, specialist skills,
-custom-agent helpers, validation loops, and benchmark packs.
+validation loops, and benchmark packs.
 
 It is an upper design layer over the per-cycle harness that `/leanforge:run` writes
 (into `CLAUDE.md` / `AGENTS.md` / `docs/`). Where `/leanforge:run` focuses on

@@ -26,6 +26,7 @@ class PrimeScoutContractTests(unittest.TestCase):
         required = [
             "optional evidence-grounding scout",
             "read-only repo-evidence QA",
+            "evidence collection, not review",
             "after ORIENT",
             "main Prime remains the authority",
             "evidence pointers only",
@@ -39,7 +40,6 @@ class PrimeScoutContractTests(unittest.TestCase):
             "DECOMPOSE or ELICIT",
             "not a Run repo-local lens",
             "do not invoke harness-generated repo-local skills",
-            "do not invoke custom agents as scout",
         ]
         for surface in SURFACES:
             with self.subTest(surface=surface):

@@ -1,12 +1,12 @@
 # repo-lens-routing.md — repo-local review/explore lenses
 
 Use this reference only after the normal `Run` execution rules have selected a review or diagnostic
-phase. A repo-local lens is a skill or custom agent generated for one repository's repeated risks.
+phase. A repo-local lens is a skill generated for one repository's repeated risks.
 It helps `Run` inspect the result; it never owns execution.
 
 ## Authority boundary
 
-`Run` keeps execution authority. A repo-local skill or agent is a review/explore/checklist lens, not
+`Run` keeps execution authority. A repo-local skill is a review/explore/checklist lens, not
 an implementer. It may sharpen review criteria, point at repository-specific evidence, or explore a
 failure, but the orchestrator still owns scheduling, worktrees, merge-gates, completion gates,
 fix-dispatch, user escalation, harness updates, and archive/marker lifecycle.
@@ -30,7 +30,7 @@ Use repo-local lenses only in these phases:
    final reviewer dispatch.
 2. **conditional spec-review** — when the existing review policy triggers, add a matching lens for
    the risky surface being reviewed.
-3. **failure exploration** — after a gate fails, use a read-heavy repo-local skill or custom agent to
+3. **failure exploration** — after a gate fails, use a read-heavy repo-local skill to
    investigate likely repository-specific causes before fix-dispatch.
 
 Do not use a repo-local lens for ordinary implementation, wave scheduling, scaffold ownership,
@@ -39,17 +39,13 @@ worktree lifecycle, merge-gate decisions, or status tracking.
 ## Discovery and selection
 
 Look for repo-local skills under `.agents/skills/` whose description or `## Leanforge Run usage`
-section maps to the current changed scope. Optional Codex custom agents may exist under
-`.codex/agents/`; prefer them only for read-heavy reviewer/explorer work where an independent thread
-adds value.
+section maps to the current changed scope.
 
 Selection rules:
 
 - Prefer zero lenses for small mechanical changes.
 - Prefer one matching lens; use at most two when the changed scope genuinely spans two independent
   risk surfaces.
-- Prefer skills before custom agents. Skills add a checklist; custom agents add another thread.
-- Prefer read-only custom agents for exploration or review.
 - If selection is ambiguous, skip the lens and rely on the normal final review.
 - If a lens asks for missing context, provide a bounded inline slice; do not let it fetch active
   `.leanforge` or legacy `.dryforge` task docs directly.

@@ -2,7 +2,7 @@
 """Validate harness skill and generated harness artifacts.
 
 This script is intentionally lightweight: it checks structural contracts,
-frontmatter, link safety, optional custom-agent fields, and brittle runtime
+frontmatter, link safety, run-compatible skill contracts, and brittle runtime
 assumptions. It does not score product quality or replace human review.
 """
 
@@ -12,7 +12,6 @@ import argparse
 import json
 import re
 import sys
-import tomllib
 from pathlib import Path
 
 SCRIPT_DIR = Path(__file__).resolve().parent
@@ -21,7 +20,7 @@ if str(SCRIPT_DIR) not in sys.path:
 
 from validate_core import Issue, is_safe_repo_dir, is_safe_repo_file, read_text, relpath, safe_markdown_files_under, split_issues
 from validate_frontmatter import parse_frontmatter
-from validate_run_compat import validate_custom_agent_name, validate_run_compatible_skill
+from validate_run_compat import validate_run_compatible_skill
 from validate_install_parity import compare_skill_dirs
 from validate_pattern_scan import find_skill_files, validate_banned_patterns, validate_banned_patterns_in_files
 from validate_references import validate_reference_links, validate_references_dir
@@ -34,7 +33,6 @@ TEAM_SPEC_CONTRACTS = {
     "handoff": ["handoff", "핸드오프", "인수인계"],
     "side-effect boundary": ["side-effect", "side effect", "부작용", "라이브", "live service"],
 }
-CUSTOM_AGENT_REQUIRED_FIELDS = {"name", "description", "developer_instructions"}
 TRIGGERISH_DESCRIPTION_RE = re.compile(r"^(Use when|Use for|Use this when|Use this skill when)\b", re.IGNORECASE)
 CANONICAL_HARNESS_DIR = Path("src") / "skills" / "harness"
 CLAUDE_HARNESS_DIR = Path("claude") / "skills" / "harness"
@@ -76,43 +74,6 @@ def validate_skill_file(root: Path, path: Path) -> list[Issue]:
     issues.extend(validate_run_compatible_skill(root, path, text, description, Issue, relpath))
     return issues
 
-
-def validate_custom_agents(root: Path) -> list[Issue]:
-    root = root.resolve(strict=False)
-    agents_root = root / ".codex" / "agents"
-    if not is_safe_repo_dir(agents_root, root):
-        return []
-
-    issues: list[Issue] = []
-    for path in sorted(agents_root.glob("*.toml")):
-        if not is_safe_repo_file(path, root):
-            continue
-        text = read_text(path)
-        try:
-            data = tomllib.loads(text)
-        except tomllib.TOMLDecodeError as exc:
-            issues.append(
-                Issue(
-                    "error",
-                    "custom-agent-toml-invalid",
-                    relpath(path, root),
-                    f"custom agent TOML could not be parsed: {exc}",
-                )
-            )
-            continue
-        fields = set(data.keys())
-        missing = sorted(CUSTOM_AGENT_REQUIRED_FIELDS - fields)
-        if missing:
-            issues.append(
-                Issue(
-                    "error",
-                    "custom-agent-field-missing",
-                    relpath(path, root),
-                    "missing required custom-agent field(s): " + ", ".join(missing),
-                )
-            )
-        issues.extend(validate_custom_agent_name(root, path, data, Issue, relpath))
-    return issues
 
 
 def validate_team_specs(root: Path) -> list[Issue]:
@@ -243,7 +204,6 @@ def validate(root: Path) -> tuple[list[Issue], list[Issue]]:
 
     for skill_file in find_skill_files(root):
         issues.extend(validate_skill_file(root, skill_file))
-    issues.extend(validate_custom_agents(root))
     issues.extend(validate_team_specs(root))
     issues.extend(validate_banned_patterns(root))
     issues.extend(validate_agents_md(root))
