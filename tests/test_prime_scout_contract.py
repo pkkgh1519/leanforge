@@ -26,6 +26,7 @@ class PrimeScoutContractTests(unittest.TestCase):
         required = [
             "optional evidence-grounding scout",
             "read-only repo-evidence QA",
+            "evidence collection, not review",
             "after ORIENT",
             "main Prime remains the authority",
             "evidence pointers only",

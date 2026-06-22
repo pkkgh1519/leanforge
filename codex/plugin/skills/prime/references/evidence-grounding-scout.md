@@ -1,14 +1,16 @@
-# evidence-grounding-scout.md — optional ORIENT repo-evidence QA
+# evidence-grounding-scout.md — optional ORIENT evidence collection (not review)
 
 Use this reference only for Prime's **optional evidence-grounding scout**. It is a **Prime-only
-optional ORIENT evidence scout** and **does not change Set's inline-only contract**.
+optional ORIENT evidence scout** and **does not change Set's inline-only contract**. This is evidence
+collection, not review; the review gates are `intent-completeness` and `3-doc-gate`.
 
 ## Purpose
 
-The scout is **read-only repo-evidence QA** **after ORIENT**. It exists to reduce missed repository
-signals when main Prime has already performed the cheap-map read but still has material uncertainty.
-It does not build intent. It does not replace ORIENT, DECOMPOSE, ELICIT, SPEC, PLAN, HANDOFF,
-intent-completeness, or the 3-doc-gate.
+The scout is **read-only repo-evidence QA** **after ORIENT**. It exists to collect missed repository
+evidence signals when main Prime has already performed the cheap-map read but still has material
+uncertainty.
+It does not build intent, review intent, or review the 3-doc. It does not replace ORIENT,
+DECOMPOSE, ELICIT, SPEC, PLAN, HANDOFF, intent-completeness, or the 3-doc-gate.
 
 ## Trigger
 

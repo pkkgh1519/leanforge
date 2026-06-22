@@ -58,12 +58,14 @@ where the input came from. The 3-doc contract is in `references/output-format.md
 - **Bounded independent checks; authoring stays inline.** Every stage that *builds* intent — ORIENT,
   DECOMPOSE, ELICIT, SPEC+REVIEW, PLAN, HANDOFF — runs **inline in the main session** (intent grounding
   must see *raw* context, not a summary — the same reason Set is inline-only). Prime permits only
-  bounded, non-authoring dispatches: an **optional evidence-grounding scout** **after ORIENT** when the
+  bounded, non-authoring dispatches: one optional evidence-collection scout and two required review
+  gates. The **optional evidence-grounding scout** runs **after ORIENT** when the
   main cheap-map has alPrime run and material uncertainty remains; **intent-completeness** (reads the
   dialogue to hunt the producer's own un-grounded guesses before SPEC → loops to the user); and the
   **3-doc-gate** (sees only the finished 3-doc — the final backstop on the artifact). The optional
-  scout is **read-only repo-evidence QA**: it returns **evidence pointers only**, and **main Prime
-  remains the authority**. It must not author, set, or decide intent. intent-completeness and
+  scout is **read-only repo-evidence QA**: it is evidence collection, not review; it returns
+  **evidence pointers only**, and **main Prime remains the authority**. It must not author, set, or
+  decide intent. intent-completeness and
   3-doc-gate run as **general-purpose** subagents (full read/inspect tools — not a plan-only or
   search-only agent type, so they can read the dialogue and cross-check the artifact). This is a
   **Prime-only optional ORIENT evidence scout** and **does not change Set's inline-only
@@ -143,7 +145,7 @@ stage sequence is identical for first and delta.
 Core principles  inline authoring + bounded non-authoring checks · understand-not-guess ·
                  stack/language-agnostic · conflict→ELICIT · floor not ceiling · user-language native
 ORIENT           absorb input + ground code/harness · branch on status.json     (no refs)
-evidence-grounding scout  evidence-grounding-scout.md  ← optional read-only repo-evidence QA after ORIENT
+evidence-grounding scout  evidence-grounding-scout.md  ← optional evidence collection after ORIENT (not review)
 DECOMPOSE        decompose.md · grounds-gate.md
 ELICIT           elicitation.md · gap-analysis.md · intent-review.md · grounds-gate.md
        [first]+  project-scoping.md · project-design-domain.md · project-design-technical.md ·
@@ -200,7 +202,7 @@ questions are ELICIT's. Everything ORIENT produces is *context*, not a conclusio
 5. **Find the verify command.** Discover the project's verify command. If none, surface that *absence*
    as a decision (a custom check / named human-approval evidence / "no automated gate") — recorded in
    SPEC, never left implicit.
-6. **Optional evidence-grounding scout (read-only).** Force-load
+6. **Optional evidence-grounding scout (read-only evidence collection, not review).** Force-load
    `references/evidence-grounding-scout.md` only after the **main ORIENT cheap-map completed** and
    **material uncertainty** remains that repository evidence could materially change. **Skip for
    greenfield**, **simple documentation-only** work, **small deltas**, or when **ORIENT already has
@@ -293,7 +295,7 @@ Each finding is **relayed to the user and closed by extract/present** (not patch
 **bounded local re-walk** of only the touched neighborhood, re-check once, then escalate — no open
 loop. This catches guesses *while the user is still here to decide*, so the final 3-doc-gate finds
 little. This is a required independent intent audit; it is separate from the optional ORIENT
-evidence-grounding scout, which returns evidence pointers and never authors intent.
+evidence-grounding scout, which only collects evidence pointers and never reviews or authors intent.
 
 ## SPEC + REVIEW(A) — write ground truth, verify fidelity — `references/output-format.md`
 
