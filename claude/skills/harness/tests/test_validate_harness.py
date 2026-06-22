@@ -73,24 +73,20 @@ class ValidateHarnessTests(unittest.TestCase):
         skill = self.write_skill(self.tmp / "sample-skill", reference="Agents coordinate through send_message.\n")
         self.assertIn("runtime-peer-messaging", self.issue_codes(module.validate_skill_dir(skill)))
 
-    def test_custom_agent_missing_required_field(self):
-        repo = self.tmp / "repo"
-        agent_dir = repo / ".codex" / "agents"
-        agent_dir.mkdir(parents=True)
-        (agent_dir / "reviewer.toml").write_text('name = "reviewer"\ndescription = "Review."\n', encoding="utf-8")
-        self.assertIn("custom-agent-field-missing", self.issue_codes(module.validate(repo)))
-
-    def test_custom_agent_reserved_builtin_name_is_error(self):
-        repo = self.tmp / "repo"
-        agent_dir = repo / ".codex" / "agents"
-        agent_dir.mkdir(parents=True)
-        (agent_dir / "reviewer.toml").write_text(
-            'name = "reviewer"\n'
-            'description = "Review repository-specific API contracts."\n'
-            'developer_instructions = """Return concise findings only."""\n',
-            encoding="utf-8",
-        )
-        self.assertIn("custom-agent-name-reserved", self.issue_codes(module.validate(repo)))
+    def test_legacy_delegation_surface_is_error(self):
+        legacy_tokens = [
+            "." + "codex/" + "agents",
+            "." + "codex\\" + "agents",
+            "." + "codex/" + "config.toml",
+            "custom" + " agent",
+            "custom-" + "agent",
+            "custom" + " agents",
+            "Codex " + "custom",
+        ]
+        for index, token in enumerate(legacy_tokens):
+            with self.subTest(token=token):
+                skill = self.write_skill(self.tmp / f"sample-skill-{index}", reference=f"Generate {token} guidance.\n")
+                self.assertIn("legacy-delegation-surface", self.issue_codes(module.validate_skill_dir(skill)))
 
     def test_run_compatible_skill_missing_usage_contract_is_error(self):
         skill = self.write_skill(

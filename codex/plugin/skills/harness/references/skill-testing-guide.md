@@ -10,7 +10,7 @@ Test a harness like a reusable product, not a one-off prompt.
 - `SKILL.md` frontmatter is valid
 - references are readable
 - team spec paths match generated paths
-- optional custom agents have required TOML fields
+- repo-local skills have valid frontmatter and usage contracts
 
 ### Discoverability smoke tests
 

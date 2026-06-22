@@ -59,7 +59,7 @@ references load at their steps.
 - **Efficiency Budget.** Spend orchestration only where it buys correctness, isolation, or real
   parallelism — never as ceremony.
 - **Repo-local lenses are optional review/explore aids.** When a repository has harness-generated
-  `.agents/skills/` or `.codex/agents/` that match the changed scope, use
+  `.agents/skills/` that match the changed scope, use
   `references/repo-lens-routing.md`: Run keeps execution authority; a matching artifact is a
   review/explore/checklist lens, not an implementer.
 - **The final review is silent insurance — not a backstop you lean on.** Own conformance **upstream**,
@@ -298,7 +298,7 @@ whether a later invocation is looking at the same active 3-doc and git state.
 
 10. **Final review** — one subagent checks the **full diff on the base** for spec conformance + code
     quality, **and the harness** (when created/updated this cycle) against `references/harness-review.md`
-    (`reviewer-prompt.md`, four lenses). If repo-local skills or custom agents match this cycle's
+    (`reviewer-prompt.md`, four lenses). If repo-local skills match this cycle's
     changed scope, apply them only as optional review/explore/checklist lenses per
     `references/repo-lens-routing.md`; they are not an implementer and never replace `Run`'s execution
     authority. **Clear = zero blocking findings, recorded.**

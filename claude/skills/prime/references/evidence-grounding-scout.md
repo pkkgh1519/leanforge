@@ -74,6 +74,5 @@ the cited files/commands inline, then:
 
 - This is **not a Run repo-local lens**.
 - **do not invoke harness-generated repo-local skills**.
-- **do not invoke custom agents as scout**.
 - Do not create or modify repo-local skills, subagents, harness files, or Leanforge lifecycle state.
 - Do not execute Run, Set, or any implementation workflow.

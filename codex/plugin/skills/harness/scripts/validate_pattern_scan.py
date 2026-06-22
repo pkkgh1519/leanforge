@@ -25,6 +25,16 @@ OPERATION_COUPLING_PATTERNS = [
     re.compile(r"\bdocs/operations\b"),
 ]
 
+LEGACY_DELEGATION_SURFACE_TOKENS = [
+    "." + "codex/" + "agents",
+    "." + "codex\\" + "agents",
+    "." + "codex/" + "config.toml",
+    "custom" + " agent",
+    "custom-" + "agent",
+    "custom" + " agents",
+    "Codex " + "custom",
+]
+
 
 def find_skill_files(root: Path) -> list[Path]:
     root = root.resolve(strict=False)
@@ -49,10 +59,7 @@ def files_to_scan(root: Path) -> Iterable[Path]:
     for skill_file in skill_files:
         candidates.extend(safe_markdown_files_under(skill_file.parent / "references", root))
     candidates.extend(safe_markdown_files_under(root / "docs" / "harness", root))
-    agents_root = root / ".codex" / "agents"
-    if is_safe_repo_dir(agents_root, root):
-        candidates.extend(path for path in sorted(agents_root.glob("*.toml")) if is_safe_repo_file(path, root))
-    for extra in [root / "AGENTS.md", root / ".codex" / "config.toml"]:
+    for extra in [root / "AGENTS.md"]:
         if is_safe_repo_file(extra, root):
             candidates.append(extra)
 
@@ -98,6 +105,16 @@ def validate_banned_patterns_in_files(root: Path, paths: Iterable[Path]) -> list
                     "operation-artifact-coupling",
                     relative,
                     "operation artifact paths should be evidence, not a hard harness dependency",
+                )
+            )
+        lowered = text.lower()
+        if any(token.lower() in lowered for token in LEGACY_DELEGATION_SURFACE_TOKENS):
+            issues.append(
+                Issue(
+                    "error",
+                    "legacy-delegation-surface",
+                    relative,
+                    "harness artifacts must not depend on legacy repository-local delegation surfaces",
                 )
             )
     return issues

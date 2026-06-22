@@ -10,7 +10,6 @@ Before creating or changing a harness, inspect:
 - `.agents/skills/`
 - `docs/harness/`
 - `_workspace/`
-- `.codex/agents/`
 - existing validation scripts
 - benchmark or review artifacts
 - changelog or maintenance notes

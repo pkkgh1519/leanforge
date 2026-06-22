@@ -48,6 +48,5 @@ Use QA when a harness output can fail silently or when multiple roles produce ar
 - duplicated skill trigger
 - root `AGENTS.md` too long
 - handoff file path mismatch
-- optional custom agent missing required TOML field
 - benchmark run without baseline
 - review loop with no stop condition

@@ -39,7 +39,6 @@ class PrimeScoutContractTests(unittest.TestCase):
             "DECOMPOSE or ELICIT",
             "not a Run repo-local lens",
             "do not invoke harness-generated repo-local skills",
-            "do not invoke custom agents as scout",
         ]
         for surface in SURFACES:
             with self.subTest(surface=surface):

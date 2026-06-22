@@ -186,7 +186,7 @@ main은 직접 쓰이지 않으며, 최종 통합 — merge, PR, 수동 — 은 
 
 ### `/leanforge:harness` — 워크플로 설계 & 팀 명세
 
-harness 스킬은 팀 스펙, 역할 브리프, specialist skill, custom-agent helper,
+harness 스킬은 팀 스펙, 역할 브리프, specialist skill,
 검증 루프, benchmark pack까지 포함한 repo-local agent workflow를 설계·점검·수리·검증한다.
 
 `/leanforge:run`가 작성하는 per-cycle 하네스(`CLAUDE.md` / `AGENTS.md` / `docs/`)의 상위 설계 레이어다.

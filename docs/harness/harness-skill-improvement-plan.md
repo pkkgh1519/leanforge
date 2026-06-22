@@ -46,7 +46,7 @@ This improvement cycle should not:
 ## 4. Design Principles
 
 1. Improve proof before adding scope.
-2. Keep the skill useful as a single-agent workflow; subagents and custom agents remain optional accelerators.
+2. Keep the skill useful as a single-agent workflow; subagents remain optional accelerators.
 3. Validate canonical source and installed/generated forms separately.
 4. Treat scenario tests as regression guards, not marketing benchmarks.
 5. Keep quickstart material small enough that a new user can act within minutes.
@@ -100,7 +100,6 @@ Minimum fixtures:
 - missing `references/...` link;
 - fixed model pin or runtime tuning field;
 - peer-to-peer runtime messaging dependency;
-- custom agent missing required TOML field;
 - `team-spec.md` missing required contract sections;
 - overly long root `AGENTS.md` warning.
 
