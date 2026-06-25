@@ -2,7 +2,7 @@
 
 <div align="center">
 
-# Leanforge v1.6.5
+# Leanforge v1.6.6
 
 ### 입력은 의도. _출력은 검증된 소프트웨어._
 

@@ -52,6 +52,20 @@ That a decision is the user's intent (not an agent guess) is ensured *upstream* 
 by a tag in the doc. The only annotation a decision carries is its **reason in the thinking-base** when
 non-derivable (below), written in the user's terms as prose.
 
+**Acceptance & Evidence Matrix (behavior-changing work only).** For observable behavior changes,
+include a compact AC → Verification → Expected evidence matrix. Each AC describes externally
+observable behavior, not implementation detail. Do not write this matrix for documentation-only,
+formatting-only, mechanical wiring, simple configuration, or pure scaffold work with no
+user-observable behavior; instead, name the smallest meaningful non-behavioral verification in the
+spec/plan. If automation cannot verify an AC, record manual/external evidence or why it is
+unavailable — never let missing verification read as a pass.
+
+Suggested compact shape:
+
+| AC | Observable behavior | Non-goal / exclusion | Verification | Expected evidence |
+|---|---|---|---|---|
+| AC-01 | <behavior visible through a public surface> | <out of scope> | <command or evidence path> | <exit 0 / observed response / artifact> |
+
 ### plan — what to do (tasks + the machine graph)
 Must convey: per-task **behavioral contract** (goal, **work targets** — files |
 state | external resource — and verification gate); **thinking-base** (decision +

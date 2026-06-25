@@ -18,6 +18,9 @@ and **wording you adapt** (the example below is one phrasing, not a fixed script
 - **Spec section** — the spec requirement this task realizes, **quoted inline in this prompt**
   (the task worktree has no `.leanforge/` files to read — `.leanforge/` is gitignored). Build to the
   spec, not just to the task line ("correct" = matches the spec).
+  If the spec includes an **Acceptance & Evidence Matrix**, pass the relevant AC ids and rows inline.
+  Done requires each relevant behavior AC has matching evidence, or an explicit concern explaining
+  why that AC cannot be evaluated.
 - **Hard gates** — the relevant non-negotiable constraints from the handoff.
 - **Verify-first, right-sized** — drive the work against the task's **real verification gate**: the
   project's verify commands, discovered by the producer (which may be a typecheck/lint/test set, a
@@ -51,7 +54,9 @@ Verify against the task's gate (the project's verify commands). This task is RIS
 test-first (failing test → RED → minimal impl → GREEN → refactor); MECHANICAL → confirming check, no
 RED; NONE → appropriate evidence (build / validate / render / apply). If the tier looks wrong, return
 DONE_WITH_CONCERNS. For a no-file-diff target, evidence is commit message + captured external
-response. Run the project's verify commands; capture exit codes.
+response. If AC rows were provided, map each relevant AC to the command/result that proves it.
+File existence, source-string checks, symbol existence, skipped tests, weakened assertions, or
+swallowed exceptions do not count as behavior AC evidence. Run verify commands; capture exit codes.
 When done: commit, then return ONLY the structured summary. Do not inline diffs.
 ```
 
@@ -65,6 +70,9 @@ When done: commit, then return ONLY the structured summary. Do not inline diffs.
   actually run (build / validate / render / …). A claimed pass with no command/exit code is
   needs-fix; and **omitting tests on a task that has real testable behavior is needs-fix** (the
   no-test path is only for genuinely non-unit-testable or trivial work)
+- `acceptance_evidence`: when AC rows were provided, list `AC id → command/evidence → observed
+  result`. Use `not_applicable` only when the task has no relevant behavior AC. Shallow evidence
+  listed above is not valid behavior AC evidence.
 - `concerns`: anything the orchestrator should weigh (or what is blocking)
 
 ## escalate-don't-guess (for the implementer)
