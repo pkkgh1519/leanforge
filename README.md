@@ -6,27 +6,32 @@
 
 ### Intent-to-implementation for Claude Code & Codex.
 
-Leanforge is a **multi-platform plugin harness**: it turns vague input into a
-reviewed 3-doc, executes it with evidence gates, and leaves durable project
-memory behind through the project harness.
+[![CI](https://github.com/pkkgh1519/leanforge/actions/workflows/ci.yml/badge.svg)](https://github.com/pkkgh1519/leanforge/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/pkkgh1519/leanforge)](https://github.com/pkkgh1519/leanforge/releases)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-**Intent elicitation before implementation.**<br/>
-**Dependency-aware parallel execution with right-sized review.**<br/>
-**Project memory that future agents read first.**<br/>
-**Interrupted runs are recoverable from local Leanforge state.**
+Leanforge turns vague product intent into a reviewed executable design contract,
+runs implementation with evidence gates, and leaves durable project memory for
+future agents.
 
-[Repository](https://github.com/pkkgh1519/leanforge) · [한국어](https://github.com/pkkgh1519/leanforge/blob/main/README_KO.md)
+[Repository](https://github.com/pkkgh1519/leanforge) · [Release notes](https://github.com/pkkgh1519/leanforge/releases) · [한국어](https://github.com/pkkgh1519/leanforge/blob/main/README_KO.md)
 
 </div>
 
-**Install** — Claude Code
+---
+
+## 60-second start
+
+### Install
+
+**Claude Code**
 
 ```
 /plugin marketplace add pkkgh1519/leanforge
 /plugin install leanforge
 ```
 
-Codex
+**Codex**
 
 ```
 codex plugin marketplace add pkkgh1519/leanforge
@@ -37,10 +42,39 @@ codex plugin add leanforge@leanforge
 
 <sub>Distribution: the marketplace source is `pkkgh1519/leanforge`; the installed plugin identity is `leanforge` and the user-facing product is Leanforge.</sub>
 
+### Verify installation
 
-<sub>Installs the three lifecycle commands (`/leanforge:prime`, `/leanforge:run`, `/leanforge:set`) plus the bundled `/leanforge:harness` workflow-design command.</sub>
+After install, the command palette should expose:
 
-<sub>Codex also includes `Leanforge:Run TDD` (`/leanforge:run-tdd`), a Codex-only wrapper that runs `/leanforge:run` with selective TDD guidance for behavior-changing work.</sub>
+- `Leanforge:Prime` (`/leanforge:prime`)
+- `Leanforge:Run` (`/leanforge:run`)
+- `Leanforge:Set` (`/leanforge:set`)
+- `Leanforge:Harness` (`/leanforge:harness`)
+- Codex only: `Leanforge:Run TDD` (`/leanforge:run-tdd`)
+
+### First successful run
+
+1. Start with a small, observable request.
+
+   ```text
+   /leanforge:prime Build a minimal booking flow for a single service business.
+   ```
+
+2. Review the generated spec, plan, and handoff before implementation begins.
+3. Execute the approved contract.
+
+   ```text
+   /leanforge:run
+   ```
+
+4. Expect a final summary with the implemented changes, checks run, evidence, and project harness updates when applicable.
+
+### Use Leanforge when
+
+- A prompt is underspecified enough that hidden defaults would be expensive.
+- Multiple files, agents, or phases need a reviewed execution contract.
+- Decisions and evidence must survive the current chat session.
+- You want a recoverable local workflow instead of a one-shot agent run.
 
 ---
 

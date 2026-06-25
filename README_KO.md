@@ -6,26 +6,30 @@
 
 ### 입력은 의도. _출력은 검증된 소프트웨어._
 
-Claude Code & Codex를 위한 **플러그인 하네스**: 모호한 입력을 검토된 3-doc으로 만들고, 증거 게이트로 실행하며, 다음 에이전트가 읽을 프로젝트 기억을 남긴다.
+[![CI](https://github.com/pkkgh1519/leanforge/actions/workflows/ci.yml/badge.svg)](https://github.com/pkkgh1519/leanforge/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/pkkgh1519/leanforge)](https://github.com/pkkgh1519/leanforge/releases)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-**추측이 남지 않을 때까지 묻는다 — 말한 적 없는 결정까지 찾아서.**<br/>
-**천장이 아니라 바닥 — 더 나은 모델이 곧 더 나은 결과다.**<br/>
-**세션보다 오래 사는 기억 — 결정과 이유가 프로젝트의 문서 체계에 남는다.**<br/>
-**완료는 증거다 — 종료 코드와 실제 응답. "된 것 같다"는 통과하지 못한다.**<br/>
-**중단된 실행은 로컬 Leanforge 상태에서 복구한다.**
+Leanforge는 모호한 제품 의도를 검토된 실행 계약으로 만들고, 증거 게이트로 구현을 진행하며, 다음 에이전트가 읽을 프로젝트 기억을 남긴다.
 
-[Repository](https://github.com/pkkgh1519/leanforge) · [English](https://github.com/pkkgh1519/leanforge/blob/main/README.md)
+[Repository](https://github.com/pkkgh1519/leanforge) · [Release notes](https://github.com/pkkgh1519/leanforge/releases) · [English](https://github.com/pkkgh1519/leanforge/blob/main/README.md)
 
 </div>
 
-**설치** — Claude Code
+---
+
+## 60초 시작
+
+### 설치
+
+**Claude Code**
 
 ```
 /plugin marketplace add pkkgh1519/leanforge
 /plugin install leanforge
 ```
 
-Codex
+**Codex**
 
 ```
 codex plugin marketplace add pkkgh1519/leanforge
@@ -36,10 +40,39 @@ codex plugin add leanforge@leanforge
 
 <sub>배포: marketplace source는 `pkkgh1519/leanforge`다. 설치되는 plugin identity는 `leanforge`, 사용자에게 보이는 제품명은 Leanforge다.</sub>
 
+### 설치 확인
 
-<sub>`/leanforge:prime`, `/leanforge:run`, `/leanforge:set`과 함께 번들된 `/leanforge:harness` 워크플로 설계 명령이 설치된다.</sub>
+설치 후 명령 팔레트에서 다음 명령이 보여야 한다.
 
-<sub>Codex 번들에는 동작 변경 작업에 선택적 TDD 지침을 더해 `/leanforge:run`를 실행하는 Codex 전용 wrapper `Leanforge:Run TDD` (`/leanforge:run-tdd`)도 포함된다.</sub>
+- `Leanforge:Prime` (`/leanforge:prime`)
+- `Leanforge:Run` (`/leanforge:run`)
+- `Leanforge:Set` (`/leanforge:set`)
+- `Leanforge:Harness` (`/leanforge:harness`)
+- Codex 전용: `Leanforge:Run TDD` (`/leanforge:run-tdd`)
+
+### 첫 성공 실행
+
+1. 작고 관찰 가능한 요청으로 시작한다.
+
+   ```text
+   /leanforge:prime 1인 서비스 사업자를 위한 최소 예약 흐름을 만들어 줘.
+   ```
+
+2. 구현 전에 생성된 spec, plan, handoff를 검토하고 승인한다.
+3. 승인된 계약을 실행한다.
+
+   ```text
+   /leanforge:run
+   ```
+
+4. 마지막에는 구현 변경, 실행한 검증, 증거, 필요한 프로젝트 하네스 업데이트가 요약되어야 한다.
+
+### 이런 상황에서 쓰세요
+
+- 프롬프트가 과소명세라 숨은 디폴트의 비용이 큰 경우.
+- 여러 파일, 에이전트, 단계가 검토된 실행 계약 아래 움직여야 하는 경우.
+- 결정과 증거가 현재 채팅 세션 이후에도 남아야 하는 경우.
+- 한 번 던지고 끝나는 agent run보다 복구 가능한 로컬 워크플로가 필요한 경우.
 
 ---
 
