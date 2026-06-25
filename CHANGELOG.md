@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.6.6 (2026-06-25)
+
+- add SDD-lite Stage 1 guidance: Acceptance & Evidence Matrix, behavior-first AC evidence, and ceremony-budget review
+- keep the new guidance conditional on behavior-changing work so mechanical/docs/config-only tasks stay lightweight
+
 ## v1.6.5 (2026-06-21)
 
 - switch public marketplace source documentation from `fn-opt/leanforge` to `pkkgh1519/leanforge`

@@ -18,9 +18,21 @@ not an implementer, does not own merge decisions, and only adds repository-speci
 edge-case rules, API surface? Every spec requirement should be traceable to code in the diff. Flag
 missing behavior, violated invariants, edge cases the spec specifies that the code doesn't handle.
 
+**Evidence integrity sub-lens.** With an **Acceptance & Evidence Matrix**, every behavior AC must
+trace to real evidence: command plus exit code, observed response, rendered artifact, or external/
+manual evidence. File existence, source-string checks, symbol existence, skipped tests, weakened
+assertions, or swallowed exceptions do **not** prove behavior ACs and are blocking when used as the
+only evidence for required behavior.
+
 **Lens 2: code quality.** Cross-task consistency, seam leaks where tasks meet, duplication, naming
 and pattern divergence across independently-written code. The integration gate already proved the
 combined state builds and runs — your scope is what mechanical gates cannot see.
+
+**Ceremony budget sub-lens.** Challenge over-structure without spec confidence: one-use
+abstractions, owner/contract/policy/result splits for one behavior, type names that add no
+validation, interfaces with one implementation/no stable boundary, or abstractions added before
+repeated use. Do not demand removal automatically; require a load-bearing reason, then flag ceremony
+as advisory or blocking based on the maintenance risk.
 
 **Lens 3: harness content** and **Lens 4: harness format** — apply only when the harness was created
 or updated this cycle. Do **not** inline harness criteria here; apply the four dimensions in

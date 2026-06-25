@@ -58,6 +58,12 @@ For those tasks, use a vertical red-green-refactor loop:
 
 Tests should verify behavior through public interfaces, not private helpers, internal structure, source strings, or incidental implementation details.
 
+When the `Prime` spec provides an Acceptance & Evidence Matrix, derive each TDD slice from the
+relevant AC's observable behavior; AC evidence must be a behavior assertion through the smallest
+stable public surface. File existence, source-string checks, symbol existence, skipped tests,
+weakened assertions, swallowed exceptions, or tests coupled to private helpers do not count as AC
+evidence.
+
 ## TDD exclusion policy
 
 Do not force TDD for tasks that are not behavior changes, including:
@@ -71,7 +77,7 @@ Do not force TDD for tasks that are not behavior changes, including:
 - scaffolding with no user-observable behavior yet
 - build or CI plumbing with no product behavior change
 
-For non-TDD tasks, still capture the smallest meaningful verification that proves the change works, such as:
+For non-TDD tasks, still capture the smallest meaningful verification, such as:
 
 - build or compile command
 - lint or format check
@@ -82,9 +88,11 @@ For non-TDD tasks, still capture the smallest meaningful verification that prove
 
 ## Leanforge integration rule
 
-When `Leanforge:Run` assigns work directly to the orchestrator, apply this TDD policy yourself for behavior-changing tasks.
+When `Leanforge:Run` assigns work directly to the orchestrator, apply this TDD policy to
+behavior-changing tasks.
 
-When `Leanforge:Run` dispatches implementation work to subagents, include the relevant TDD policy in the task prompt only for behavior-changing work. Do not add TDD instructions to mechanical or documentation-only prompts.
+When `Leanforge:Run` dispatches subagents, include TDD policy only for behavior-changing work. Do
+not add it to mechanical or documentation-only prompts.
 
 Keep Leanforge's required evidence rules intact: a task is not complete unless the appropriate verification ran and the result is captured.
 

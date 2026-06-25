@@ -209,7 +209,8 @@ when a lightweight fix would take seconds.
      — no dispatch, no worktree, no prompt authoring. **The same captured-evidence floor that binds a
      dispatched implementer binds you here** (`implementer-prompt.md`): right-sized but *real*
      verification (command + **captured** exit code; **real testable behavior left untested = not
-     done**, never a "right-size" excuse). Commit on the base. **You own conformance on this path — the
+     done**, never a "right-size" excuse). If the spec carries an Acceptance & Evidence Matrix, record
+     the relevant AC evidence in the same shape an implementer would. Commit on the base. **You own conformance on this path — the
      final review is insurance, not your check.** If the task proves ambiguous, behavioral, multi-file,
      or riskier than declared, treat it as a runtime risk upgrade (`graph-contract.md`) and strengthen
      verification.
@@ -299,8 +300,9 @@ whether a later invocation is looking at the same active 3-doc and git state.
    multi-file writing sequence is the last place narration leaks — emit nothing between writes.
 
 10. **Final review** — one subagent checks the **full diff on the base** for spec conformance + code
-    quality, **and the harness** (when created/updated this cycle) against `references/harness-review.md`
-    (`reviewer-prompt.md`, four lenses). If repo-local skills match this cycle's
+    quality, evidence integrity for any Acceptance & Evidence Matrix, ceremony budget, **and the harness**
+    (when created/updated this cycle) against `references/harness-review.md`
+    (`reviewer-prompt.md`, with the added evidence-integrity and ceremony-budget sub-lenses). If repo-local skills match this cycle's
     changed scope, apply them only as optional review/explore/checklist lenses per
     `references/repo-lens-routing.md`; they are not an implementer and never replace `Run`'s execution
     authority. **Clear = zero blocking findings, recorded.**
