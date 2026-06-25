@@ -79,6 +79,7 @@ codex plugin add leanforge@leanforge
 - [설치 가이드](docs/installation.md)
 - [문제 해결](docs/troubleshooting.md)
 - [Dryforge에서 Leanforge로 마이그레이션](docs/migration-dryforge-to-leanforge.md)
+- [예제](examples/README.md)
 
 ---
 

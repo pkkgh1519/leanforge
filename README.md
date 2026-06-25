@@ -81,6 +81,7 @@ After install, the command palette should expose:
 - [Installation](docs/installation.md)
 - [Troubleshooting](docs/troubleshooting.md)
 - [Dryforge to Leanforge migration](docs/migration-dryforge-to-leanforge.md)
+- [Examples](examples/README.md)
 
 ---
 
