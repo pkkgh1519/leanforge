@@ -374,6 +374,8 @@ the end (the only mid-run exception is the REVIEW(A) reopen). Produce → run is
 context carries into Run — but **the 3-doc, not the dialogue, is the authority** (it is archived and
 read by later cycles, so it must be self-sufficient).
 
+**Active 3-doc follow-through.** Keep the final note explicit: `Run` is what executes and archives the active 3-doc. A later small unrelated one-off may proceed normally and must leave the active 3-doc untouched. If a later request appears to continue this plan, touches planned targets, or could make the 3-doc stale, ask whether to invoke `Run` or proceed normally; if proceeding normally, the final response must say the active 3-doc remains open and may need archive, discard, or re-prime.
+
 ## Completion gate (avoid self-judgment A=A)
 
 The **target you work toward** is the ELICIT exit bar (no guess survives on a load-bearing decision) (above) + the deterministic 0-signals —

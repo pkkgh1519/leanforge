@@ -320,6 +320,8 @@ whether a later invocation is looking at the same active 3-doc and git state.
     `.leanforge/status.json` (`{ "initialized": true }`) if absent — the local marker that makes the
     next cycle a delta.
 
+    Do not claim full Run completion until this move succeeds, or until the user explicitly takes ownership of archiving. If implementation is verified but the active 3-doc remains at root, report that archive is still open instead of calling the run fully complete.
+
 **Advancing waves.** Sequential waves advance immediately after commit verification — no gate to
 wait for. For parallel waves, the next wave's provisioning SHOULD overlap the current wave's
 integration gate (`orchestration.md`, Advancing waves), but dispatch waits for a green gate.
@@ -369,6 +371,7 @@ Done only when ALL hold — on **evidence**, not assertion:
   escalated to the user **synchronously** (the orchestrator pauses the run and waits for the user's
   response — never a silent hang or a timeout-drop). Subagents themselves never ask the user directly
   (the prompt files carry that fresh-session rule); only the orchestrator relays escalations to the user.
+- active root 3-doc files have been moved into an archive directory, or the user explicitly owns the remaining archive action; the final response states which is true.
 
 ## Finish
 
