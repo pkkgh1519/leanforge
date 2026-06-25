@@ -80,6 +80,9 @@ codex plugin add leanforge@leanforge
 - [문제 해결](docs/troubleshooting.md)
 - [Dryforge에서 Leanforge로 마이그레이션](docs/migration-dryforge-to-leanforge.md)
 - [예제](examples/README.md)
+- [기여 가이드](CONTRIBUTING.md)
+- [지원](SUPPORT.md)
+- [보안 정책](SECURITY.md)
 
 ---
 

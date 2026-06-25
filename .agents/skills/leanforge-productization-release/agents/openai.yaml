@@ -1,0 +1,4 @@
+interface:
+  display_name: "Leanforge Productization Release"
+  short_description: "Ship Leanforge productization releases safely."
+  default_prompt: "Use $leanforge-productization-release to prepare and verify a Leanforge productization release."
