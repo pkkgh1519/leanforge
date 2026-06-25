@@ -74,6 +74,12 @@ codex plugin add leanforge@leanforge
 - 결정과 증거가 현재 채팅 세션 이후에도 남아야 하는 경우.
 - 한 번 던지고 끝나는 agent run보다 복구 가능한 로컬 워크플로가 필요한 경우.
 
+### 자세한 문서
+
+- [설치 가이드](docs/installation.md)
+- [문제 해결](docs/troubleshooting.md)
+- [Dryforge에서 Leanforge로 마이그레이션](docs/migration-dryforge-to-leanforge.md)
+
 ---
 
 ## 모든 프롬프트는 과소명세다

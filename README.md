@@ -76,6 +76,12 @@ After install, the command palette should expose:
 - Decisions and evidence must survive the current chat session.
 - You want a recoverable local workflow instead of a one-shot agent run.
 
+### More docs
+
+- [Installation](docs/installation.md)
+- [Troubleshooting](docs/troubleshooting.md)
+- [Dryforge to Leanforge migration](docs/migration-dryforge-to-leanforge.md)
+
 ---
 
 ## Every prompt is underspecified
