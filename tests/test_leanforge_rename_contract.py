@@ -1,9 +1,21 @@
 import json
+import re
 import unittest
 from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+def user_facing_markdown_files():
+    files = [ROOT / "README.md", ROOT / "README_KO.md"]
+    files.extend(sorted(ROOT.glob("docs/*.md")))
+    files.extend(sorted(ROOT.glob("examples/**/*.md")))
+    for rel in ("CONTRIBUTING.md", "SECURITY.md", "SUPPORT.md"):
+        path = ROOT / rel
+        if path.exists():
+            files.append(path)
+    return files
 
 
 class LeanforgeRenameContractTests(unittest.TestCase):
@@ -35,6 +47,32 @@ class LeanforgeRenameContractTests(unittest.TestCase):
                 self.assertNotIn("Website (legacy URL)", body)
                 self.assertIn("leanforge", body)
                 self.assertIn("Distribution:" if rel == "README.md" else "배포:", body)
+
+    def test_user_facing_markdown_avoids_legacy_distribution_artifacts(self):
+        forbidden = (
+            "fn-opt/leanforge",
+            "fn-opt/dryforge",
+            "dryforge.vercel.app",
+            "Website (legacy URL)",
+            "/leanforge:herness",
+            "harness:*",
+        )
+        for path in user_facing_markdown_files():
+            rel = path.relative_to(ROOT)
+            body = path.read_text(encoding="utf-8")
+            for value in forbidden:
+                with self.subTest(rel=rel, value=value):
+                    self.assertNotIn(value, body)
+
+    def test_user_facing_markdown_links_are_resolvable(self):
+        for path in user_facing_markdown_files():
+            rel = path.relative_to(ROOT)
+            body = path.read_text(encoding="utf-8")
+            for target in re.findall(r"\[[^\]]+\]\(([^)]+\.md)\)", body):
+                if target.startswith(("http://", "https://")):
+                    continue
+                with self.subTest(rel=rel, target=target):
+                    self.assertTrue((path.parent / target).exists())
 
     def test_marketplace_metadata_does_not_declare_homepage_site(self):
         claude_marketplace = json.loads((ROOT / ".claude-plugin/marketplace.json").read_text(encoding="utf-8"))
