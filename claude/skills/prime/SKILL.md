@@ -126,13 +126,27 @@ where the input came from. The 3-doc contract is in `references/output-format.md
   do **not** touch `.gitignore` and do **not** commit anything — `Run` owns all git mechanics. Keep the
   produce=plan / run=do boundary: produce writes documents, run touches git.
 
+- **Implementation boundary.** Except for explicit user-approved git initialization and Leanforge
+  state-directory preflight in this section, Prime is a producer, not an implementer. It must not modify
+  product source, tests, project config, workflow exports, docs outside `.leanforge/`, generated
+  artifacts, dependencies, external services, or runtime state. Prime may only read project files and
+  write Leanforge-owned planning/state files under `.leanforge/`, including explicit user-approved
+  repair, migration, backup, or archive metadata. Prime must not run mutating implementation, install,
+  generation, migration, server, import/export, or verification commands.
+
+- **Intent collision guard.** If Prime is invoked together with an implementation request (fix, patch,
+  edit, apply, change, run, import/export, or similar), stop before any project write and ask whether to
+  update the Leanforge documents or switch to `Run`/direct implementation. Prime must not silently choose
+  implementation.
+
 - **Active run / active 3-doc guard.** Before writing a new 3-doc, check for `.leanforge/run.json` and
-  root active 3-doc files (`.leanforge/handoff.md`, `.leanforge/spec.md`, `.leanforge/plan.md`). If an
-  active run marker exists, or if an active 3-doc exists without a completed archive, **do not overwrite**
-  it. Stop and ask the user whether to resume or abandon the previous `Run` run, repair/archive the
-  existing active 3-doc, or explicitly discard it before generating a new one. A legacy
-  `.dryforge/run.json` or legacy root 3-doc is the same stop condition until it is migrated or
-  abandoned. This is a cheap guard: existence checks only, not a full harness audit.
+  root active 3-doc files (`.leanforge/handoff.md`, `.leanforge/spec.md`, `.leanforge/plan.md`). Root
+  3-doc files are active whenever they exist at the root; prose inside them is not completion evidence.
+  If an active run marker or root active 3-doc exists, **do not overwrite** it, infer completion from
+  text, or archive/discard it silently. Stop and ask whether to resume or abandon the previous `Run` run,
+  repair the active 3-doc, archive/abandon/discard existing docs, or switch to implementation. A legacy
+  `.dryforge/run.json` or legacy root 3-doc is the same stop condition until it is migrated or abandoned.
+  This is a cheap guard: existence checks only, not a full harness audit.
 
 ## Stage map + cycle-conditional reference loading
 
@@ -178,6 +192,9 @@ questions are ELICIT's. Everything ORIENT produces is *context*, not a conclusio
    - **Low-blast downshift.** A low-blast, no-new-contract goal (a one-line change, a docs/config edit,
      a refactor with no new behavior) → keep the later dialogue light; don't over-interrogate intent
      that isn't there. Still emit a **VALID** 3-doc: every section present, gates met, just thinner.
+     Low-blast reduces questioning and document thickness only; it never authorizes implementation. A
+     one-line change can still be high-blast when it affects behavior, data, auth, workflow,
+     compatibility, runtime, or config.
    - **Large input.** "Load raw" means *preserve the original losslessly and keep it quotable*, not
      paste a huge file into live context. For large/multi-file input, keep an **index and read
      section-by-section** — don't kill signal by summarizing, but don't ingest it all at once either.
