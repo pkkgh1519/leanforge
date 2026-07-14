@@ -11,6 +11,12 @@ only the *content* of the behavioral contracts changes, never the structure. Cop
 altitude*, not the words or the domain. (Only the Execution Graph is a rigid schema; the prose
 layout is the author's to design — see `output-format.md`.)
 
+**Cycle boundary.** The example below focuses on the executable 3-doc body and can be read as a delta
+cycle. In a first cycle, `handoff.md` additionally carries the four-section, non-executable Project
+Foundation. That Foundation preserves the project-wide outcome, target context, and confirmed future
+directions; `spec.md`, `plan.md`, and the Execution Graph still contain only the Current Delivery
+Slice.
+
 The example feature: **idempotent task submission** — clients may retry a submit; the same logical
 request must never be processed twice.
 

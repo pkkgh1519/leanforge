@@ -39,12 +39,19 @@ cross-cutting quality bar:
 - **Entry-point navigation is one whole-harness tree** — CLAUDE.md/AGENTS.md show the navigation as a
   single project-root directory tree (`├──`/`└──`) covering the entry files + `docs/` + module
   `AGENTS.md` at their dirs; flag a table, a flat list, or a docs-only tree with modules tacked on.
-- **No baked scope-freeze in any doc** — flag *any* doc that writes planned-but-unbuilt scope (a
-  status.md "remaining" item) as a permanent constraint: a hard gate or standards rule saying "don't
-  build X yet", a business-rule calling a planned capability "impossible by construction", or a "keep
-  shape Y" forward-compat gate where a remaining item will change shape Y. Planned scope is a *status*,
-  not a permanent invariant — it falsely conflicts with the cycle that builds it. Describe the current
-  state, not a permanent ban; hard gates and domain laws are permanent only.
+- **No baked scope-freeze in any doc** — flag *any* doc that writes a concrete Remaining outcome or a
+  Future direction as a permanent constraint: a hard gate or standards rule saying "don't build X
+  yet", a business-rule calling a future capability "impossible by construction", or a "keep shape Y"
+  forward-compat gate. Future context is non-executable status, not a permanent invariant — it falsely
+  conflicts with the cycle that later changes the project. Describe the current state, not a permanent
+  ban; hard gates and domain laws are permanent only.
+- **Future meaning survives without promotion** — flag a user-confirmed Future direction that was
+  dropped, decomposed, ordered, estimated, assigned, dependency-planned, presented as promised work,
+  or promoted into Remaining without user confirmation. Also flag a concrete Remaining outcome that
+  was flattened into a vague direction. When a relevant legacy item remains ambiguous, require its
+  original meaning under neutral Unclassified legacy context, explicitly non-executable and
+  unapproved; flag it if counted as Remaining or Future directions before evidence or the user settles
+  the meaning. Unrelated legacy items remain untouched by a scope-limited delta.
 
 The failure mode to hunt: a **hollow shell** — structurally present, substantively empty. A file
 that reads as generic boilerplate, restates what code shows, or fills a section with modifiers
@@ -82,11 +89,11 @@ Cross-check the harness against the code, **both directions**:
   missing from the docs. This is the real omission. *Code-derivable facts being absent is not an
   omission* — by the non-derivability principle, the harness deliberately omits them.
 - **Hallucination** — the docs assert something the code does not contain. Flag it — **except**
-  content that legitimately derives from **future scope**: status.md's "remaining" items,
-  business-rules' not-yet-implemented rules, and other forward-looking content sourced from the
-  Foundation/design. For those, code absence is *normal*, not a hallucination. Distinguish "the doc
-  describes a planned future state" (correct) from "the doc describes a present state the code
-  contradicts" (a real hallucination).
+  content that legitimately derives from a confirmed **Remaining** outcome or **Future direction**.
+  Code absence is normal for both, but their meanings differ: Remaining is concrete target scope not
+  yet delivered; a Future direction is durable value context, unordered and non-executable. Neither
+  may be written as a present implementation fact. Distinguish forward-looking context (correct) from
+  a present-state claim the code contradicts (a real hallucination).
 
 ## Findings → disposition
 

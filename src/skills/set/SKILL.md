@@ -131,7 +131,8 @@ what to improve — then present the review to the user, explain it, and get app
 2. Create `docs/` and every file in it (harness-format spec).
 3. Create CLAUDE.md / AGENTS.md (identical content).
 4. Create a module AGENTS.md per module identified in SCAN.
-5. Record the current state in `tracking/status.md` (done vs. remaining, against full scope).
+5. Record the current state in `tracking/status.md`: done, concrete Remaining outcomes, and
+   non-executable Future directions, against the confirmed scope.
 6. Create the `.leanforge/` directory if absent.
 
 Explore sources fully before writing; verify each file against the code both ways (omission /
@@ -150,7 +151,8 @@ the actual code; give it the harness files + the rubric + **the user's language*
 fidelity), **read-only**, returning a **structured list** (no raw dump). It checks the four dimensions: content (substantive
 density + quality principles), format (self-containment, altitude, no references), completeness
 (required files present **+ every SCAN-ledger item dispositioned**, §ELICIT), source-cross-check
-(omission vs. hallucination, future-scope exempt). The subagent is a fresh session and **cannot ask the
+(omission vs. hallucination; confirmed Remaining/Future context gets a code-absence exception only at
+its stated altitude). The subagent is a fresh session and **cannot ask the
 user** — so the orchestrator relays each finding: internally resolvable → fix directly; needs user
 intent → carry to Phase 5. **A surviving blocker → escalate to the user, do not loop** (the
 `3-doc-gate` discipline). This independent pass is distinct from the author's own omission/hallucination

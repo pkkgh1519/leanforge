@@ -27,6 +27,10 @@ risk-proportional judgment.
 - **Security generality** — "security considered" with no project-specific policy (auth approach,
   authorization model, audit scope).
 - **Scoping mismatch** — the design is heavier or lighter than the project's confirmed character.
+- **Outcome erosion** — Project identity or Future scope silently narrows, replaces, or invents the
+  user-confirmed outcome or meaningful target state.
+- **Execution leakage** — project-wide or future context appears in `spec.md`, `plan.md`, or the
+  Execution Graph as current requirements, tasks, dependencies, abstractions, or compatibility work.
 - **Vague modifiers remain** — "appropriately," "if needed," "as suitable" still present.
 
 ## Floor
@@ -35,6 +39,10 @@ risk-proportional judgment.
 - Every technical decision is closed by user confirmation (no open question).
 - **Zero** vague modifiers.
 - Design depth is consistent with the CALIBRATE character profile.
+- **Outcome alignment** — Project identity and Future scope preserve the confirmed outcome and target
+  at the altitude the user confirmed, without adding unconfirmed strategy.
+- **Non-leakage** — `spec.md`, `plan.md`, and the Execution Graph contain only the Current Delivery
+  Slice; Foundation content is never implementation authorization.
 
 ## On a miss — reopen the foundation gap, don't self-fill
 

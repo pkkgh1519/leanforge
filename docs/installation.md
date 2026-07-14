@@ -65,9 +65,10 @@ and project harness updates when applicable.
 
 ## Version notes
 
-- `v1.6.6` is the current SDD-lite Stage 1 release.
-- `v1.6.5` remains tagged as the pre-SDD-lite baseline for environments that
-  explicitly pin repository tags or release versions.
+- `v1.6.7` is the current outcome-preservation release. It keeps confirmed
+  product outcomes visible while limiting executable work to a coherent slice.
+- `v1.6.6` remains tagged as the SDD-lite Stage 1 baseline for environments
+  that explicitly pin repository tags or release versions.
 - If the client does not expose version pinning, marketplace installation uses
   the version resolution behavior of that client.
 

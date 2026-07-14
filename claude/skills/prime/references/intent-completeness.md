@@ -30,9 +30,11 @@ Dispatch a fresh subagent that did **not author** the intent. Give it:
   dispositioned surface (each slot `grounded` / `deferred-tunable` / asked-and-answered), the domain
   model, and the user-model. It is independent because it **didn't make the decisions**, *not* because
   it's blind — reading the work is what an independent reviewer does; it is the *authoring*, not the
-  *seeing*, that A=A distrusts. It may also read the **domain/code** (grounds reality).
+  *seeing*, that A=A distrusts. On a delta, include the relevant harness excerpt that carries the
+  recorded outcome or future direction; do not dump unrelated project strategy. It may also read the
+  **domain/code** (grounds reality).
 - **Read-only**, returning a **structured list** (no raw dump).
-- **The mandate — audit the decision surface** (`elicitation.md`). Two audits:
+- **The mandate — audit the decision surface** (`elicitation.md`). Three audits:
   1. **Disposition audit** — for each slot marked `grounded` or `deferred-tunable`, is that defensible
      from the dialogue, or did the agent **rubber-stamp a guess as "grounded"**? Flag any disposition
      you cannot trace to what the user said, their stated goal/values, or an option they chose.
@@ -40,6 +42,12 @@ Dispatch a fresh subagent that did **not author** the intent. Give it:
      technical / contract) over the named entities and colliding pairs and find any **obligation-slot
      the producer never enumerated** (the dangerous A=A miss — e.g. an entity's *cardinality* settled
      without ever being surfaced as a decision).
+  3. **Outcome-preservation audit** — does the proposed Current Delivery Slice meaningfully advance
+     the confirmed target without silently shrinking or inflating the user-confirmed outcome? On a
+     delta, does it materially contradict, invalidate, narrow, or close a relevant recorded outcome or
+     future direction? If staged delivery moves requested value outside current execution, did the
+     user confirm that slice after seeing the deferred value and consequence? Mere non-implementation
+     of a future direction is not a conflict and must not trigger a strategy interview.
   Aim especially at: technical decisions presented as settled (was the user given the choice?); a
   mechanism settled with a **preference-value** silently filled (which side wins a contested case, how
   strict a policy is); edge/interaction dispositions no one chose; **structural** decisions

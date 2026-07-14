@@ -144,24 +144,32 @@ Generate to `harness-format.md`:
 4. A module AGENTS.md per implemented module.
 
 Map the Foundation to files per `foundation-format.md` (domain → business-rules; technical →
-architecture + security + standards + operations; identity → the CLAUDE.md overview; future scope →
-status.md's "remaining"). Future-scope content with no code yet is correct, not a hallucination.
+architecture + security + standards + operations; identity → the CLAUDE.md overview; concrete
+remaining outcomes → status.md's "Remaining"; durable future directions → status.md's "Future
+directions"). Both future-scope meanings are non-executable, and their lack of code is expected, not a
+hallucination. Do not infer tasks, constraints, or abstractions from them. Preserve priority or
+dependency facts for Remaining only when confirmed or derivable; never order Future directions.
 
 ## Delta — update only the changed scope
 
 1. **Read all current `docs/` files first** and treat them as the existing project constraint — this
    catches non-Leanforge hand-edits (there is no separate change-tracking).
 2. Identify this cycle's change scope from the **3-doc task scope + the code diff**.
-3. Judge which `docs/` files are affected (`harness-format.md`, "which file to touch") — your
+3. Read any handoff **non-executable context update**. Map a newly confirmed concrete target outcome
+   to status.md's "Remaining" and a durable value/capability direction to "Future directions," by
+   meaning. This propagation is documentation-only: it does not add implementation scope, tasks,
+   constraints, abstractions, or ordering. If the meaning is ambiguous, preserve it as unclassified
+   non-executable context and ask only when the distinction becomes load-bearing.
+4. Judge which `docs/` files are affected (`harness-format.md`, "which file to touch") — your
    reasoning decides, but reviewing every relevant file is the floor.
-4. Apply a **scope-limited** update; leave content outside the change scope untouched (whether
+5. Apply a **scope-limited** update; leave content outside the change scope untouched (whether
    hand-edited or written by a prior Leanforge run).
-5. Where this cycle must change something that already holds different content **in scope** →
+6. Where this cycle must change something that already holds different content **in scope** →
    **escalate to the user** (don't silently overwrite).
-6. status.md every cycle; engineering-notes.md gets non-obvious facts found while implementing;
+7. status.md every cycle; engineering-notes.md gets non-obvious facts found while implementing;
    decisions/ gets this cycle's trade-off decisions (only if they meet the criterion); findings.md
    updated on find/resolve.
-7. A new module → create its AGENTS.md **and** update the navigation tree in CLAUDE.md / AGENTS.md.
+8. A new module → create its AGENTS.md **and** update the navigation tree in CLAUDE.md / AGENTS.md.
 
 **Delta is bidirectional.** Also verify this cycle's change hasn't invalidated an existing statement
 elsewhere — updating stale content matters as much as adding new content.

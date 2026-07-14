@@ -33,6 +33,11 @@ where the input came from. The 3-doc contract is in `references/output-format.md
   from *validated intent*, not copied from the input. The plan is a *provisional blueprint* that
   realizes it (revise freely). Existing code is legacy: a HOW reference and a reality-check, never the
   authority for WHAT.
+- **Preserve value; slice delivery, not intent.** Broaden understanding, not execution commitments:
+  understand and preserve the user-confirmed outcome and meaningful target state, while committing
+  `spec.md`, `plan.md`, and the Execution Graph only to the Current Delivery Slice. If staged delivery
+  would move requested user value outside the slice, name that value and consequence and obtain the
+  user's confirmation; otherwise the complete requested outcome remains the slice.
 - **Ask, don't assume — but don't ask the derivable.** Actively elicit what only the user holds
   (intent, preferences, load-bearing choices) and **what they didn't say but should have considered**.
   What the input/code/harness settles, resolve yourself. Anything you can neither derive nor get the
@@ -265,8 +270,10 @@ deciding what the user would have decided differently).
 **Method by knowledge location** (two ways to *not-guess*, interleaved): **domain/behavior → EXTRACT**
 (the user knows; draw it out, never invent); **technical → PRESENT** (the agent knows; options +
 trade-offs + recommendation, grounded in the extracted domain; the user decides — never silent).
-Build and maintain a **model of the user** (goal / values / constraints / domain facts) and test each
-load-bearing decision against it: grounded → realize; model-silent → that *is* the gap, close it.
+Build and maintain a **model of the user** (confirmed outcome / meaningful target state / Current
+Delivery Slice / values / constraints / domain facts) and test each load-bearing decision against it:
+grounded → realize; model-silent → that *is* the gap, close it. The three intent altitudes are related
+views, not mandatory phases, fields, or one-question-per-level checkpoints.
 
 **Scope by cycle — first establishes the foundation, delta works within it; both EQUALLY rigorous
 (delta is not "lighter").**
@@ -278,8 +285,10 @@ load-bearing decision against it: grounded → realize; model-silent → that *i
   while the foundation is laid — do not dilute them. Scope = project foundation + this task; produces
   the Foundation 4 sections.
 - **Delta (harness exists):** do **not** re-run foundation design (read the floor from the harness;
-  don't re-ask what it answers) — but realize this task's load-bearing intent with the **full** "no
-  guess survives" discipline. Scope = this task; rigor = full.
+  don't re-ask what it answers) — and do not re-elicit product strategy. Reopen a user decision only
+  when the proposed task would materially contradict, invalidate, narrow, or close a recorded outcome
+  or future direction; mere non-implementation is not a conflict. Realize this task's load-bearing
+  intent with the **full** "no guess survives" discipline. Scope = this task; rigor = full.
 
 **Account the decision surface — enumerate, don't wait to be told** (`elicitation.md`). Name the
 entities (a manifest), then walk four lenses over each entity and colliding pair to enumerate the
@@ -307,7 +316,9 @@ perspective that did not author the intent** (independent — but it **reads the
 decision surface**; A=A distrusts *authoring*, not *seeing*) to **audit the surface**: (1) is each
 `grounded`/`deferred` disposition defensible from the dialogue, or rubber-stamped? (2) walk the lenses
 independently — is there an obligation-slot the producer **never enumerated** (e.g. an entity's
-cardinality settled silently)? It does **not** flag *tuning values* (executor inference, not guesses).
+cardinality settled silently)? (3) does the proposed slice preserve the confirmed outcome, including
+relevant durable context on a delta, without unconfirmed narrowing or inflation? It does **not** flag
+*tuning values* (executor inference, not guesses).
 Each finding is **relayed to the user and closed by extract/present** (not patched into a document);
 **bounded local re-walk** of only the touched neighborhood, re-check once, then escalate — no open
 loop. This catches guesses *while the user is still here to decide*, so the final 3-doc-gate finds
@@ -319,7 +330,10 @@ evidence-grounding scout, which only collects evidence pointers and never review
 Force-load `references/output-format.md` and `references/review-fidelity.md` (+ first cycle:
 `references/foundation-format.md`).
 
-1. **Write `.leanforge/spec.md` — from the *validated intent*, not the input.** Dense; premature
+1. **Write `.leanforge/spec.md` — from the *validated intent*, not the input.** Commit only the
+   Current Delivery Slice: the smallest coherent, independently verifiable increment that advances
+   the confirmed target or removes a named prerequisite for the next target-facing increment. Dense;
+   premature
    implementation excluded. Contents (the `output-format.md` contract): objective + motivation /
    invariants and preserved contract (load-bearing) / behavior rules (edges as explicit rules) / scope
    boundaries / thinking-base for non-derivable decisions (decision + reason — judged by derivability;
@@ -329,9 +343,11 @@ Force-load `references/output-format.md` and `references/review-fidelity.md` (+ 
    (identity / domain / technical / future) into `handoff.md`'s Foundation section **now** (the rest
    of the handoff's governing parts wait for the plan and are filled at HANDOFF; the Foundation does
    not depend on the plan). **No separate `.leanforge/foundation.md`.** Into the spec, lift only **this
-   task's WHAT** (the part of the domain this task actually implements); the project-wide context (the
-   rest of the domain, future scope) stays in the Foundation. (Written here so REVIEW(A) can verify a
-   *written* Foundation.)
+   task's WHAT** (the part of the domain this task actually implements); the project-wide outcome,
+   target context, rest of the domain, and future directions stay in the non-executable Foundation.
+   Future context never authorizes tasks or constraints unless Prime already translated a qualifying
+   option-preservation need into a narrow present-tense spec rule or hard gate. (Written here so
+   REVIEW(A) can verify a *written* Foundation.)
 3. **REVIEW(A) — fidelity only, inline.** Check that what the session settled landed in the document
    without evaporation or distortion (+ first cycle: the written Foundation). Internally resolvable →
    fix the spec; a user-only intent-gap → reopen ELICIT for that gap only (the one mid-run user

@@ -147,8 +147,11 @@ references load at their steps.
   **stop here and ask the user to regenerate the 3-doc via `Prime`**, *before* any implementation. Do
   not discover this at step 9 after a wasted run (`harness-lifecycle.md`). **If the handoff has a Project
   Foundation section** (first cycle — `references/foundation-format.md`), read it as **non-executable
-  project context**: it informs implementation judgment (design the task to fit the project's wider
-  domain/decisions) and is a source for the harness at the end — it is *not* an implementation target. Build the spec's task, using the Foundation as context. Parse the
+  durable project context and a harness source** — not an implementation target or execution
+  authority. Do not infer work, constraints, abstractions, extension points, or compatibility steps
+  from it. Build only the present-tense requirements in the spec and handoff hard gates; if a future
+  direction legitimately constrains this slice, Prime has already written that narrow constraint
+  there. Parse the
   plan's Execution Graph **per `references/graph-contract.md`** — the consumer-side schema (what the
   YAML fields mean and the rules Run must hold when reading them). It mirrors the producer's authoring
   schema; if the plan's graph contradicts it, that is a producer-side defect → stop and escalate.
