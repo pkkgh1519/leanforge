@@ -46,7 +46,7 @@ project-root/
 │   ├── operations.md             ← operations (setup, build, deploy)
 │   ├── contracts.md              ← external interface contracts
 │   └── tracking/
-│       ├── status.md             ← current position vs full scope
+│       ├── status.md             ← delivered, Remaining, and Future directions
 │       ├── decisions/
 │       │   ├── index.md          ← ADR index
 │       │   └── NNNN-<slug>.md     ← individual decisions
@@ -122,15 +122,14 @@ Must contain:
   the authoritative complete rules (the navigation tree points there). Don't restate the full
   standards / verify-gate list here — surface only the headline non-negotiables.
   **Hard gates are permanent project invariants, not this-cycle scope boundaries.** "Don't build
-  feature X yet" is **not** a hard gate — unbuilt-but-planned scope lives in `status.md`'s "remaining"
-  (it's a *status*, not an invariant; a later cycle will build it, and a permanent don't-build gate
-  would falsely conflict with that cycle — a cycle's scope-freeze belongs in its 3-doc, not the
-  harness). **Forward-compat is not a hard gate either.** "Keep it compatible with planned scope" is
-  not a permanent invariant: a genuinely structural rule (e.g. "storage stays behind the Store
-  interface") is just a dependency/boundary rule → `standards.md`; anything that *preserves a current
-  shape so future work can attach* is maintain-guidance → `status.md`'s remaining or
-  `engineering-notes.md`. Never write a "keep shape Y" gate — especially when a remaining-scope item
-  will change shape Y (that is a scope-freeze wearing a forward-compat label).
+  feature X yet" is **not** a hard gate — concrete unbuilt target outcomes live in `status.md`'s
+  "Remaining," while durable non-commitment value directions live in "Future directions." Neither is
+  a permanent invariant or execution authority. A cycle's scope-freeze belongs in its 3-doc, not the
+  harness. **Forward-compat is not a hard gate either.** "Keep it compatible with future scope" does
+  not authorize an abstraction or extension point. A genuinely structural current rule (e.g.
+  "storage stays behind the Store interface") is a dependency/boundary rule → `standards.md`; other
+  future context stays non-executable in `status.md`. Never write a "keep shape Y" gate — especially
+  when remaining work will change shape Y (that is a scope-freeze wearing a forward-compat label).
 - **Pre-work checklist** — the baseline reads (`docs/standards.md`, `docs/engineering-notes.md`, the
   relevant module's `AGENTS.md`) **plus project-specific targeted reads**: before a given kind of
   risky work, which section/pattern to read first (e.g. before touching authorization, the security
@@ -178,8 +177,8 @@ of information, not a stack or domain — if the project has none of that kind, 
   different things in different contexts, distinguish them).
 - **Exclude**: implementation (which class/function handles it); auth mechanisms (→ security); code
   patterns (→ standards).
-- **Planned scope is not a permanent rule.** A capability that is unbuilt but planned (in
-  `status.md`'s "remaining") must not be written here as a permanent domain impossibility — describe
+- **Planned scope is not a permanent rule.** A concrete target outcome recorded in `status.md`'s
+  "Remaining" must not be written here as a permanent domain impossibility — describe
   the *current* state ("currently one currency per group"), never a permanent ban ("mixing currencies
   is impossible by construction") for something a later cycle will build.
 - **Quality floor**: every rule is verifiable — a test case is derivable from the rule alone; every
@@ -218,7 +217,7 @@ of information, not a stack or domain — if the project has none of that kind, 
   in business-rules. Don't restate the invariant itself in standards (that's a business-rules altitude
   leak).
 - **Not a standards rule: the current cycle's scope-freeze.** "Don't build feature X yet" is a
-  *status* (→ status.md's "remaining"), not a permanent MUST/MUST-NOT. standards holds only
+  *status* (→ status.md's "Remaining"), not a permanent MUST/MUST-NOT. standards holds only
   permanent rules.
 - **Bar**: only what leads to a build failure / test failure / runtime error / structural mismatch
   when violated. Preferences ("it'd be nice if…") are not rules.
@@ -271,18 +270,30 @@ of information, not a stack or domain — if the project has none of that kind, 
   this file alone — a contract you must read the code to learn is undocumented.
 
 ### tracking/status.md — the dashboard
-- **Purpose**: the current position against the project's full scope. The other `docs/` describe the
-  target state (full scope); status.md shows "where are we now" against it.
-- **Include**: what is done (per feature/module); what remains (the still-unimplemented parts of the
-  full scope, in priority/dependency order); blockers (if any).
+- **Purpose**: one dashboard that separates the verified current position, concrete confirmed target
+  outcomes still remaining, and durable directions that are not commitments. Other `docs/` describe
+  current and confirmed target contracts at their own altitudes; status.md prevents delivered,
+  remaining, and directional meaning from being flattened together.
+- **Include**: what is done (per feature/module); **Remaining** (concrete user-confirmed target
+  outcomes that are still unimplemented); **Future directions** (user-confirmed durable value or
+  capability directions that are not current implementation commitments); blockers (if any).
 - **Update**: every cycle.
 - **Quality floor**: a "done" claim must reflect the *actual verified state*, and **distinguish built
   from verified**. Don't mark code "test-passing" unless its tests actually exist and pass — code that
   is implemented but has no tests is "built, untested" (state it that way; the coverage gap is itself
   signal, not something to bury under a blanket "done"). Ground the claim in real evidence (the
   project's verify commands, or the observed test state); never infer a pass from "it's built" or "it
-  looks done." "Remaining" is a concrete item from the `docs/`-described full scope — no vague "needs
-  improvement." This file alone makes the project's progress immediately legible.
+  looks done." "Remaining" is concrete, not vague "needs improvement," and is ordered only where
+  priority or dependency is confirmed or derivable — do not invent an order. "Future directions"
+  preserve the altitude the user confirmed and are unordered and non-executable: do not decompose,
+  schedule, estimate, assign, dependency-order, or present them as promised work. This file alone
+  makes progress legible without flattening direction into backlog.
+- **Legacy classification**: an existing `status.md` may hold undifferentiated "remaining" prose. Do
+  not bulk-migrate or reinterpret it. When an item becomes relevant and clear evidence exists,
+  classify only that item. When it is ambiguous, preserve its wording in a neutral **Unclassified
+  legacy context** note (ordinary Markdown, not a new schema), mark it non-executable and unapproved,
+  and ask only if the current task makes the distinction load-bearing. Do not count it as Remaining or
+  Future directions until evidence or the user settles the meaning.
 
 ### tracking/decisions/ — decision records (ADR)
 - **Structure**: a folder. `index.md` (the index) + individual `NNNN-<slug>.md`.
@@ -376,6 +387,9 @@ self-resolve; the user always decides.
 - status.md: every cycle. engineering-notes.md: add non-obvious facts found while implementing.
   decisions/: add this cycle's trade-off decisions (only if they meet the criterion). findings.md:
   update on find/resolve.
+- Preserve unrelated Future directions unchanged. Do not delete one because this cycle does not
+  implement it, and do not promote one into Remaining unless the user confirms it as a target
+  commitment.
 
 ### Which file to touch (delta)
 Identify the relevant files from the 3-doc's task scope + the actual code diff:
@@ -400,7 +414,8 @@ as adding new content.
   can't settle, ask the user.
 - **Verify against the source.** After writing, cross-check both ways: what the code has but the doc
   lacks (omission), and what the doc has but the code lacks (hallucination — except content that
-  derives from future scope, which is correct, see harness-review.md).
+  derives from confirmed Remaining or Future directions, whose code absence is expected; see
+  harness-review.md).
 - **A discovered contradiction is not propagated.** When sources conflict — an existing doc vs the
   code, two existing docs, or a claim you can't confirm (e.g. a README "requires Go 1.22+" while
   `go.mod` pins `1.26.3`) — do not copy both sides into the harness. Reconcile from the authoritative

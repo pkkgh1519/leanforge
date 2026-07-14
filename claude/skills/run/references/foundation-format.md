@@ -14,9 +14,10 @@ an invariant (see "First-cycle precondition" below).
 
 The first cycle's CALIBRATE/DESIGN produces project-wide foundation knowledge that does *not* belong in
 spec.md. spec.md carries only **this task's** execution contract; the **project-wide** foundation —
-the full domain model, architecture decisions, security model, conventions, future scope — goes in
-the handoff's Project Foundation. This split keeps `Run` from over-implementing (it executes the
-task's spec, not the whole project) while giving it project context to implement *within*.
+the confirmed outcome and meaningful target, full domain model, architecture decisions, security
+model, conventions, and future scope — goes in the handoff's Project Foundation. This split keeps
+`Run` from over-implementing (it executes the task's spec, not the whole project) while giving it
+durable project context.
 
 ## Structure — four fixed sections
 
@@ -25,7 +26,8 @@ sections after harness files invites box-filling (reward-hacking) when `Run` lat
 keep the Foundation about the *project*, and let `Run` map it to files.
 
 - **Section 1 — Project identity.** What, for whom, at what scale, under what constraints (the
-  CALIBRATE result).
+  CALIBRATE result), including the user-confirmed broader outcome and meaningful target when one
+  exists.
 - **Section 2 — Domain model.** Entities, relationships, state transitions, rules, invariants, edge
   cases (the domain-design result) — the **whole project's** domain, as context. The thickest section.
   (Do **not** label individual entities `[implementation target]` / `[project context]` — those
@@ -34,27 +36,34 @@ keep the Foundation about the *project*, and let `Run` map it to files.
   `Run` builds the spec, reads the Foundation as context — no per-entity tag needed.)
 - **Section 3 — Technical decisions.** Architecture, security model, conventions, operations (the
   technical-design result). **Only decisions the user confirmed.**
-- **Section 4 — Future scope.** What is planned for the project but out of this task's scope. `Run`
-  does **not** implement it — it is the context for judging that the current implementation stays
-  compatible with the future.
+- **Section 4 — Future scope.** Preserve two meanings when present: **concrete remaining outcomes**
+  are user-confirmed target outcomes not delivered by the Current Delivery Slice; **future
+  directions** are user-confirmed durable value or capability directions that are not current
+  implementation commitments. Keep each at the altitude the user confirmed. Neither is implementation
+  authorization. Concrete remaining outcomes may preserve priority or dependency facts only when they
+  are user-confirmed or derivable, but this section is not a task plan. Future directions stay
+  unordered. Do not add tasks, dates, owners, estimates, implementation status, or speculative ideas.
 
 ## Labeling rule — separate from the handoff's governing role
 
 Begin the Foundation with an explicit label: *"Non-executable project context — `Run` reads this
-section as context + harness source, not as an implementation target."* The handoff's existing
+section as durable context + harness source, not as an implementation target or a source from which
+to infer constraints."* The handoff's existing
 governing parts (Document Roles, Hard Gates, conflict resolution, …) stay clearly separated from the
 Foundation, so `Run` never confuses a governing instruction / hard gate with project context. The
 Foundation is a **conditional expansion inside the handoff's "supplement" role**, not a new authority.
 
 ## How `Run` uses it (dual use)
 
-- **At execution.** `Run` reads the Foundation when it first reads the handoff → it implements the
-  spec's task *with* project context. (E.g. a Foundation that records a role-based permission model
-  makes `Run` design the spec's "auth implementation" with role support in mind.)
+- **At execution.** `Run` reads the Foundation as durable project context but executes only the
+  present-tense requirements in `spec.md` and the handoff's hard gates. It does not infer work,
+  constraints, abstractions, extension points, or compatibility steps from future scope. When a
+  future direction legitimately constrains this slice, `Prime` has already translated it into a
+  narrow present-tense spec rule or hard gate.
 - **At harness creation.** Each Foundation area maps to `docs/` files per `harness-format.md`:
   domain model → business-rules.md; technical decisions → architecture.md + security.md +
-  standards.md + operations.md; identity → the CLAUDE.md overview; future scope → status.md's
-  "remaining."
+  standards.md + operations.md; identity → the CLAUDE.md overview; concrete remaining outcomes →
+  status.md's "Remaining"; future directions → status.md's "Future directions."
 
 ## Lifetime
 

@@ -26,12 +26,39 @@ Must convey (structure is the agent's to design — 3 hard gates or 30):
   is no degrade path; `Run` treats a missing Foundation in a first cycle as a precondition violation and
   stops (`foundation-format.md`, "First-cycle precondition"). Omit it in later cycles (the harness has
   taken over the project-context role).
+- **Delta only:** when the dialogue confirms a durable project outcome, target, or future direction
+  that is not already in the harness and is not executable in the Current Delivery Slice, carry it in
+  a clearly labeled **non-executable context update** in the handoff. This is not a new Foundation,
+  requirement, backlog item, or fixed heading. It lets `Run` preserve the meaning in `status.md`.
+
+**Artifact allocation boundary.** The Foundation preserves the project-wide confirmed outcome,
+meaningful target context, and durable future directions. It is non-executable. `spec.md` contains
+only the Current Delivery Slice; `plan.md` and the Execution Graph contain only work required for that
+slice. Future context must not appear in the spec as a requirement or non-goal, or in the plan as a
+task, dependency, compatibility step, abstraction, or implementation authorization.
 
 ### spec — what to build (ground truth)
 Must convey: product behavior; key design rationale (decision + why); domain
 decisions/invariants; API surface; edge cases as explicit rules; required verification.
 spec is ground truth — on conflict spec wins; spec errors are fixed only with user
 approval.
+
+The **Current Delivery Slice** is the smallest coherent, independently verifiable increment that
+either delivers observable progress toward the confirmed target or removes a named prerequisite or
+blocker necessary for the next target-facing increment. It may be product behavior, infrastructure,
+documentation, configuration, migration, or other file, state, or external work. When no broader
+target is confirmed, the requested change itself may be the slice. The term is an authoring boundary,
+not a required heading or machine field.
+
+Staged delivery is a user decision, not an implementation convenience. If the proposed slice moves
+requested value outside current execution, name the deferred value and consequence and obtain the
+user's confirmation. Without it, the complete requested outcome remains the slice.
+
+The spec contains only the slice's required result, scope boundaries/non-goals, preserved contracts,
+and verification. For behavior-changing work, state observable behavior. For non-behavioral or
+enabling work, state the required artifact or state transition, its immediate consumer, and completion
+evidence. Enabling work must leave the project usable and internally consistent and must not prebuild
+unapproved future capability or introduce speculative abstraction.
 
 **The spec transcribes the settled decision surface — it does not make or defer decisions.** ELICIT
 already settled every load-bearing decision, *including the contract* (`elicitation.md`'s CONTRACT
@@ -74,6 +101,11 @@ narrative for humans; and the **Execution Graph** (below). The verification gate
 matches the deliverable type: a file diff for code, captured external evidence for
 state/operational work. Target shape and gate are discovered from the project, not
 assumed.
+
+Every plan task must be necessary to produce the Current Delivery Slice. Do not create tasks,
+dependencies, extension points, compatibility work, or generic preparation solely from Foundation or
+harness future context. A future direction affects the plan only through a narrow present-tense rule
+that Prime already placed in `spec.md` or the handoff's hard gates.
 
 ## The Execution Graph — the only rigid part
 

@@ -35,15 +35,18 @@ single-user local tool with no network surface and no multi-user state") and let
 the depth, so domain depth, technical-design depth, and security depth come out proportional to what
 the project actually is.
 
-## YAGNI gate
+## YAGNI gate — reduce machinery, not the destination
 
-The calibration read caps the scale of all downstream design. A personal tool that starts producing
-enterprise architecture gets caught here. The gate is **not** a unilateral cut: if, while deepening an
-axis, you sense a design is heavier than the project's character warrants, surface it with your
-reasoning
-("this is more infrastructure than a single-user tool needs because …") and let the user decide —
-proceed if they need it, scale down if they agree it's overkill. Never silently shrink scope, and
-never silently inflate it.
+The calibration read bounds implementation complexity and the depth of decisions that must be settled
+now. It does **not** cap a user-confirmed outcome or meaningful target state. Preserve the confirmed
+destination; reduce only the Current Delivery Slice and the machinery needed to deliver it. Never
+silently shrink or inflate the confirmed direction.
+
+A personal tool that starts producing enterprise architecture still gets caught here. Do not prebuild
+future capabilities, introduce speculative abstractions, or force strategy decisions that the current
+slice does not need. If a design is heavier than the project's character warrants, surface the excess
+with reasoning ("this is more infrastructure than a single-user tool needs because …") and let the
+user decide — proceed if they need it, scale down if they agree it is overkill.
 
 ## Hard constraints
 

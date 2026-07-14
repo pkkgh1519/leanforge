@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.6.7 (2026-07-14)
+
+- preserve the user-confirmed outcome and meaningful target state in Prime while limiting `spec.md`, `plan.md`, and the Execution Graph to the Current Delivery Slice
+- keep confirmed future directions as durable, non-executable context across Foundation, harness, and delta cycles without allowing Run to infer work or constraints
+- support coherent, independently verifiable product, infrastructure, documentation, configuration, and migration slices with cross-surface contract coverage; no workflow stage or graph schema changes
+
 ## v1.6.6 (2026-06-25)
 
 - add SDD-lite Stage 1 guidance: Acceptance & Evidence Matrix, behavior-first AC evidence, and ceremony-budget review

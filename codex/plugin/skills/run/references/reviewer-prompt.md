@@ -38,7 +38,8 @@ as advisory or blocking based on the maintenance risk.
 or updated this cycle. Do **not** inline harness criteria here; apply the four dimensions in
 `references/harness-review.md` (provided with your dispatch) — content (substantive density + quality
 principles), format (self-containment, altitude, no references), completeness (required files
-present), and source-cross-check (omission vs. hallucination, future-scope content exempt). Using the
+present), and source-cross-check (omission vs. hallucination; confirmed Remaining/Future context gets
+a code-absence exception only at its stated altitude). Using the
 shared `harness-review.md` keeps a single source of truth — `Set` verifies against the same
 criteria. Your dispatch states the user's language; flag a harness not written natively in it.
 Harness findings carry the same blocking/advisory split as code findings.

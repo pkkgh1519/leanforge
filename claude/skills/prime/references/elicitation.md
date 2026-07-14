@@ -52,7 +52,10 @@ the user plausibly have a preference?), never a fixed list.
 ## Build a model of the user (this is how you *understand* rather than guess)
 
 Understanding is not a feeling — it is a **model of the user you build and maintain as you talk**:
-- their **goal** (what they are really trying to achieve — often not the literal feature list),
+- their **confirmed user outcome** (what they are really trying to achieve — often not the literal
+  feature list),
+- the **meaningful target state** that would realize that outcome, when the user has confirmed one,
+- the **Current Delivery Slice** that coherently advances the target now,
 - their **values / priorities** (what they keep returning to — e.g. a word repeated three times is a
   core value, not filler),
 - their **constraints** (scale, "just a personal project," a deadline, a platform),
@@ -67,6 +70,38 @@ Every load-bearing decision is tested against this model: **does the model *grou
 This makes "understand vs. guess" *operational and checkable*: a decision you can trace to the model
 is the user's; a decision the model can't ground is a stranger's. The richer your model, the more you
 can realize without asking — and the fewer guesses hide as "reasonable defaults."
+
+The outcome, target state, and Current Delivery Slice are **three related views of one intent**. They
+are not mandatory sequential checkpoints, required fields, or a one-question-per-level script. Ask
+only when a load-bearing decision remains model-silent under the existing decision-surface and
+grounds-gate rules. When no broader target is confirmed, the requested change itself may be the slice.
+
+**Current Delivery Slice.** The smallest coherent, independently verifiable increment that either
+delivers observable progress toward the confirmed target or removes a named prerequisite or blocker
+necessary for the next target-facing increment. It may be product behavior, infrastructure,
+documentation, configuration, migration, or other file, state, or external work. It must leave the
+project usable and internally consistent, name its immediate consumer and completion evidence, and
+must not prebuild unapproved future capability or introduce speculative abstraction.
+
+Selecting the slice is load-bearing. If staged delivery would move any requested user value outside
+current execution, present the proposed slice, name the deferred value and consequence, and obtain the
+user's confirmation. Without that confirmation, the complete requested outcome remains the Current
+Delivery Slice. A scaffold, mock-only path, happy path, internal mechanism, or future-compatible shell
+is not a substitute for the requested value unless it is itself the approved outcome or a named
+prerequisite with an immediate consumer and completion evidence.
+
+**Preserve future value at its confirmed altitude.** A confirmed future direction is not automatically
+an identified domain concept that must meet the full domain depth floor, nor an open technical
+decision that must be settled now. Preserve it at the altitude the user confirmed. Deepen it only when
+it belongs to the confirmed target state, the Current Delivery Slice, or a qualifying present
+constraint.
+
+A user-confirmed future direction may constrain the Current Delivery Slice only when **all three**
+conditions hold: (1) the current choice would otherwise close a costly or irreversible option; (2)
+the option can be preserved by a concrete present boundary, data choice, or contract choice; and (3)
+doing so does not implement the future capability or add speculative abstraction. Put only that
+present-tense constraint in `spec.md` or the handoff's hard gates. Keep the future direction itself in
+non-executable Foundation or harness context; `Run` must not infer a constraint from it.
 
 ## Scope by cycle — first establishes the foundation, delta works within it; **both equally rigorous**
 
@@ -85,9 +120,12 @@ The cycle changes *what you must understand*, never *how rigorously you avoid gu
   dilute them into a light pass. Scope = project foundation + this task.
 - **Delta (harness exists): task intent within the foundation — with the same rigor.** Do **not**
   re-run foundation design (the harness holds the domain model, conventions, stack — read the floor
-  from it, don't re-ask what it answers). But the task's load-bearing intent must be realized with the
-  **full** "no guess survives" discipline: extract the task's domain intent, present its technical
-  decisions, run the same generation and the same exit check. Scope = this task only; rigor = full.
+  from it, don't re-ask what it answers), and do not re-elicit product strategy. Reopen a user decision
+  only when the proposed task would materially contradict, invalidate, narrow, or close a recorded
+  outcome or future direction. Mere non-implementation of a future direction is not a conflict. The
+  task's load-bearing intent still uses the **full** "no guess survives" discipline: extract the task's
+  domain intent, present its technical decisions, run the same generation and the same exit check.
+  Scope = this task only; rigor = full.
 
 ## Account the decision surface — enumerate the obligations, don't wait to be told
 
