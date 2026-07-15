@@ -23,18 +23,38 @@ def markdown_body(rel: str) -> str:
     return text
 
 
-def graph_example_shape(rel: str) -> tuple[set[str], set[str], set[str]]:
-    blocks = re.findall(r"```yaml\n(.*?)\n```", read(rel), flags=re.DOTALL)
+def graph_shape(text: str, source: str) -> tuple[set[str], set[str], set[str]]:
+    blocks = re.findall(r"```yaml\n(.*?)\n```", text, flags=re.DOTALL)
     if len(blocks) != 1:
-        raise AssertionError(f"unexpected YAML block count in {rel}: {len(blocks)}")
+        raise AssertionError(f"unexpected YAML block count in {source}: {len(blocks)}")
     graph = blocks[0]
     task_part, barrier_part = graph.split("regen_barriers:", 1)
-    top_level = set(re.findall(r"^([a-z_]+):", graph, flags=re.MULTILINE))
+    top_level = set(re.findall(r"^([a-z0-9_]+):", graph, flags=re.MULTILINE))
     task_fields = set(
         re.findall(r"^\s+(?:-\s+)?([a-z_]+):", task_part, flags=re.MULTILINE)
     )
     barrier_fields = set(re.findall(r"\b([a-z_]+):", barrier_part))
     return top_level, task_fields, barrier_fields
+
+
+def graph_example_shape(rel: str) -> tuple[set[str], set[str], set[str]]:
+    return graph_shape(read(rel), rel)
+
+
+def keyed_root_shape_errors(text: str, source: str) -> list[str]:
+    errors: list[str] = []
+    top_level, _, _ = graph_shape(text, source)
+    if top_level != {"tasks", "regen_barriers"}:
+        errors.append(f"root keys must be tasks and regen_barriers: {sorted(top_level)}")
+    blocks = re.findall(r"```yaml\n(.*?)\n```", text, flags=re.DOTALL)
+    task_section = re.search(
+        r"^tasks:\s*\n(.*?)(?=^regen_barriers:)",
+        blocks[0],
+        flags=re.DOTALL | re.MULTILINE,
+    )
+    if task_section is None or re.search(r"^\s+-\s+id:\s*\S+", task_section.group(1), flags=re.MULTILINE) is None:
+        errors.append("tasks must be a list of objects beginning with id")
+    return errors
 
 
 class PrimeOutcomePreservationContractTests(unittest.TestCase):
@@ -167,6 +187,43 @@ class PrimeOutcomePreservationContractTests(unittest.TestCase):
                     ["done, concrete Remaining outcomes, and non-executable Future directions"],
                 )
 
+    def test_harness_records_apply_section_specific_authority(self):
+        forbidden = (
+            "It is a **durable project constraint**",
+            "treat it as the existing project constraint",
+            "treat them as the existing project constraint",
+        )
+        required = [
+            "durable project record and operating context",
+            "Each record carries only the authority defined by its section",
+            "Remaining may record a confirmed target commitment",
+            "neither Remaining nor Future directions authorizes the current cycle",
+            "Future directions are not commitments",
+        ]
+        for surface in SURFACES:
+            for skill in ("run", "set"):
+                rel = f"{surface}/{skill}/references/harness-format.md"
+                with self.subTest(surface=surface, skill=skill):
+                    body = read(rel)
+                    self.assertTermsPresent(rel, required)
+                    for phrase in forbidden:
+                        self.assertNotIn(phrase, body)
+            lifecycle_rel = f"{surface}/run/references/harness-lifecycle.md"
+            with self.subTest(surface=surface, skill="run-lifecycle"):
+                self.assertTermsPresent(
+                    lifecycle_rel,
+                    [
+                        "Read all current project documentation first as the durable project record",
+                        "Apply each item according to its section authority",
+                        "Remaining and Future directions remain non-executable status or context",
+                    ],
+                )
+                self.assertNotIn("treat them as the existing project constraint", read(lifecycle_rel))
+            self.assertTermsPresent(
+                f"{surface}/set/SKILL.md",
+                ["durable project memory and operating context", "Only its normative records constrain later work"],
+            )
+
     def test_future_direction_constraint_is_prime_owned_and_run_does_not_infer(self):
         for surface in SURFACES:
             with self.subTest(surface=surface):
@@ -263,6 +320,37 @@ class PrimeOutcomePreservationContractTests(unittest.TestCase):
                 self.assertEqual(consumer_shape, expected_shape)
                 self.assertEqual(author_shape, consumer_shape)
 
+    def test_prime_requires_graph_contract_validation_not_parse_only(self):
+        required = [
+            "validates against the exact Execution Graph contract",
+            "root keys are exactly tasks and regen_barriers",
+            "tasks is a list of objects with id, depends, and optional risk",
+            "every depends/after id names a graph task",
+            "the dependency graph is acyclic",
+            "plan body and graph task-id sets match",
+        ]
+        for surface in SURFACES:
+            with self.subTest(surface=surface, owner="prime"):
+                self.assertTermsPresent(f"{surface}/prime/SKILL.md", required)
+            with self.subTest(surface=surface, owner="gate"):
+                self.assertTermsPresent(
+                    f"{surface}/prime/references/3-doc-gate.md",
+                    ["graph contract validation, not syntax parsing alone"],
+                )
+
+    def test_known_model_output_fixture_rejects_keyed_task_root(self):
+        fixture = "tests/fixtures/prime-model-output/invalid-keyed-task-plan.md"
+        errors = keyed_root_shape_errors(read(fixture), fixture)
+        self.assertIn("root keys must be tasks and regen_barriers: ['regen_barriers', 'task_1']", errors)
+        self.assertIn("tasks must be a list of objects beginning with id", errors)
+
+        for rel in (
+            "src/skills/prime/references/output-format.md",
+            "src/skills/run/references/graph-contract.md",
+        ):
+            with self.subTest(valid_contract_example=rel):
+                self.assertEqual(keyed_root_shape_errors(read(rel), rel), [])
+
     def test_shared_contracts_and_generated_surfaces_match(self):
         self.assertEqual(
             read("src/skills/prime/references/foundation-format.md"),
@@ -281,6 +369,7 @@ class PrimeOutcomePreservationContractTests(unittest.TestCase):
             "prime/references/elicitation.md",
             "prime/references/project-scoping.md",
             "prime/references/output-format.md",
+            "prime/references/3-doc-gate.md",
             "prime/references/foundation-format.md",
             "prime/references/intent-completeness.md",
             "prime/references/first-cycle-review.md",

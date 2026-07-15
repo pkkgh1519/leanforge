@@ -65,8 +65,10 @@ and project harness updates when applicable.
 
 ## Version notes
 
-- `v1.6.7` is the current outcome-preservation release. It keeps confirmed
-  product outcomes visible while limiting executable work to a coherent slice.
+- `v1.6.8` is the current harness-authority and graph-contract release. It keeps
+  durable context section-aware and rejects parseable but structurally invalid
+  Execution Graph output before Run.
+- `v1.6.7` remains tagged as the outcome-preservation baseline.
 - `v1.6.6` remains tagged as the SDD-lite Stage 1 baseline for environments
   that explicitly pin repository tags or release versions.
 - If the client does not expose version pinning, marketplace installation uses

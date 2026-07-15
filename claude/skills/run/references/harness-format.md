@@ -7,9 +7,14 @@ is created and updated. It carries the rules, not the design rationale.
 
 The harness is the project-lifetime layer, distinct from the per-task 3-doc. It occupies the
 platform harness paths (`CLAUDE.md` / `AGENTS.md`), so every agent working the project — Leanforge
-or not — operates inside it. It is a **durable project constraint** (the project's discipline and
-memory), not ground truth: an active task's spec works *within* the harness, never overrides it
-silently — a conflict is escalated to the user (see "Conflict" below).
+or not — operates inside it. It is the **durable project record and operating context** (the project's
+discipline and memory), not one undifferentiated constraint or ground truth. **Each record carries
+only the authority defined by its section.** Confirmed current invariants, contracts, approved
+decisions, and applicable operating rules constrain active work; an active task's spec works within
+those normative records and never overrides them silently — a conflict is escalated to the user (see
+"Conflict" below). **Remaining may record a confirmed target commitment**, but **neither Remaining nor
+Future directions authorizes the current cycle** or acts as a present implementation constraint;
+**Future directions are not commitments.**
 
 **The harness is the sole durable store for project knowledge.** Anything you learn about *this
 project* that is worth keeping — a trap, a non-obvious mechanism, a decision and its reason, a run
@@ -376,8 +381,10 @@ self-resolve; the user always decides.
 - If a CLAUDE.md exists, back it up and rewrite (see entry-point handling).
 
 ### Delta update (`Run`, second cycle onward)
-- **Read the current `docs/` first and treat it as the existing project constraint** — no separate
-  tracking mechanism.
+- **Read the current `docs/` first as the durable project record and apply each item according to
+  its section authority** — no separate tracking mechanism. Current invariants, contracts, approved
+  decisions, and applicable operating rules constrain the task; Remaining and Future directions are
+  non-executable status or context, not current-cycle authorization.
 - Update only the area matching this cycle's task scope + code diff (scope-limited delta).
 - Don't touch existing content outside the change scope — whether hand-edited or written by a prior
   Leanforge run.

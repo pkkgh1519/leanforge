@@ -152,8 +152,11 @@ dependency facts for Remaining only when confirmed or derivable; never order Fut
 
 ## Delta — update only the changed scope
 
-1. **Read all current `docs/` files first** and treat them as the existing project constraint — this
-   catches non-Leanforge hand-edits (there is no separate change-tracking).
+1. **Read all current project documentation first as the durable project record. Apply each item
+   according to its section authority** — this catches non-Leanforge hand-edits (there is no separate
+   change-tracking). Current invariants, contracts, approved decisions, and applicable operating rules
+   constrain the task. **Remaining and Future directions remain non-executable status or context**, not
+   current-cycle authorization.
 2. Identify this cycle's change scope from the **3-doc task scope + the code diff**.
 3. Read any handoff **non-executable context update**. Map a newly confirmed concrete target outcome
    to status.md's "Remaining" and a durable value/capability direction to "Future directions," by
