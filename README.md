@@ -2,7 +2,7 @@
 
 <div align="center">
 
-# Leanforge v1.6.8
+# Leanforge v1.6.9
 
 ### Intent-to-implementation for Claude Code & Codex.
 

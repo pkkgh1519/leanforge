@@ -2,8 +2,10 @@
 
 DECOMPOSE takes the raw INPUT (and the code/harness context ORIENT loaded) and breaks its
 *content* into material ELICIT can use. This stage **classifies, organizes, and flags — it does not
-judge.** "What is correct?" (conflict) and "is it enough?" (gap) are deferred: conflicts go to
-ELICIT as questions, gaps are uncomputable until ELICIT establishes the depth floor (first cycle: the foundation design's character→depth; delta: the harness).
+judge.** "What is correct?" (whether a difference is a real conflict) and "is it enough?" (gap) are
+deferred: source differences go to ELICIT as candidates, and only ELICIT decides which survive as
+questions; gaps are uncomputable until ELICIT establishes the depth floor (first cycle: the foundation
+design's character→depth; delta: the harness).
 
 **Do not refine the input in place.** The moment you polish the INPUT as a draft, it hardens into
 ground truth — that is authority creep, the exact failure the unified `Prime` removes. The INPUT is
@@ -85,21 +87,23 @@ sees the raw INPUT again, so a dropped nuance is gone for Runod.
 ## Dedup, but never merge a difference
 
 - **Same fact from several sources → merge into one** (remove the redundancy).
-- **Sources that say it *differently* → do NOT merge.** A difference is a conflict — flag it (below),
-  never average it away.
+- **Sources that say it *differently* → do NOT merge.** A difference is a candidate, not yet a conflict;
+  preserve both claims with their source or harness section, scope, and time horizon, and never average
+  them away.
 
-## Flag every source difference as a question candidate — don't resolve it
+## Flag every source difference as a candidate — do not resolve or ask here
 
-When sources disagree — INPUT↔code, INPUT↔harness, code↔harness, an attached doc↔a spoken
-description, anything — **do not pick one yourself. Flag it as an ELICIT question candidate.** The
-question takes the form *"the situation is X — which is right?"* or *"I consolidated it this way — is
-that right?"* (pass the candidate through `grounds-gate.md` before it becomes a confident question).
+When sources differ — INPUT↔code, INPUT↔harness, code↔harness, an attached doc↔a spoken
+description, anything — **do not pick a winner and do not assume the claims are incompatible.**
+Preserve both claims, their source or harness section, scope, and time horizon, then flag a
+source-difference candidate. ELICIT applies the user model, the **cycle-neutral source-difference
+disposition** plus any delta-specific strategy materiality rule in `elicitation.md`, and
+`grounds-gate.md`; DECOMPOSE never promotes the candidate to a question.
 
-*Why never self-resolve:* an agent filling a conflict or an unknown on its own is the origin of
-spaghetti drift. The harness is accumulated, refined information, so across cycles the early
-foundation's rules and this cycle's INPUT can diverge — and that conflict is more common in a delta
-than in a first cycle. This generalizes the governing skill's harness-conflict rule (decision 2) to
-*every* source.
+*Why never self-resolve:* preserving every difference prevents the agent from silently replacing
+user intent or a current project contract, without promoting harmless variance into a strategy
+interview. On a delta, a future direction and the Current Delivery Slice can legitimately differ in
+time horizon. This generalizes lossless candidate capture — not blanket asking — to every source.
 
 ## Build a presence map — but do not score it
 
@@ -138,14 +142,14 @@ Do not leave DECOMPOSE until all hold:
   discarded-with-a-nameable-reason. No fragment silently skipped.
 - **Every non-derivable form preserved verbatim**, and every converted code block paired with its
   verbatim source where it carries a load-bearing edge (keep-biased default above).
-- **Every source difference flagged** as a conflict candidate.
+- **Every source difference flagged** as a source-difference candidate.
 - **The presence map lists what landed per axis** with its form marker, and **no axis the INPUT
   actually touches is left silently empty.**
 
 ## Rules
 
-- **Don't resolve a conflict — ask.** Don't pre-split conflict types into cases; "if it differs, ask"
-  is the whole rule. (See the flag rule above.)
+- **Don't resolve a source difference, and do not ask merely because it differs.** Preserve and flag
+  the candidate; ELICIT decides whether it is materially incompatible and grounded enough to ask.
 - **Don't guess the floor.** Produce the presence map only (what landed + its form marker); the gap calculation is ELICIT's.
 - **Don't invent intent.** If it is in neither the INPUT, the code, nor the harness, do not
   manufacture it — pass it on as a question candidate.
@@ -154,10 +158,12 @@ Do not leave DECOMPOSE until all hold:
 
 ## What this produces (in-session, written to no file)
 
-① per-axis classified signal ② the presence map (what landed per axis + form marker) ③ conflict/dedup
-flags ④ preserved non-derivable forms. ELICIT receives these as **challengeable material** (authority demoted, utility kept — a good
+① per-axis classified signal ② the presence map (what landed per axis + form marker)
+③ source-difference/dedup candidates ④ preserved non-derivable forms. ELICIT receives these as
+**challengeable material** (authority demoted, utility kept — a good
 INPUT's content flows almost unchanged into the spec, but only after dialogue and approval confirm
-it). A thin INPUT classifies and inventories to almost nothing, with no conflicts, and passes through
+it). A thin INPUT classifies and inventories to almost nothing, with no source differences, and passes
+through
 small — the same mechanism, only the volume differs.
 
 ## Universality guard

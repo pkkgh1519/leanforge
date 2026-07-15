@@ -42,9 +42,13 @@ where the input came from. The 3-doc contract is in `references/output-format.md
   (intent, preferences, load-bearing choices) and **what they didn't say but should have considered**.
   What the input/code/harness settles, resolve yourself. Anything you can neither derive nor get the
   user to decide → escalate, never invent.
-- **Conflicts and unknowns → ask, never self-resolve.** Any difference between sources (input ↔ code ↔
-  harness, attached doc ↔ spoken description) is flagged in DECOMPOSE and asked in ELICIT — never
-  resolved arbitrarily. Self-filling a conflict is the origin of drift.
+- **Never self-resolve real conflicts or unknowns; a source difference is only a candidate.**
+  DECOMPOSE preserves every difference between sources (input ↔ code ↔ harness, attached doc ↔ spoken
+  description) without choosing a winner. A difference is not yet a conflict or a question. ELICIT
+  applies the **cycle-neutral source-difference disposition**: account for source or section authority,
+  scope, and time horizon; ask only when the claims remain materially incompatible at the same site and
+  the candidate clears its grounds-gate branch. On a delta, the additional delta rules below govern
+  every input↔harness candidate.
 - **ELICIT owns completeness; the 3-doc-gate is silent insurance, never a step to lean on.** Elicit
   **as if the gate does not exist.** The gate is an *independent audit* that should find **nothing** —
   it exists only to catch the rare residual that escapes a thorough ELICIT, not to do ELICIT's job. A
@@ -79,7 +83,8 @@ where the input came from. The 3-doc contract is in `references/output-format.md
 - **Harness-aware, two modes (cycle is the only branch).** The entry branches on **one** fact:
   `.leanforge/status.json`. **Delta** (present): load the harness (`CLAUDE.md` / `AGENTS.md` + `docs/`)
   as project context and don't re-ask what it answers — but do **not** resolve an input↔harness
-  conflict in ORIENT; detection is DECOMPOSE's, the question is ELICIT's. **First cycle** (absent):
+  difference in ORIENT; DECOMPOSE preserves it as a candidate, and ELICIT applies the delta materiality
+  rule and grounds gate before deciding whether it becomes a question. **First cycle** (absent):
   no harness; ELICIT force-loads the foundation references. Prime never learns the `docs/` structure —
   the harness is reference, not a template to fill. (Physical document presence does **not** branch —
   that was the old two-entry split, now unified into this one door.)
@@ -162,10 +167,10 @@ stage sequence is identical for first and delta.
 
 ```
 Core principles  inline authoring + bounded non-authoring checks · understand-not-guess ·
-                 stack/language-agnostic · conflict→ELICIT · floor not ceiling · user-language native
+                 stack/language-agnostic · source difference→candidate · question→ELICIT · floor not ceiling · user-language native
 ORIENT           absorb input + ground code/harness · branch on status.json     (no refs)
 evidence-grounding scout  evidence-grounding-scout.md  ← optional evidence collection after ORIENT (not review)
-DECOMPOSE        decompose.md · grounds-gate.md
+DECOMPOSE        decompose.md
 ELICIT           elicitation.md · gap-analysis.md · intent-review.md · grounds-gate.md
        [first]+  project-scoping.md · project-design-domain.md · project-design-technical.md ·
                  first-cycle-review.md · foundation-format.md
@@ -181,8 +186,9 @@ G7 (the one human checkpoint)
 ## ORIENT — absorb · branch · ground
 
 Take the input raw, decide first-vs-delta, and read code/harness inline to lay the context later
-stages stand on. **No judgment or resolution here** — classification is DECOMPOSE's, conflict
-questions are ELICIT's. Everything ORIENT produces is *context*, not a conclusion.
+stages stand on. **No judgment or resolution here** — classification and source-difference capture
+are DECOMPOSE's; ELICIT alone decides which candidates become questions. Everything ORIENT produces
+is *context*, not a conclusion.
 
 1. **Check git.** Not a repo → offer `git init` + an initial commit. git not installed → stop and say
    so. Greenfield or existing, git is required.
@@ -205,7 +211,8 @@ questions are ELICIT's. Everything ORIENT produces is *context*, not a conclusio
      section-by-section** — don't kill signal by summarizing, but don't ingest it all at once either.
 3. **Branch on the cycle.** `.leanforge/status.json` present → **delta**: load the harness (`CLAUDE.md`
    / `AGENTS.md` + `docs/`) as project context — *load only*; do not ask or resolve an input↔harness
-   conflict here (DECOMPOSE catches it, ELICIT asks it). Absent → **first cycle**: no harness; ELICIT
+   difference here (DECOMPOSE preserves the candidate; ELICIT applies delta materiality and the
+   grounds gate). Absent → **first cycle**: no harness; ELICIT
    will force-load the foundation refs.
    - **Safety guard (no marker but a harness on disk).** If `status.json` is absent but a Leanforge
      harness already exists on disk (Leanforge-structured `CLAUDE.md` / `AGENTS.md` + populated
@@ -229,7 +236,7 @@ questions are ELICIT's. Everything ORIENT produces is *context*, not a conclusio
    **material uncertainty** remains that repository evidence could materially change. **Skip for
    greenfield**, **simple documentation-only** work, **small deltas**, or when **ORIENT already has
    sufficient evidence**. Scout findings are **evidence pointers only**; main Prime re-checks cited
-   sources/command slices inline before using them. Any **source conflict candidate**, **verify command
+   sources/command slices inline before using them. Any **source difference candidate**, **verify command
    candidate**, **likely blast-radius candidate**, or unknown is routed to **DECOMPOSE or ELICIT** as
    appropriate, never self-settled in ORIENT.
 
@@ -239,13 +246,14 @@ you have a grounded conception.
 
 ## DECOMPOSE — deconstruct the input — `references/decompose.md`
 
-Force-load `references/decompose.md` and `references/grounds-gate.md`. Break the input's *content*
+Force-load `references/decompose.md`. Break the input's *content*
 into material ELICIT can use: classify each piece by axis (a fragment may file under several —
 classification is not partition; when unsure, duplicate); convert premature code to a behavioral
 contract **and keep the verbatim snippet alongside it where it carries a load-bearing edge** (keep-bias:
 a dropped nuance is unrecoverable, an over-kept block is cheap); preserve non-derivable forms verbatim;
-dedup wording but **treat repetition as an importance signal, not redundancy**; **flag — never resolve —
-every source difference**; write a **presence map** per axis with a non-scoring *form* marker (bare
+dedup wording but **treat repetition as an importance signal, not redundancy**; **flag every source
+difference as a candidate — never resolve or promote it to a question here**; write a **presence map**
+per axis with a non-scoring *form* marker (bare
 mention vs stated-with-rules) so ELICIT never reads "touched" as "covered". **Do not judge** (no
 conflict resolution, no gap scoring) — but "don't judge" is **not** a license to skim: ELICIT does
 **not** re-mine the raw INPUT, so signal you skip here is gone (same reward-hack ban as ELICIT). Meet
@@ -285,10 +293,14 @@ views, not mandatory phases, fields, or one-question-per-level checkpoints.
   while the foundation is laid — do not dilute them. Scope = project foundation + this task; produces
   the Foundation 4 sections.
 - **Delta (harness exists):** do **not** re-run foundation design (read the floor from the harness;
-  don't re-ask what it answers) — and do not re-elicit product strategy. Reopen a user decision only
-  when the proposed task would materially contradict, invalidate, narrow, or close a recorded outcome
-  or future direction; mere non-implementation is not a conflict. Realize this task's load-bearing
-  intent with the **full** "no guess survives" discipline. Scope = this task; rigor = full.
+  don't re-ask what it answers) — and do not re-elicit product strategy. For a recorded outcome or
+  future direction, reopen a user decision only when the proposed task would materially contradict,
+  invalidate, narrow, or close it; mere non-implementation, a different time horizon, or a cheap
+  reversible extension path is not a conflict. Separately, resolving a candidate that remains
+  materially incompatible with an applicable current invariant, contract, approved decision, or
+  operating rule after the cycle-neutral source-difference disposition is **not product-strategy
+  re-elicitation**; ask only through the source-difference grounds-gate branch. Realize this task's
+  load-bearing intent with the **full** "no guess survives" discipline. Scope = this task; rigor = full.
 
 **Account the decision surface — enumerate, don't wait to be told** (`elicitation.md`). Name the
 entities (a manifest), then walk four lenses over each entity and colliding pair to enumerate the
