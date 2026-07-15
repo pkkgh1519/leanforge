@@ -29,9 +29,10 @@ independent piece of work, and a fresh session keeps the task-level dialogue cle
 
 ## Core principles (apply throughout)
 
-- **The harness is durable project memory, not ground truth.** It is the project's discipline and
-  constraint — written so the next agent works the project without going off the rails. A hollow
-  harness (structure present, content empty) is worse than none.
+- **The harness is durable project memory and operating context, not ground truth.** Only its
+  normative records constrain later work; descriptive status and directional context retain the
+  authority declared by their sections. A hollow harness (structure present, content empty) is worse
+  than none.
 - **Content density is the whole point.** Every file must clear the quality bar in
   `references/harness-format.md` (five principles, four techniques). Filling sections is not the
   goal; informing the next agent is.

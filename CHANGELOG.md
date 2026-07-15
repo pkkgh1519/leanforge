@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.6.8 (2026-07-15)
+
+- scope durable harness authority per section so only current normative records constrain delta work; keep Remaining and Future directions non-executable
+- require Prime to validate the exact Execution Graph root, task-list, dependency, DAG, and prose-ID contract before handoff
+- add cross-surface and keyed-task-root regression coverage without adding a runtime parser or changing the graph schema
+
 ## v1.6.7 (2026-07-14)
 
 - preserve the user-confirmed outcome and meaningful target state in Prime while limiting `spec.md`, `plan.md`, and the Execution Graph to the Current Delivery Slice

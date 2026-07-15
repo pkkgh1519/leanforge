@@ -364,7 +364,11 @@ it and never re-judges. **Scaffold is
 not a task.** (Any task-order/dependency graph the input carried was discarded in DECOMPOSE; PLAN
 always computes the graph fresh from the spec — the same behavior as the old Prime.) **G6:** every
 spec requirement maps to ≥1 task (forward); every task grounds in a spec requirement (no orphan); the
-Execution Graph parses.
+Execution Graph **validates against the exact Execution Graph contract**, not merely YAML syntax: root
+keys are exactly `tasks` and `regen_barriers`; `tasks` is a list of objects with `id`, `depends`, and
+optional `risk`; barrier entries keep the documented `after`/`run` shape; every `depends`/`after`
+id names a graph task; the dependency graph is acyclic; and plan body and graph task-id sets match.
+Task ids are values of `tasks[].id`, never root mapping keys, even when keyed YAML parses successfully.
 
 ## HANDOFF — governing doc + assemble — `references/output-format.md`
 
@@ -396,7 +400,8 @@ read-only, returning a **structured list** (no raw dump). **A single holistic re
 second dispatch). It is the *final* backstop and should find little, because intent-completeness
 already routed the guesses to the user. Empty → G7. A blocker → the orchestrator relays it to the user,
 fixes only the stage it belongs to, then re-runs the gate; a surviving blocker → escalate. (The machine
-0-signal gates — coverage gap, orphan, graph parse — are cheap; keep them in place.)
+0-signal gates — coverage gap, orphan, **graph contract validation, not syntax parsing alone** — are
+cheap; keep them in place.)
 
 ## G7 — the one human checkpoint
 
@@ -418,7 +423,7 @@ Done only when ALL hold:
 - **ELICIT completeness bar met:** every load-bearing dimension the domain implies was surfaced to the
   user and settled (or explicitly marked N/A with a reason) — recorded in the spec, not left for the
   gate to discover.
-- **Deterministic 0-signals:** coverage gaps = 0, orphan tasks = 0, Execution Graph parses.
+- **Deterministic 0-signals:** coverage gaps = 0, orphan tasks = 0, Execution Graph validates against the exact contract.
 - **3-doc-gate clear (insurance):** the independent fresh subagent returned no blocking item. A finding
   here is an **ELICIT failure that escaped**, not a normal step — fix the stage it belongs to and treat
   it as a signal you closed the dialogue too early; residual → escalate to the user, never self-fill.

@@ -80,8 +80,9 @@ lens in one review.) In a delta there is no Foundation, so this lens is simply a
   user**, never converge a half-pinned spec via re-gating. A surviving blocker → escalate (same
   discipline as REVIEW(A)'s reopen rule).
 
-(Separate from this gate, the **machine 0-signal gates** — coverage gap, orphan task, graph parse —
-are cheap; keep them in place everywhere. They are not part of this dispatch.)
+(Separate from this gate, the **machine 0-signal gates** — coverage gap, orphan task, **graph
+contract validation, not syntax parsing alone** — are cheap; keep them in place everywhere. They are
+not part of this dispatch.)
 
 ## Gate (proceed to G7 when)
 
