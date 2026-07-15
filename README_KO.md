@@ -2,7 +2,7 @@
 
 <div align="center">
 
-# Leanforge v1.6.8
+# Leanforge v1.6.9
 
 ### 의도를 먼저 정리하고, 증거로 구현을 검증합니다.
 

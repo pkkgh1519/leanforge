@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.6.9 (2026-07-15)
+
+- preserve source differences as candidates without turning every difference into a Prime strategy question
+- resolve candidates by source authority, scope, time horizon, and material incompatibility before the candidate-specific grounds gate
+- keep harmless future-direction variance and authority-resolved stale sources silent while retaining questions for unresolved current normative conflicts
+- add cross-surface regression coverage for the candidate-to-question boundary without adding workflow stages, schemas, or runtime parsers
+
 ## v1.6.8 (2026-07-15)
 
 - scope durable harness authority per section so only current normative records constrain delta work; keep Remaining and Future directions non-executable

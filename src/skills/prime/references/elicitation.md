@@ -103,6 +103,27 @@ doing so does not implement the future capability or add speculative abstraction
 present-tense constraint in `spec.md` or the handoff's hard gates. Keep the future direction itself in
 non-executable Foundation or harness context; `Run` must not infer a constraint from it.
 
+## Disposition of source-difference candidates — cycle-neutral
+
+For every source-difference candidate preserved by DECOMPOSE, ELICIT uses the same order on first and
+delta cycles:
+
+1. **Source or section authority** — identify what governs the candidate's exact site; do not equate
+   newer, nearer, or more detailed wording with authority by default. If applicable authority determines
+   the governing claim without leaving user-owned intent ambiguous, resolve the candidate with cited
+   evidence and do not ask.
+2. **Scope and time horizon** — decide whether the claims apply to different scopes or times and can
+   both be true. If so, preserve the relevant context and do not ask merely because the wording differs.
+3. **Material incompatibility** — Only if the authority and scope/time steps did not resolve it, decide
+   whether the claims cannot both govern the same site and leaving them unresolved has a concrete
+   load-bearing consequence. If so, they are materially incompatible at the same site; otherwise the
+   candidate is not a question.
+4. **Question grounding** — pass a real conflict through the source-difference branch of
+   `grounds-gate.md`. Never pick a winner arbitrarily.
+
+This disposition is cycle-neutral. Delta adds the narrower product-strategy rule below; it does not
+remove current normative conflict handling.
+
 ## Scope by cycle — first establishes the foundation, delta works within it; **both equally rigorous**
 
 The cycle changes *what you must understand*, never *how rigorously you avoid guessing.* Delta is
@@ -120,10 +141,15 @@ The cycle changes *what you must understand*, never *how rigorously you avoid gu
   dilute them into a light pass. Scope = project foundation + this task.
 - **Delta (harness exists): task intent within the foundation — with the same rigor.** Do **not**
   re-run foundation design (the harness holds the domain model, conventions, stack — read the floor
-  from it, don't re-ask what it answers), and do not re-elicit product strategy. Reopen a user decision
-  only when the proposed task would materially contradict, invalidate, narrow, or close a recorded
-  outcome or future direction. Mere non-implementation of a future direction is not a conflict. The
-  task's load-bearing intent still uses the **full** "no guess survives" discipline: extract the task's
+  from it, don't re-ask what it answers), and do not re-elicit product strategy. For a candidate about
+  a recorded outcome or future direction, reopen a user decision only when the proposed task would
+  materially contradict, invalidate, narrow, or close it. Mere non-implementation of a future
+  direction, a different time horizon, or a cheap reversible extension path is not a conflict.
+  Separately, resolving a candidate that remains materially incompatible with an applicable current
+  invariant, contract, approved decision, or operating rule after the cycle-neutral disposition is
+  **not product-strategy re-elicitation**; it is current normative conflict handling. Ask it only if it
+  clears the source-difference branch of `grounds-gate.md`. The task's load-bearing intent still uses
+  the **full** "no guess survives" discipline: extract the task's
   domain intent, present its technical decisions, run the same generation and the same exit check.
   Scope = this task only; rigor = full.
 

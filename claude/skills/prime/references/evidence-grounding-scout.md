@@ -19,7 +19,7 @@ Dispatch only when all are true:
 - the **main ORIENT cheap-map completed**;
 - **material uncertainty** remains;
 - a small, read-only repository evidence pass could change the task's scope, risk, validation path, or
-  source-conflict handling.
+  source-difference handling.
 
 ## Skip
 
@@ -42,8 +42,8 @@ Do not dispatch for:
 - **must not write the spec**.
 - **must not design the plan**.
 - **must not make decisions**.
-- **must not ask the user**. If user input is needed, return the evidence and let main Prime ask during
-  DECOMPOSE or ELICIT.
+- **must not ask the user**. If user input may be needed, return the evidence for DECOMPOSE to preserve
+  as a candidate; ELICIT alone decides whether it becomes a question.
 - **No recursive delegation**.
 - **One dispatch max** per Prime run.
 
@@ -53,7 +53,7 @@ Return a concise structured list with:
 
 - inspected paths and any relevant command slices;
 - evidence claims tied to exact source paths or commands;
-- **source conflict candidate** items when repository evidence appears to disagree with input or
+- **source difference candidate** items when repository evidence appears to disagree with input or
   harness context;
 - **verify command candidate** items when a likely validation command or missing validation path is
   found;
@@ -67,7 +67,7 @@ Return a concise structured list with:
 Main Prime must treat the scout output as untrusted evidence pointers, not as conclusions. Re-open only
 the cited files/commands inline, then:
 
-- feed conflicts into DECOMPOSE as flagged source differences;
+- feed source differences into DECOMPOSE as candidates;
 - ask user-owned uncertainty in ELICIT;
 - record verify-command decisions in SPEC;
 - discard any scout claim that cannot be re-grounded from cited evidence.

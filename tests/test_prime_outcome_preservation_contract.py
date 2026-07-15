@@ -253,8 +253,9 @@ class PrimeOutcomePreservationContractTests(unittest.TestCase):
                     f"{surface}/prime/references/elicitation.md",
                     [
                         "do not re-elicit product strategy",
-                        "materially contradict, invalidate, narrow, or close a recorded outcome or future direction",
-                        "Mere non-implementation of a future direction is not a conflict",
+                        "For a candidate about a recorded outcome or future direction",
+                        "materially contradict, invalidate, narrow, or close it",
+                        "Mere non-implementation of a future direction",
                     ],
                 )
                 self.assertTermsPresent(
@@ -272,6 +273,95 @@ class PrimeOutcomePreservationContractTests(unittest.TestCase):
                         "without unconfirmed narrowing or inflation",
                     ],
                 )
+
+    def test_source_differences_stay_candidates_until_delta_materiality(self):
+        required = {
+            "prime/SKILL.md": [
+                "a source difference is only a candidate",
+                "A difference is not yet a conflict or a question.",
+                "additional delta rules below govern every input↔harness candidate",
+                "ELICIT alone decides which candidates become questions",
+                "DECOMPOSE decompose.md",
+                "cycle-neutral source-difference disposition",
+                "not product-strategy re-elicitation",
+            ],
+            "prime/references/decompose.md": [
+                "source differences go to ELICIT as candidates",
+                "A difference is a candidate, not yet a conflict",
+                "do not resolve or ask here",
+                "cycle-neutral source-difference disposition",
+                "do not ask merely because it differs",
+            ],
+            "prime/references/elicitation.md": [
+                                "Mere non-implementation of a future direction, a different time horizon, or a cheap reversible extension path is not a conflict.",
+                "Disposition of source-difference candidates — cycle-neutral",
+                "Source or section authority",
+                "resolve the candidate with cited evidence and do not ask",
+                "Scope and time horizon",
+                "Only if the authority and scope/time steps did not resolve it",
+                "materially incompatible at the same site",
+                "not product-strategy re-elicitation",
+                "applicable current invariant, contract, approved decision, or operating rule",
+            ],
+            "prime/references/evidence-grounding-scout.md": [
+                "source difference candidate",
+                "feed source differences into DECOMPOSE as candidates",
+                "ELICIT alone decides whether it becomes a question",
+            ],
+            "prime/references/gap-analysis.md": [
+                "source differences are DECOMPOSE's candidates",
+            ],
+            "prime/references/grounds-gate.md": [
+                "source-difference candidate from DECOMPOSE",
+                "For a probe-generated gap",
+                "For a source-difference candidate",
+                "one or both claims are already recorded",
+                "authority, scope, time horizon, and settled context fail to resolve the claims",
+                "must not be demoted merely because",
+                "ELICIT applies this one standard",
+            ],
+        }
+        forbidden = {
+            "prime/SKILL.md": [
+                "flagged in DECOMPOSE and asked in ELICIT",
+                "the question is ELICIT's",
+                "conflict→ELICIT",
+                "DECOMPOSE catches it, ELICIT asks it",
+                "source conflict candidate",
+                "DECOMPOSE decompose.md · grounds-gate.md",
+                "Force-load references/decompose.md and references/grounds-gate.md",
+            ],
+            "prime/references/decompose.md": [
+                "conflicts go to ELICIT as questions",
+                "A difference is a conflict",
+                "Flag every source difference as a question candidate",
+                '"if it differs, ask"',
+            ],
+            "prime/references/evidence-grounding-scout.md": [
+                "source conflict candidate",
+                "feed conflicts into DECOMPOSE",
+                "ask during DECOMPOSE",
+            ],
+            "prime/references/gap-analysis.md": [
+                "source conflicts are DECOMPOSE's flags",
+            ],
+            "prime/references/grounds-gate.md": [
+                "a conflict flag from DECOMPOSE",
+                "shared by DECOMPOSE and ELICIT",
+            ],
+        }
+
+        for surface in SURFACES:
+            for suffix, terms in required.items():
+                rel = f"{surface}/{suffix}"
+                with self.subTest(surface=surface, rel=suffix, contract="required"):
+                    self.assertTermsPresent(rel, terms)
+            for suffix, terms in forbidden.items():
+                rel = f"{surface}/{suffix}"
+                body = normalized(rel)
+                with self.subTest(surface=surface, rel=suffix, contract="forbidden"):
+                    for term in terms:
+                        self.assertNotIn(term, body)
 
     def test_delta_new_future_context_has_a_non_executable_round_trip(self):
         for surface in SURFACES:
@@ -366,7 +456,11 @@ class PrimeOutcomePreservationContractTests(unittest.TestCase):
         )
 
         exact_refs = [
+            "prime/references/decompose.md",
             "prime/references/elicitation.md",
+            "prime/references/evidence-grounding-scout.md",
+            "prime/references/gap-analysis.md",
+            "prime/references/grounds-gate.md",
             "prime/references/project-scoping.md",
             "prime/references/output-format.md",
             "prime/references/3-doc-gate.md",

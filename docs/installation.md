@@ -65,9 +65,10 @@ and project harness updates when applicable.
 
 ## Version notes
 
-- `v1.6.8` is the current harness-authority and graph-contract release. It keeps
-  durable context section-aware and rejects parseable but structurally invalid
-  Execution Graph output before Run.
+- `v1.6.9` is the current Prime source-difference materiality release. It keeps
+  harmless or authority-resolved source variance from becoming strategy questions
+  while retaining grounded questions for unresolved current normative conflicts.
+- `v1.6.8` remains tagged as the harness-authority and graph-contract baseline.
 - `v1.6.7` remains tagged as the outcome-preservation baseline.
 - `v1.6.6` remains tagged as the SDD-lite Stage 1 baseline for environments
   that explicitly pin repository tags or release versions.

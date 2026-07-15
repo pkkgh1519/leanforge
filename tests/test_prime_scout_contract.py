@@ -60,7 +60,7 @@ class PrimeScoutContractTests(unittest.TestCase):
             "simple documentation-only",
             "small deltas",
             "ORIENT already has sufficient evidence",
-            "source conflict candidate",
+            "source difference candidate",
             "verify command candidate",
             "likely blast-radius candidate",
         ]
