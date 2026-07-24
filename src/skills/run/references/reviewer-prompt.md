@@ -5,6 +5,9 @@ After all waves merge, the integration gate passes, and the **harness has been c
 state to current) **plus the harness**. This is the single review pass — spec conformance, code
 quality, and (when the harness was created/updated this cycle) harness content and format.
 
+Create it as a non-delegating leaf. On Codex, set `fork_turns: "none"` explicitly; never omit it or
+use `"all"`. Apply the live-capacity admission contract in `orchestration.md` first.
+
 If the orchestrator supplies repo-local skill criteria from `repo-lens-routing.md`, treat them as
 additional review/explore/checklist lens material. Run keeps execution authority: a repo-local lens is
 not an implementer, does not own merge decisions, and only adds repository-specific review focus.

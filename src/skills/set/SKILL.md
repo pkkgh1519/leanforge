@@ -43,7 +43,21 @@ independent piece of work, and a fresh session keeps the task-level dialogue cle
   your own harness is the weakest move (A=A), and the harness is the **most
   durable artifact in the system** (every later agent works inside it), so it earns the one fresh-eye
   check — the same relaxation `Prime` made (generate inline, verify independently). This is the *only*
-  dispatch.
+  dispatch and it is a **leaf** that cannot delegate or spawn descendants. Choose exactly one host path
+  below; never mix or emulate another host's tools.
+  - **Codex.** Set `fork_turns: "none"` explicitly (never omit the field or use `"all"`). Immediately
+    before this dispatch, call `list_agents`. If no runtime slot is free, call `wait_agent` once and
+    then call `list_agents` again; no state change or a second zero-slot result blocks as capacity
+    exhaustion. If total capacity is not exposed, admit **one child at a time**; if the list call fails,
+    make one bounded retry and then block. Only after that fresh check call `spawn_agent`. If it loses
+    a capacity race, wait/re-list and retry once; a second capacity rejection or no state change blocks.
+    Every review or re-review uses a fresh child; never reactivate an idle child.
+  - **Claude Code.** Use the live capacity or child-state signal exposed by the host and dispatch the
+    reviewer via `Agent`. If total capacity or a separate preflight signal is unavailable, admit **one
+    child at a time**. At zero capacity or on a capacity rejection, wait for a running child result,
+    refresh once, and block on no state change or a second rejection. Every review or re-review uses a
+    fresh child; never reactivate an idle child or emulate unavailable operations.
+  Never replace the independent review with self-review.
 - **Stack-agnostic.** No stack/framework/library name in this skill. Discover all specifics
   (conventions, module boundaries, build/verify commands, external deps) at runtime from the project.
 - **escalate-don't-guess.** What the code can't settle and you can't derive, ask the user — never
@@ -88,11 +102,21 @@ independent piece of work, and a fresh session keeps the task-level dialogue cle
   `.leanforge/status.json` marker on completion. It performs **no commits and no branch operations** — whether and when to
   commit the harness is the user's choice. (This differs from `Prime`, which never touches
   `.gitignore`: Set may not be immediately followed by `Run`, so it sets up the ignore itself.)
-- **Legacy state preflight.** `.leanforge/` is canonical. If `.leanforge/` is absent and legacy
-  `.dryforge/` exists with no active `run.json` and no `worktrees/`, move it to `.leanforge/` and write
-  `.leanforge/migration.json` (`schema: "leanforge.stateMigration.v1"`). If legacy active state exists,
-  do not migrate or overwrite it; ask the user to resolve the legacy run first. Keep both `.leanforge/`
-  and `.dryforge/` ignored.
+- **Active canonical state preflight — before any write.** Inspect canonical `.leanforge/` before
+  Phase 1 or any repository mutation. If `.leanforge/run.json` has status `in_progress`,
+  `awaiting_user_approval`, or `archive_in_progress`; any root active 3-doc
+  (`.leanforge/handoff.md`, `.leanforge/spec.md`, `.leanforge/plan.md`) exists; or
+  `.leanforge/worktrees/` exists, stop without modifying the repository and ask the user to resume,
+  finish, abandon, or recover that Run first. Do not write `.leanforge/status.json`, harness/entry
+  files, `.leanforge/backup/`, or `.gitignore`. A `completed` or `abandoned` stale marker alone may be
+  cleaned only after normal checks; an unreadable marker, unknown status, or inconsistent state also
+  stops for user resolution.
+- **Legacy state preflight.** `.leanforge/` is canonical. If it is absent and legacy `.dryforge/` has
+  no active `run.json`, no root active 3-doc (`handoff.md`, `spec.md`, `plan.md`), and no `worktrees/`,
+  move it to `.leanforge/` and write `.leanforge/migration.json`
+  (`schema: "leanforge.stateMigration.v1"`). If any legacy active `run.json`, root active 3-doc, or
+  `worktrees/` exists, do not migrate or overwrite it; ask the user to resolve the legacy run first.
+  Keep both directories ignored.
 
 ## Phase 1 — SCAN (build the technical map)
 
@@ -145,8 +169,9 @@ writing sequence is where narration leaks most — emit nothing between writes.
 
 ## Phase 4 — REVIEW (verify quality) — `references/harness-review.md`
 
-**Force-load `references/harness-review.md`** (the rubric) and **dispatch a fresh general-purpose subagent
-that did NOT author the harness** to verify it independently. Use a **general-purpose** agent with full
+**Force-load `references/harness-review.md`** (the rubric) and **dispatch a fresh general-purpose leaf
+subagent that did NOT author the harness** to verify it independently. On Codex, create it with
+`fork_turns: "none"` explicitly and prohibit recursive delegation. Use a **general-purpose** agent with full
 read/inspect tools (not a plan-only or search-only agent type) so it can cross-check every claim against
 the actual code; give it the harness files + the rubric + **the user's language** (so it judges native
 fidelity), **read-only**, returning a **structured list** (no raw dump). It checks the four dimensions: content (substantive

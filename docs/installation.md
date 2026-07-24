@@ -40,7 +40,6 @@ After installation, the command palette should expose these commands:
 | `Leanforge:Prime` (`/leanforge:prime`) | Turn intent into a reviewed executable design contract. |
 | `Leanforge:Run` (`/leanforge:run`) | Execute the approved contract with evidence gates. |
 | `Leanforge:Set` (`/leanforge:set`) | Onboard an existing codebase into the project harness. |
-| `Leanforge:Harness` (`/leanforge:harness`) | Design or improve reusable agent workflows and skills. |
 | `Leanforge:Run TDD` (`/leanforge:run-tdd`) | Codex-only wrapper for behavior-changing work with selective TDD guidance. |
 
 If `Leanforge:Run TDD` is absent in Claude Code, that is expected: it is a
@@ -65,7 +64,12 @@ and project harness updates when applicable.
 
 ## Version notes
 
-- `v1.6.9` is the current Prime source-difference materiality release. It keeps
+- `v1.7.0` compresses the Prime and Run instructions, makes Codex leaf dispatch and
+  `fork_turns: "none"` explicit, sizes batches from host-aware live runtime slots,
+  restores the full completion and post-gate cleanup contracts, makes Run TDD
+  self-contained, and removes the optional Harness meta-skill. Other execution
+  semantics remain aligned with v1.6.9.
+- `v1.6.9` remains tagged as the Prime source-difference materiality baseline. It keeps
   harmless or authority-resolved source variance from becoming strategy questions
   while retaining grounded questions for unresolved current normative conflicts.
 - `v1.6.8` remains tagged as the harness-authority and graph-contract baseline.

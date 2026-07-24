@@ -18,7 +18,9 @@ catch it" is reward-hacking (Core principles).
 
 ## Dispatch pattern (read-only, structured return, orchestrator relays)
 
-Dispatch a fresh subagent in a session that has **not** seen the conversation. Pin these (required
+Apply Prime's action-local live-slot admission contract, then dispatch a fresh non-delegating leaf
+in a session that has **not** seen the conversation. On Codex, set `fork_turns: "none"` explicitly.
+Pin these (required
 elements, not a fixed script):
 
 - **Scope** — give it the **3-doc only**. It *may* read the project code (that is what `Run` reads at

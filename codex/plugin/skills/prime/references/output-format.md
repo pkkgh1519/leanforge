@@ -133,7 +133,7 @@ regen_barriers:
   judged per task, not a fixed checklist. If a producer omits it, Run falls back to the implementer
   judging risk at build time (today's behavior) — no break.
 - Run derives waves by topological sort of `depends`, then dispatches in
-  batches of **≤8 concurrent**.
+  action-local batches sized from the runtime's currently free slots.
 - `regen_barriers` = cross-cutting steps between waves (timing: after task X). The
   command is discovered per project while reading the code, not hardcoded.
 - Do **not** encode produces / consumes / shared_write / waves here — they are prose,

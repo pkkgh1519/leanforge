@@ -84,7 +84,6 @@ For each doc batch:
   - `/leanforge:prime`
   - `/leanforge:run`
   - `/leanforge:set`
-  - `/leanforge:harness`
   - `/leanforge:run-tdd` for Codex only
 - Keep marketplace source as `pkkgh1519/leanforge`.
 - Keep plugin identity as `leanforge`.
@@ -111,6 +110,7 @@ fn-opt/leanforge
 dryforge.vercel.app
 Website (legacy URL)
 /leanforge:herness
+/leanforge:harness
 harness:*
 ```
 

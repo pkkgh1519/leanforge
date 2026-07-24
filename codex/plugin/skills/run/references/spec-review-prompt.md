@@ -1,5 +1,8 @@
 # spec-review-prompt.md — conditional mid-run spec review
 
+Create this reviewer as a non-delegating leaf. On Codex, set `fork_turns: "none"` explicitly; never
+omit it or use `"all"`. Apply the live-capacity admission contract in `orchestration.md` first.
+
 Dispatched only when the orchestrator judges that a **RISKY task with downstream dependents** could
 cascade a deviation. Checks the task's diff against the **spec requirement** before merge — a spec
 violation caught late costs an undo/redo across dependent tasks. This is *conformance*, not code

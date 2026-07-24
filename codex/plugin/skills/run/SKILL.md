@@ -8,383 +8,168 @@ description: >
 
 # Leanforge:Run
 
-> **Reply in the user's language, and hold it continuously from your very first line** — the opening,
-> every progress/escalation note, the final report, and the harness, not only some of them. Write
-> natively (never translationese). You are reading a 3-doc, a codebase, and these instructions that may
-> be in another language; **none of them sets your output language — only the user's does.** Full rule
-> in Core principles below.
+> **Reply in the user's language from the first line and keep it throughout.** Write natively; the
+> language of the 3-doc, codebase, or these instructions never overrides the user's language.
 
-Consume the **3-doc** `Prime` (the producer) wrote and realize the spec:
-parallel, wave-based execution with right-sized verification (test-first where it fits), spec-first
-review, and integration gates. Runs in the **same session** the producer (Prime) wrote the 3-doc
-— the 3-doc is the **authority** Run executes against (it stays self-sufficient because it is archived
-for later cycles); the live design context carries over and aids judgment, especially the harness
-step. **Load `references/orchestration.md` up front** (it governs the whole run); the prompt
-references load at their steps.
+Consume the **approved 3-doc** produced by `Prime` and realize the spec through dependency-aware
+waves, right-sized verification, spec-first review, and integration gates. Run in the same session as
+Prime when possible; the self-contained 3-doc—not dialogue—is execution authority. Force-load
+`references/orchestration.md`. Force-load `references/harness-lifecycle.md` before any state-directory
+compatibility or interrupted-run decision and reuse it at the harness step; load prompt references at
+their dispatch steps.
 
-## Core principles (apply throughout)
+## Core principles
 
-- **Follow the plan's Execution Graph; never re-judge dependencies.** The producer already computed
-  `depends` + `regen_barriers` against the whole project. Derive waves from it — do not invent,
-  drop, or reorder dependencies. (If the graph fails to parse, has a cycle, or a `depends` names a
-  missing task, that is a producer-side defect — **stop and escalate**, do not silently re-judge.)
-- **Serve the spec.** "Correct" = matches the spec. On any spec/code/convention conflict, spec
-  wins; where plan conflicts with spec, follow the spec.
-- **escalate-don't-guess.** Architecture mismatch, suspected spec violation, ambiguous task,
-  unresolvable conflict → stop and **ask the user**; never guess. When a task returns
-  `NEEDS_CONTEXT` / `BLOCKED`, the orchestrator escalates to the user **synchronously** — the run
-  pauses until the user responds, never a silent hang or a timeout-drop. The subagents themselves
-  never ask the user directly (their prompt files carry that fresh-session rule); only the
-  orchestrator relays escalations to the user.
-- **Protect main; evidence over self-report.** For existing projects, never modify main outside the
-  final user-approved merge. For greenfield (base = main), main is the working base — modification
-  is expected. Gates pass on captured command exit codes, not on an agent's "looks fine."
-- **Floor, not ceiling.** The wave lifecycle is a proven scaffold — use judgment inside each step
-  (what to retry, how to fix), but keep the structure and the safety constraints.
-- **Report results, not process.** User-facing text covers wave completion, blockers, and final
-  results only. Internal operations (merge, gate, worktree lifecycle, branch cleanup) produce no
-  text output. Output tokens are direct cost; narrating routine steps is waste.
-- **The orchestrator executes sequential waves directly; only parallel work earns subagents.** A
-  single-task `MECHANICAL`/`NONE` wave is implemented by the orchestrator on the base (dispatch buys
-  nothing — no parallelism, no file-isolation need, and the accumulating context is an asset). Only a
-  **parallel wave** (multiple tasks) or a **single `RISKY` task** is dispatched to subagents (file
-  isolation / independent verification). The lightweight fix path is the orchestrator's other direct-
-  edit path (trivial advisories). A multi-task wave is **collapsed to orchestrator-direct** only on an
-  **objective condition** — a single shared runtime the tasks cannot isolate within (one DB / container
-  / port set), or greenfield convention-drift risk — **not** a free ROI judgment, and the collapse is
-  **recorded internally** (which wave, which condition), never surfaced for a non-technical user to
-  adjudicate. Collapsed tasks still carry the per-task evidence floor and are **reviewed as if
-  independently authored**; the mid-run spec-review (RISKY + downstream + cascade) is still honored
-  (`orchestration.md`, "ROI collapse").
-- **Efficiency Budget.** Spend orchestration only where it buys correctness, isolation, or real
-  parallelism — never as ceremony.
-- **Repo-local lenses are optional review/explore aids.** When a repository has harness-generated
-  `.agents/skills/` that match the changed scope, use
-  `references/repo-lens-routing.md`: Run keeps execution authority; a matching artifact is a
-  review/explore/checklist lens, not an implementer.
-- **The final review is silent insurance — not a backstop you lean on.** Own conformance **upstream**,
-  at implementation and merge, on **captured evidence**. Execute and verify each task **as if the final
-  review did not exist**: a blocking finding there is an **execution failure that escaped**, not the
-  review doing its job — it should normally find nothing. Told "the review will catch it," an LLM
-  drifts to the minimum that passes — that is **reward-hacking**, laziness in the costume of "the
-  backstop handles it," and you must actively resist it (the same discipline Prime's ELICIT carries).
-  The review catches only the *rare residual*; it is never the owner.
-- **Match the user's language (language-agnostic).** Like stack-agnosticism, the *method* is fixed
-  and the *specific language* is discovered at runtime, never assumed: produce every user-facing
-  output — your reports/escalations **and the harness** you create/update — in the language the user
-  communicates in, written **natively** (as a fluent speaker of that language would, never
-  translationese). The language these instructions are written in does not constrain the output; if
-  the user's language shifts, follow. **Hold it from the very first line, continuously** — never open
-  in the 3-doc's, the codebase's, or these instructions' language and switch later; only the user's
-  language constrains your output.
-- **Talk to the user only when needed — between beats, say nothing.** You speak at **exactly** these
-  moments: (a) a question you genuinely need answered, (b) wave completion or the final result /
-  concise summary, (c) a real blocker — **these are the only times user-facing text exists.**
-  Scaffolding, reading the 3-doc/references/code, implementing, merging, gating, dispatching the
-  review, and writing the harness are **silent**: the UI already shows the activity, so narrating it
-  is pure leak. If what you are about to emit is none of (a)/(b)/(c), the correct output is **nothing**.
-  **Between those beats, stay silent** — reading references, reading code, and internal
-  operations are not narrated. **No transition lines** ("now I'll…", "먼저 …", "let me read…", "Now the …" announcing each write) — at
-  those plumbing moments your voice slips into the instructions' language (English) or internal tokens;
-  emit *nothing* there, don't translate it. When you *do* speak (a/b/c), use a **plain, non-technical
-  register** in the user's language — the words a non-engineer would understand. This is your default
-  voice, not a per-line check, so it costs nothing. **Never surface internal tokens:** Leanforge mechanism / coined terms (wave,
-  worktree, harness, delta, 3-doc, gate, seam, ROI collapse, spec-review, grounding, lens,
-  invariant), task / step / risk labels (`T1`, `Wave 2`, RISKY / MECHANICAL / NONE), or
-  project-internal jargon a non-engineer wouldn't recognize (library/tool names, config flags,
-  test-framework internals). **Don't soften internal logic into user-ish words — just omit it.** E.g.
-  "Starting a git repo here." — not "Since Run will later need git for worktrees, I'll initialize one."
-  This is "Report results, not process" applied to narration.
+- **Follow the Execution Graph.** The producer owns `depends` and `regen_barriers`; do not invent,
+  remove, or reorder them. A malformed graph is a producer-side defect and blocks.
+- **Serve the spec.** Correct means spec-conformant. Spec beats plan, code, and convention; suspected
+  spec error or conflict returns to the user rather than being silently repaired.
+- **Escalate, do not guess.** Ambiguity, architecture mismatch, `NEEDS_CONTEXT`, `BLOCKED`, conflict,
+  or data risk pauses the run while the orchestrator asks the user. Children never ask directly.
+- **Protect main; prove results.** Existing projects stay on a feature branch until user-approved
+  integration; greenfield may use main. Captured commands, output, and exit codes—not self-report—pass
+  gates. The lifecycle is a floor, not a ceiling.
+- **Use children only when they earn their cost.** The orchestrator handles ordinary sequential
+  `MECHANICAL`/`NONE` work directly. Parallel file work, a single `RISKY` task, and independent review
+  use children as defined in `orchestration.md`.
+- **Explicit isolated dispatch.** Every child is a non-delegating leaf. On Codex, every child creation
+  sets `fork_turns: "none"` explicitly; never omit it or use `"all"`. Apply `orchestration.md`'s
+  action-local live-slot admission before every slot-consuming dispatch or idle-child reactivation.
+  Dispatch every implementer and reviewer as a general-purpose child with full read/edit/run tools,
+  never a plan-only or search-only role; reviewer prompts still impose read-only behavior where required.
+- **Repo-local lenses are optional aids.** Use matching harness-generated artifacts only as
+  review/explore/checklist lenses under `repo-lens-routing.md`; they never replace Run or implement.
+- **Own conformance upstream.** Implement and verify as if the final review did not exist. The final
+  review is independent insurance for rare residuals, not permission for shallow work.
+- **Report results, not plumbing.** Speak only for a needed question, real blocker, wave completion,
+  or final result. Keep routine reading, writing, dispatch, merge, gates, and cleanup silent and use
+  plain language without internal labels or tool narration.
 
-## Input & preconditions
+## Input and preconditions
 
-- Invocation: the user invokes the `Run` skill.
-  Load the 3-doc (handoff → spec → plan) from the project's
-  `.leanforge/` (project-root-relative). If absent but legacy `.dryforge/` exists, run the state
-  directory compatibility preflight in `harness-lifecycle.md` before asking for another path. If both
-  directories contain active state, stop and ask which one is canonical.
-- **git required** — worktree isolation depends on it. If not a repo, offer `git init` **and make an
-  initial commit** (an empty repo has no HEAD, so no worktree/branch can be created). If git is not
-  installed, stop and say so.
+- **Input.** Load `.leanforge/handoff.md`, then `spec.md`, then `plan.md`. If `.leanforge/` is absent
+  but legacy `.dryforge/` exists, apply `harness-lifecycle.md`'s guarded compatibility migration before
+  reading the documents.
+- **Git required.** If needed, offer `git init` plus an initial commit. Stop if Git is unavailable.
+- **Interrupted-run preflight.** Inspect `.leanforge/run.json` separately from `status.json` before
+  first-cycle/delta classification. An active marker is an interrupted Run even when `status.json` is
+  absent; do not overwrite it or regenerate the Foundation. Verify its recorded 3-doc hashes and Git
+  facts; any mismatch stops for user resolution. Ask the user whether to resume or abandon the run,
+  and only after an explicit resume choice continue work that filesystem and Git evidence make safe.
+  The marker is advisory: actual artifacts and Git state decide. A completed/abandoned stale marker
+  may be cleaned after normal checks. If `.leanforge/` is absent and legacy `.dryforge/run.json` is active or
+  `.dryforge/worktrees/` exists, resolve that run before migration.
+- **Base determination.** Identify the main branch from repository evidence or ask—never guess. Require
+  no unpushed main commits and no modified/staged tracked files. Greenfield uses main; an existing
+  project creates `Leanforge/<feature>` from main. Untracked `.leanforge/` producer output is expected;
+  other foreign work blocks. On the base, add `.leanforge/` and `.dryforge/` to `.gitignore` and commit;
+  if either state directory is tracked, remove it from the index before continuing.
+- **Verify commands.** Resolve build/test/lint commands from handoff hard gates and project scripts
+  before the first wave.
+- **Read authority in order.** Handoff governs roles, hard gates, and execution shape; spec governs
+  behavior; plan governs task contracts and graph order. On first cycle, a missing Project Foundation
+  blocks before implementation: stop and ask the user to regenerate the 3-doc through `Prime`. Treat
+  Foundation as non-executable durable context and a harness
+  source—not an implementation target or execution authority. Do not infer work, constraints,
+  abstractions, extension points, or compatibility steps from it. Build only present-tense spec
+  requirements and handoff hard gates; if a future direction legitimately constrains this slice,
+  Prime has already written that narrow constraint there.
 
-- **Interrupted-run preflight.** Before applying the first-cycle/delta rule, inspect `.leanforge/run.json`.
-  This file is a local-only interrupted-run marker, separate from `.leanforge/status.json`.
-  - If `.leanforge/status.json` is present, the harness is initialized and this is a delta. A stale
-    completed `run.json` may be ignored or cleaned up after the normal safety checks.
-  - If `status.json absent + run.json present`, treat it as an **interrupted Run run**, **not a first cycle**.
-    Do not regenerate the Foundation or overwrite active docs. Re-read the active 3-doc, compare its
-    hashes against `run.json.activeDocs`, verify the recorded branch/commit facts against git, then
-    ask the user whether to resume or abandon the interrupted run.
-  - If both `status.json` and `run.json` are absent, continue with the normal first-cycle/delta
-    detection below.
-  The marker is advisory evidence, not authority: the actual git state, active 3-doc content, and file
-  existence still decide whether it is safe to continue.
-- **Legacy interrupted-run guard.** If `.leanforge/` is absent and legacy `.dryforge/run.json` exists,
-  treat it exactly like an interrupted Run run and do not migrate first. If `.dryforge/worktrees/`
-  exists, do not rename the directory; Git worktree metadata may depend on that path. Resume, abandon,
-  or complete the legacy run before migrating.
-- **Base determination.** Identify the project's main branch (docs / remote default / ask — do not
-  guess). Verify `main` has no unpushed commits and the working tree has no modified/staged **tracked**
-  files; if either fails, **stop and report**. Then classify:
-  - **Greenfield** (main has no application code — only an init commit, `.gitignore`, or
-    producer-generated `.leanforge/`): **base = main**. No feature branch — there is no production
-    code to protect.
-  - **Existing project** (main has meaningful committed code): **base = feature branch** created
-    from main (`git checkout -b Leanforge/<feature>`). Protects main from incomplete work.
-  - **`.leanforge/` as untracked files** is the expected handoff state from the producer — do not
-    treat it as a dirty tree. Anything else untracked or modified is foreign work → stop and report.
-  - **You own the `.leanforge/` git mechanics.** On the base, add `.leanforge/` and `.dryforge/` to
-    `.gitignore` and commit. For existing projects this stays on the feature branch (never on main);
-    for greenfield it is on main (acceptable — main has no meaningful history to protect). If a prior
-    run left `.leanforge/` or legacy `.dryforge/` *tracked*, run `git rm -r --cached` for the tracked
-    state directory first.
-- **Verify commands** — the project's build/test/lint commands are typically declared in the handoff
-  (hard gates section) or discovered during scaffold from the project's build scripts. Identify them
-  before the first wave; they are used in every integration gate and the completion gate.
-- Read **handoff first** (it governs: document roles, hard gates, execution shape), then spec and
-  plan. **First-cycle precondition (check now, not at the end):** if this is a first cycle (no harness
-  on disk) and the handoff has **no** Project Foundation section, that is a **precondition violation** —
-  **stop here and ask the user to regenerate the 3-doc via `Prime`**, *before* any implementation. Do
-  not discover this at step 9 after a wasted run (`harness-lifecycle.md`). **If the handoff has a Project
-  Foundation section** (first cycle — `references/foundation-format.md`), read it as **non-executable
-  durable project context and a harness source** — not an implementation target or execution
-  authority. Do not infer work, constraints, abstractions, extension points, or compatibility steps
-  from it. Build only the present-tense requirements in the spec and handoff hard gates; if a future
-  direction legitimately constrains this slice, Prime has already written that narrow constraint
-  there. Parse the
-  plan's Execution Graph **per `references/graph-contract.md`** — the consumer-side schema (what the
-  YAML fields mean and the rules Run must hold when reading them). It mirrors the producer's authoring
-  schema; if the plan's graph contradicts it, that is a producer-side defect → stop and escalate.
+## Graph validation
 
-## Graph validation (before any irreversible worktree creation)
-
-Validate the plan's Execution Graph **before creating the base** — it is cheap and safe
-to fail (no git state mutated yet), so catch a malformed graph before any worktree exists to unwind.
-Parse the YAML, then confirm the graph is **acyclic**, that every `depends` / `after` id **names a
-real task** (no dangling reference), and that the plan body and the graph **agree on the task id set**
-(no graph task missing from the plan body, none in the body absent from the graph). `graph-contract.md`
-is the authoritative rule set for these checks. On any failure, **report the specific error** — which
-check failed and where (the offending id / cycle / mismatch) — and the recovery: the user fixes the
-plan YAML and invokes Leanforge `Run` again, which re-validates from scratch (no partial state is left behind,
-since validation precedes worktree creation).
+Before branch/worktree mutation, parse the Execution Graph under `references/graph-contract.md`.
+Require an acyclic graph, valid `depends`/`after` task IDs, and an exact plan-body/graph task-ID match.
+Report the offending ID, cycle, or mismatch and require a corrected plan; leave no partial state.
 
 ## Flow
 
-Parse the graph → topological sort into waves (batches of **≤8 concurrent**). Set up the **base**
-(per Base determination): for existing projects create the feature branch, for greenfield stay on
-main. On the base, set up `.leanforge/` (copy the 3-doc, gitignore, commit). The orchestrator reads
-`.leanforge/` here — task subagents do **not**; they receive spec slices inline (`orchestration.md`).
-A task whose declared work targets are **state/external only** (no file diff) is handled on the base
-sequentially, **never dispatched into a parallel worktree** — the file-diff merge-gate cannot verify
-it and worktree isolation buys it nothing (`orchestration.md`, Wave scheduling). Then, per wave:
+Force-load `references/orchestration.md`. Topologically derive waves and recalculate action-local live
+capacity immediately before every dispatch. Follow that reference for scheduling, worktrees, status,
+merge gates, wiring, verification, context budget, cleanup, and failure handling.
 
-**Scaffold (inline, before dispatch).** Project initialization — manifests, dependencies, directory
-layout, build config, server/client entry points, shared types — is the orchestrator's job, not a
-task. On the base, perform scaffold inline: read the spec's tech decisions and set up the project so
-implementers start in a working skeleton. Scaffold is not in the Execution Graph. **Batch file
-writes** — scaffold typically creates many independent files; write 4–5 per tool-call turn instead
-of one at a time. Each extra turn adds thinking overhead and an API round-trip. Exception: if scaffold requires **investigation or trial-and-error** to get right (e.g. container
-orchestration, CI pipeline configuration, or 30+ files across 3+ workspaces), dispatch it as an
-implementer before the first wave.
-
-**Review policy (natural language, orchestrator judgment).**
-Default: a single **final review** after all waves merge — one subagent checks the full diff for
-spec conformance + code quality (`reviewer-prompt.md`), plus the harness (content + format) when it
-was created/updated this cycle (step 9). This replaces per-task spec-review and per-wave code-review
-for most graphs. Mid-run review is added only when the orchestrator judges
-that **a RISKY task with downstream dependents could cascade a deviation** — then that task gets a
-spec-review before merge. The judgment comes from the Execution Graph: `risk` + `depends`.
-**Lightweight fix path:** after the final review, the orchestrator MUST triage each advisory finding:
-trivial (1–2 files, non-behavioral, e.g. a missing `step` attribute, a test warning, a one-line
-comment) → edit directly on the base, commit, re-run the completion gate. Substantive (structural,
-multi-file, behavioral) → fix-dispatch subagent. The default is lightweight — only escalate to
-fix-dispatch when the change warrants independent review. Do not skip advisories as "accepted"
-when a lightweight fix would take seconds.
-
-**Sequential wave** (single task — the common case). Execution mode is set by the task's `risk`
-(full rules in `references/orchestration.md`):
-
-1. **Pick the mode by `risk`.**
-   - **`MECHANICAL` / `NONE` (file-diff task) → orchestrator-direct.** The orchestrator
-     reads the task's behavioral contract + spec slice itself and implements **directly on the base**
-     — no dispatch, no worktree, no prompt authoring. **The same captured-evidence floor that binds a
-     dispatched implementer binds you here** (`implementer-prompt.md`): right-sized but *real*
-     verification (command + **captured** exit code; **real testable behavior left untested = not
-     done**, never a "right-size" excuse). If the spec carries an Acceptance & Evidence Matrix, record
-     the relevant AC evidence in the same shape an implementer would. Commit on the base. **You own conformance on this path — the
-     final review is insurance, not your check.** If the task proves ambiguous, behavioral, multi-file,
-     or riskier than declared, treat it as a runtime risk upgrade (`graph-contract.md`) and strengthen
-     verification.
-   - **Omitted `risk` (producer did not judge) → unclassified, *not* `MECHANICAL`.** Do **not** default
-     it to the direct path: judge at read time and **bias toward dispatch / stronger verification** the
-     moment any behavioral surface appears (`orchestration.md`, `graph-contract.md` —
-     degrade-don't-corrupt).
-   - **`RISKY` (file-diff task) → one subagent in a worktree** (`implementer-prompt.md`), then
-     **merge-gate** into the base — independent verification, so the final review is not the only
-     check on risky work.
-   - **No-file-diff task (any risk) → base-pinned subagent**, verified by commit message + captured
-     external evidence.
-2. **Collect or record** — for a subagent, keep its structured summary; for orchestrator-direct work,
-   record files changed, commands run, and concerns in the same shape.
-3. **Land + verify** — confirm the commit on the base (`git log`, diff touches declared targets;
-   no-file-diff: commit message + captured external evidence). RISKY worktree: merge-gate into the
-   base. Then run **regen barriers** and **deferred wiring** if applicable, committed on the base.
-4. **Spec review** (conditional, `spec-review-prompt.md`) — only when the review policy calls for it
-   (RISKY task with downstream dependents). No integration gate — the self-checks on the cumulative
-   base are sufficient for a single-task wave. → next wave.
-
-**Parallel wave** (multiple tasks — worktree isolation required):
-
-0. **Worktree pool** (first parallel wave only) — if the graph has multiple parallel waves,
-   pre-create `max(wave sizes)` worktrees once **under `.leanforge/worktrees/`**; recycle between waves
-   instead of remove+recreate (see `orchestration.md`). For a single parallel wave, create on demand.
-1. **Create task worktrees** — serially (avoid `.git/config.lock` contention), **under
-   `.leanforge/worktrees/<task-id>`** (inside the gitignored `.leanforge/`, so they never sprawl into
-   the project tree or get tracked), each branched off the base (or reset a pooled worktree to the
-   current base tip). **If the project has an installable dependency tree**, install or share it
-   (sharing guidance in `orchestration.md`).
-2. **Dispatch implementers** — one subagent per task, in parallel, ≤8 at a time
-   (`implementer-prompt.md`): right-sized verification, shared-write constraints, pinned worktree
-   path. Dispatch every implementer and reviewer as a **general-purpose** subagent (full
-   read/edit/run tools — never a plan-only or search-only agent type: an implementer must edit and
-   run, a reviewer must read and cross-check).
-3. **Collect** — each returns a structured summary.
-4. **Spec review** (conditional) — only when the review policy calls for it.
-5. **Merge serially** into the base. **Merge-gate per task (objective, not existence-only):** the task
-   branch is strictly **ahead** of the base (`git rev-list base..task` non-empty) AND its diff is
-   non-empty and touches declared targets — checked with three-dot diff (`git diff base...task`).
-   The **merge commit message must satisfy the project's commit-msg hooks**. Then run **regen
-   barriers**, then **deferred wiring** (check-before-append, idempotent; conflicts → escalate) and
-   **commit wiring on the base**.
-6. **Integration gate** — run the project's verify commands on the merged result **after** wiring is
-   committed; **green = exit 0, output captured**. This catches cross-task interactions that no single
-   implementer could see. Failure → analyze → fix-dispatch or escalate.
-7. **Clean up or recycle** task worktrees. If a later parallel wave exists, **recycle** pooled
-   worktrees (`git checkout <base-tip> && git reset --hard`) instead of removing. If no later
-   parallel wave needs them, **defer cleanup** to after the completion gate — batch-remove all
-   worktrees at once. Only remove after asserting each task's commit is an ancestor of the base
-   (`git merge-base --is-ancestor`); if not, **do not remove** — escalate. Prefer safe `git worktree
-   remove` (no `--force`). Remove dependency-share symlinks first (slash-less `<dir>` pattern).
-   Delete merged task branches (`git branch -d`). A failed task's worktree and branch are preserved
-   for diagnosis. After the final batch-remove, also delete the now-empty `.leanforge/worktrees/`
-   directory and any task temp dirs — `.leanforge/` should hold only the active 3-doc, `NNN/` archives,
-   `status.json`, and `backup/` (no litter). → next wave.
+1. **Set up the base.** Create the feature branch when required, commit state-directory ignore setup,
+   and keep active 3-doc files local. Only the orchestrator reads them; children receive the relevant
+   task/spec/hard-gate slice inline. State/external-only tasks stay sequential on the base.
+2. **Scaffold inline.** Establish manifests, dependencies, layout, build config, entry points, and
+   shared types from approved technical decisions. Batch independent writes. Dispatch unusually large
+   or investigative scaffold work only when isolation or exploration justifies it.
+3. **Choose the documented execution mode.** For a single file-diff task, `MECHANICAL`/`NONE` runs
+   orchestrator-direct with the same captured-evidence floor as `implementer-prompt.md`; omitted `risk`
+   remains unclassified and biases toward dispatch when behavior appears; `RISKY` uses one worktree
+   implementer. No-file-diff work uses a base-pinned implementer with captured external evidence.
+4. **Run parallel waves in admitted batches.** Create worktrees serially under
+   `.leanforge/worktrees/<task-id>`, provision only the current live-capacity batch, and dispatch one
+   general-purpose leaf per task. Share dependencies safely and keep runtime resources isolated or
+   explicitly ordered. Collect structured statuses; apply the bounded escalation ladder without loops.
+5. **Land and verify.** Run any triggered conditional spec-review before downstream work: review a
+   branch task before its merge; review collapsed or base-pinned work from the raw base diff or
+   captured external evidence before dependents proceed. Then prove task commits and declared targets,
+    merge serially, run regeneration
+    barriers, apply deferred wiring idempotently on the base, and commit it. Parallel waves run the
+    integration gate with captured output; sequential waves advance after commit verification. Preserve
+    failed or ambiguous worktrees for diagnosis. Do not remove successful task worktrees or branches
+    before the completion gate passes. Between waves, after the prior gate/fix is green and with base
+    writes serialized, reuse only after pinning the current base-tip, binding the worktree HEAD to the
+    previously verified prior task commit, proving the prior task commit is an ancestor, and creating a
+    new task branch at the pinned tip. Reconfirm the base ref immediately before dispatch. Preserve
+    dirty, failed, ambiguous, stale-base, or branch-collision state rather than overwriting it. If an
+    intermediate gate uses
+    affected-only filtering, record what it skipped; the completion gate still runs the full set.
+6. **Review policy.** Default to one final full-diff review. Add a conditional spec-review only when a
+   `RISKY` task has downstream dependents and deviation could cascade. Use `spec-review-prompt.md` and
+   `reviewer-prompt.md`; both remain independent leaves admitted through the live-slot contract.
 
 **After all waves:**
 
-At the durable milestones of a run, update `.leanforge/run.json` atomically (write a temp file, then
-rename). Use only coarse milestones: `in_progress`, `awaiting_user_approval`, `archive_in_progress`,
-`completed`, or `abandoned`. Do not write it after every command. Include `activeDocs` with
-`handoffSha256`, `specSha256`, and `planSha256`, plus the base branch/commit facts needed to detect
-whether a later invocation is looking at the same active 3-doc and git state.
+7. **Persist coarse recovery state.** At durable milestones, atomically update `.leanforge/run.json`
+   with only `in_progress`, `awaiting_user_approval`, `archive_in_progress`, `completed`, or
+   `abandoned`. Include `activeDocs` hashes and base branch/commit facts. Do not checkpoint every
+   command; verified Git and filesystem state remain recovery truth.
+8. **Completion gate.** Run the full verify set on the base. Reuse the last parallel integration result
+   only when it ran the same full set successfully and the base-tip SHA has not changed. After the gate
+   passes, batch-remove eligible successful worktrees and merged task branches only after proving their
+   commits are ancestors of the base; preserve failed or ambiguous worktrees and branches.
+9. **Create or update the project harness.** Force-load `harness-lifecycle.md` and
+   `harness-format.md`, then re-read the 3-doc. First cycle creates the full harness from Foundation,
+   spec, and code; delta updates only changed-scope documentation and navigation. Apply clobber guards,
+   back up/rework an existing entry file only with user approval, and keep file generation silent.
+10. **Final review.** One fresh leaf reviews the full base diff for spec conformance, code quality,
+    evidence integrity, ceremony budget, and the harness when changed, using `harness-review.md` and
+    `reviewer-prompt.md`. A clear verdict means zero blocking findings.
+11. **Fix if needed.** Triage every advisory. Fix trivial non-behavioral items directly; dispatch
+    substantive behavioral or structural fixes. Code changes rerun completion, harness changes rerun
+    harness review, and combined changes rerun both. Record an out-of-scope mismatch rather than
+    expanding the approved task silently.
+12. **User gate.** Present the result for approval. On first cycle reconcile the harness with agreed
+    decisions; on delta summarize harness changes. Persist `awaiting_user_approval` before pausing.
+13. **Archive and mark.** On approval, atomically enter `archive_in_progress`, move the active
+    `.leanforge/{handoff,spec,plan}.md` into the next `.leanforge/NNN/`, delete the root copies only
+    after verifying the archive, write `.leanforge/status.json` (`{ "initialized": true }`) if absent,
+    and mark the run completed.
 
-8. **Completion gate** — the full verify set on the base. **SHA reuse rule:** if the last parallel
-   wave's integration gate passed, **ran the full verify set** (not the affected-only subset), AND the
-   base tip SHA has not changed since that gate (no lightweight fix, no wiring, no regen committed
-   after it), the completion gate is satisfied by the prior gate's captured result — do not re-run.
-   If any commit landed after the last gate, **or that gate was affected-only**, re-run the full verify set.
+Parallel provisioning may overlap the current integration gate, but dispatch waits for green. Fall
+back to serial when overlap or capacity is uncertain.
 
-9. **Harness create / update** (`references/harness-lifecycle.md` + `references/harness-format.md`,
-   force-load). After the completion gate, before the final review: **re-read the 3-doc** (mandatory —
-   the session is now code-biased), then act on the local marker `.leanforge/status.json`:
-   - **First cycle** (marker absent): create the whole harness — CLAUDE.md / AGENTS.md + `docs/` +
-     module AGENTS.md — from the handoff's Project Foundation + spec + code. The Foundation is a
-     **first-cycle invariant** (`Prime` always writes it); if a first-cycle handoff has **no
-     Foundation section**, do **not** guess one from spec + code — **stop and ask the user to
-     regenerate the 3-doc via `Prime`** (`harness-lifecycle.md`, fail-fast precondition). Back up +
-     critically rework any existing CLAUDE.md with user approval.
-   - **Delta** (marker present): update only the changed-scope `docs/` (read all current docs first;
-     escalate an in-scope conflict; new module → new AGENTS.md + navigation-tree update).
-   See `harness-lifecycle.md` for the marker rule and the clobber safety guard.
-   **Write every file silently** — do not announce each file or section as you go ("Now the docs…",
-   "이제 모듈 노트를…", "Now the module roadmap note in `X`"); the UI already shows each write. This
-   multi-file writing sequence is the last place narration leaks — emit nothing between writes.
+## Completion gate
 
-10. **Final review** — one subagent checks the **full diff on the base** for spec conformance + code
-    quality, evidence integrity for any Acceptance & Evidence Matrix, ceremony budget, **and the harness**
-    (when created/updated this cycle) against `references/harness-review.md`
-    (`reviewer-prompt.md`, with the added evidence-integrity and ceremony-budget sub-lenses). If repo-local skills match this cycle's
-    changed scope, apply them only as optional review/explore/checklist lenses per
-    `references/repo-lens-routing.md`; they are not an implementer and never replace `Run`'s execution
-    authority. **Clear = zero blocking findings, recorded.**
-
-11. **Fix if needed** — lightweight fix path for trivial advisories (MUST triage); fix-dispatch
-    substantive findings. Fixes may touch **code or harness**. Re-run per `harness-lifecycle.md`:
-    code changed → re-run completion gate; harness changed → re-run harness review; both → both. A
-    finding about a doc/code mismatch **outside this cycle's change scope** is not fixed here — record
-    it in `docs/tracking/findings.md` and defer (scope-limited delta).
-
-12. **User gate.** Present for approval. **First cycle:** present the code result **and** the harness
-    as a reconciliation against the decisions the user took part in — *"the [X] we agreed in DESIGN is
-    recorded in the harness as [this]"* — **not** a raw document dump. **Later cycle:** include a
-    harness-change summary in the result report.
-
-13. **Archive (move) + mark.** On approval, **move** the active 3-doc into `.leanforge/NNN/` — copy
-    `.leanforge/{handoff,spec,plan}.md` into the new highest+1 dir, **then delete them from the
-    `.leanforge/` root** (archiving is a move, not a copy — leave no stale active 3-doc at root). Write
-    `.leanforge/status.json` (`{ "initialized": true }`) if absent — the local marker that makes the
-    next cycle a delta.
-
-**Advancing waves.** Sequential waves advance immediately after commit verification — no gate to
-wait for. For parallel waves, the next wave's provisioning SHOULD overlap the current wave's
-integration gate (`orchestration.md`, Advancing waves), but dispatch waits for a green gate.
-Fall back to fully serial advance if uncertain.
-
-Mechanics, subagent dispatch constraints, status protocol, context budget, and failure handling live in
-`references/orchestration.md`. Repo-local lens selection lives in `references/repo-lens-routing.md`.
-
-## Completion gate (avoid self-judgment A=A)
-
-Done only when ALL hold — on **evidence**, not assertion:
-- every wave merged; every spec requirement traced to a merged task; zero open
-  `BLOCKED` / needs-fix. **"Zero open BLOCKED" is not "counted as done"** — each BLOCKED task must have
-  **completed escalation to the user** (the user has been told and has resolved its disposition) with
-  its **worktree preserved** for diagnosis; a BLOCKED task may never be silently tallied into "done".
-- every `DONE_WITH_CONCERNS` concern **resolved (fix-dispatched) or explicitly accepted and
-  recorded** (at code-review or by the user) — a flagged concern is never silently carried into
-  "done".
-- a **final full check** — **all** of the project's verify commands (whatever the stack actually has
-  — e.g. typecheck / lint / test / build, or fewer; including any genuinely expensive end-only step
-  deferred from the per-wave gate) on the integrated base **exit 0, with the commands and
-  exit codes captured and shown** (not "looks green"). **Why re-run everything when each wave already
-  passed:** a per-wave gate proves each wave green *in isolation*, but the integrated result can break
-  on **cross-wave interactions** that no single wave's gate could see — so the completion gate re-runs
-  the full verify set against the whole base as the final, all-together check. Running the
-  full verify set every wave is the **safe baseline**; narrowing to an **affected-only** subset is an
-  optional efficiency lever for **intermediate (per-wave) gates only** — never for the completion
-  gate. Affected-only is permitted when the project's test runner supports change-based filtering
-  (e.g. the test runner's change-based filter — `--changed`, `--since`, `--lf`, or equivalent). When
-  using
-  affected-only, record what was skipped so the completion gate's full run covers it. The
-  **completion gate always runs the full verify set** — it is the cross-wave safety net.
-- **runtime smoke** — **in addition to** the verify commands above (which prove the code compiles
-  and tests pass): when the spec declares a running server or service, start it, send one
-  health-check or minimal request, confirm a 2xx response, then stop. A green build proves the
-  code compiles; a runtime smoke proves it boots and responds. Skip only when the project has no
-  runnable server component.
-- **An unevaluable check is a fail, not a pass.** A verify or smoke command counts as green only when
-  its **assertion itself evaluated and reported success** — exit 0 *from the assertion*, or the
-  expected output actually observed. If the assertion could not run (the command errored before
-  asserting, the server never came up, the matched output was empty, the response couldn't be parsed),
-  that is a **failure** — diagnose it, fix the check (or the code), and re-run until the assertion
-  genuinely passes. **Never infer a pass from side-effects** ("the server logged the request", "a file
-  appeared", "no error printed") when the declared assertion did not itself succeed; a check you can't
-  evaluate is not evidence. (This is A=A self-judgment applied to the gate's own evidence — see header.)
-- no residual escalation outstanding — and any task that returned `NEEDS_CONTEXT` / `BLOCKED` was
-  escalated to the user **synchronously** (the orchestrator pauses the run and waits for the user's
-  response — never a silent hang or a timeout-drop). Subagents themselves never ask the user directly
-  (the prompt files carry that fresh-session rule); only the orchestrator relays escalations to the user.
+Done only when all hold on evidence:
+- every planned task is complete and landed, and every wave has landed on the base; every spec
+  requirement traces to a landed task, and every landed task traces to the spec;
+- an open `BLOCKED` or needs-fix task must not be counted complete. Its escalation must be resolved
+  with the user and its worktree preserved for diagnosis; every concern is resolved or explicitly
+  accepted;
+- the integrated base passes the complete verify set with commands, output, and exit codes captured
+  and shown;
+- when the spec declares a runnable service, a minimal runtime smoke starts it, observes a successful
+  response, and stops it; an unevaluable assertion is failure, never inferred success;
+- no escalation remains outstanding.
 
 ## Finish
 
-After the harness step, final review, user approval, and 3-doc archiving (steps 9–13 above):
+After harness, final review, user approval, and 3-doc archiving:
 
-- **Greenfield (base = main) →** work is already on main. Notify the user that the project is
-  complete on main. No merge needed.
-- **Existing project (base = feature branch) →** ask the user **how to integrate**:
-  - **Merge to main →** fetch and confirm main has not moved (if it has, re-integrate / escalate);
-    merge the feature branch with **`--no-ff`** **from a checkout on the main branch**. **On
-    conflict, abort and escalate.** After confirming the merge, clean up branches.
-  - **Open a PR / push →** push the feature branch; leave integration to the project's review flow.
-  - **Hand off only →** keep the feature branch intact.
-  Never integrate on your own.
+- **Greenfield:** work is already on main; report completion.
+- **Existing project:** ask whether to merge to main, open a PR/push, or hand off the feature branch.
+  For merge, fetch and confirm main has not moved; if it moved, re-integrate or escalate. Otherwise
+  merge with `--no-ff` from a checkout on main and abort/escalate on conflict. After confirming the
+  merge, clean up the feature branch. Never integrate without the user's choice.

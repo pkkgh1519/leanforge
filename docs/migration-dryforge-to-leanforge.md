@@ -23,7 +23,6 @@ Use the current Leanforge lifecycle:
 | `Leanforge:Prime` (`/leanforge:prime`) | Create the reviewed spec, plan, and handoff. |
 | `Leanforge:Run` (`/leanforge:run`) | Execute the approved contract. |
 | `Leanforge:Set` (`/leanforge:set`) | Onboard an existing codebase into the project harness. |
-| `Leanforge:Harness` (`/leanforge:harness`) | Design or improve reusable agent workflows and skills. |
 
 ## Automatic compatibility migration
 

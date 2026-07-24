@@ -39,8 +39,8 @@ long as each exit code is captured separately. The completion gate remains the f
     avoidance; the merge-gate protects the base from risky work). This is the parallel-wave machinery
     with a single task — the final review must not be the *only* independent check on risky work.
   - A **no-file-diff** task always uses the base-pinned-subagent path (next bullet), regardless of risk.
-- **Parallel wave:** task worktrees branched from the base; ≤8 concurrent. Integration gate after
-  merge catches cross-task interactions.
+- **Parallel wave:** task worktrees branched from the base; dispatch in action-local runtime-capacity
+  batches. Integration gate after merge catches cross-task interactions.
 - **ROI collapse (objective conditions, not a free judgment).** A multi-task wave defaults to parallel
   worktrees. Collapse to **orchestrator-direct on the base** **only** on an objective condition — a
   **single shared runtime** the tasks cannot isolate within (one DB / container stack / port set), or a
@@ -66,7 +66,40 @@ long as each exit code is captured separately. The completion gate remains the f
   topological sort places such a task in a multi-task wave, **peel it off** and run it on the base
   before/after the worktree batch — do not put it in the pool. (Recognize it from the plan's work
   targets: files | state | external — a task with no `files` target is this case.)
-- **Batch ≤8 concurrent.** If a parallel wave has more than ~8 tasks, split into sub-batches.
+- **Live-capacity contract.** Immediately before each slot-consuming dispatch action, calculate from
+  host-advertised live state:
+
+  ```text
+  free_slots = max(0, runtime_total_slots - active_slot_consumers)
+  batch_size = min(ready_dispatchable_tasks, free_slots, explicit_user_limit_or_infinity)
+  ```
+
+  Count the root and every running child that consumes a runtime slot. Recalculate after every
+  collection, interruption, completion, or dispatch; never cache capacity. A lower user limit remains
+  binding. Choose exactly one host path below; never mix or emulate another host's tools.
+  - **Codex.** Immediately before each dispatch or eligible idle-child reactivation, call `list_agents`.
+    At zero free slots, call `wait_agent` once and then call `list_agents` again. No state change or a
+    second zero-slot result blocks rather than waiting indefinitely. If total capacity is unavailable,
+    degrade to **one child at a time**. A list failure gets one bounded retry, then blocks. Only fresh
+    admission permits `spawn_agent` or an eligible `followup_task`; `send_message` to a running child
+    and `wait_agent` do not consume a new slot or permit retasking. A capacity race rejection gets one
+    wait/re-list retry. A second capacity rejection or no state change reports capacity exhaustion and
+    blocks. An idle implementer may use `followup_task` only when its immediately preceding status was
+    `NEEDS_CONTEXT` or `BLOCKED` and the bounded retry keeps the same graph task, unchanged task
+    contract, same role, and same pinned work location. A different task or role, a changed task
+    contract or work location, any review or re-review, `DONE` or `DONE_WITH_CONCERNS`, a fix-dispatch,
+    and the upgraded-model attempt require a fresh child.
+  - **Claude Code.** Use only live capacity or child-state signals exposed by the host and dispatch via
+    `Agent`. If total capacity or a separate preflight signal is unavailable, admit **one child at a
+    time**. At zero capacity or on a capacity rejection, wait for a running child result, refresh once,
+    and block on no state change or a second rejection. A prior implementer may continue only when its
+    immediately preceding structured status was `NEEDS_CONTEXT` or `BLOCKED` and the bounded retry keeps
+    the same task, unchanged contract, same role, and same pinned work location. Every review,
+    re-review, upgraded-model attempt, changed task, contract, role, or work location, `DONE` or
+    `DONE_WITH_CONCERNS`, and fix-dispatch starts a fresh child.
+  Slot pressure may delay an independent review but never replace it with self-review.
+- **Fresh leaf children.** Every Codex child creation sets `fork_turns: "none"` explicitly; never omit
+  the field or use `"all"`. Children receive only task-local inputs and may not delegate or spawn.
 - Do not recompute or reorder dependencies — the producer owns the graph. Parse failure / cycle /
   dangling `depends` → **stop and escalate** (producer-side defect).
 
@@ -125,16 +158,28 @@ cross-wave interactions at the end.
 - **Create worktrees serially, under `.leanforge/worktrees/`.** Each task worktree lives at
   `.leanforge/worktrees/<task-id>` — inside the gitignored `.leanforge/`, so worktrees never sprawl into
   the project tree or get tracked, and cleanup stays contained. Concurrent `git worktree add` contends
-  on `.git/config.lock` → create serially. **Worktree pool:** when multiple parallel waves exist,
-  create the maximum number needed by any single wave **once** (under `.leanforge/worktrees/`) before
-  the first parallel wave. Between waves, reset a pooled worktree with `git checkout <new-base-tip> &&
-  git reset --hard` instead of remove + recreate. Gitignored symlinks (dependency shares) survive
-  `reset --hard`. After all waves complete, **clean up all pooled worktrees in one batch** (not
-  per-wave): remove the worktree entries, the now-empty `.leanforge/worktrees/` directory itself, and
-  any task scratch/temp dirs created under `.leanforge/`. **Leave no litter** — once the run finishes
-  (3-doc moved into `NNN/` at archiving), `.leanforge/` holds only `NNN/` archives, `status.json`, and
-  `backup/` (the active 3-doc lives at the root only between the producer writing it and archiving).
-  This avoids repeated create/remove cycles and a cluttered `.leanforge/`.
+  on `.git/config.lock` → create serially. **Worktree pool:** after live-capacity admission, create or
+  grow the pool only to the current `batch_size`; never provision work that cannot be dispatched. If
+  capacity later grows, grow lazily. Between waves, reuse only a clean pooled worktree whose prior work
+  safely landed. After the prior wave's gate/fix is green, serialize base writes through the next
+  handoff and pin the current base-tip SHA. Before assigning the worktree to another task, require an
+  empty `git status --porcelain`; capture its current HEAD with `git rev-parse HEAD`, require it to equal
+  the previously verified `<prior-task-tip>` from the merge gate, and prove that tip landed with
+  `git merge-base --is-ancestor <prior-task-tip> <current-base-tip>`, and require that the new task
+  branch name is absent. Then create and switch to it from the pinned tip with
+  `git checkout -b <new-task-branch> <current-base-tip>`. Immediately before dispatch, confirm the base
+  ref still resolves to `<current-base-tip>`; any failed check or mismatch blocks and preserves the
+  worktree, and never force-reset or overwrite it. Defer removal until after the completion gate
+  passes; then clean up all eligible successful worktrees and merged task branches in one batch (not
+  per-wave), after proving each landed commit is an ancestor of the base. Remove dependency-share
+  symlinks, safe-remove each eligible worktree without `--force`, then delete its merged task branch
+  with `git branch -d`. Preserve dirty, failed, ambiguous, stale-base, or branch-collision worktrees and
+  branches as reported diagnostic recovery state. Remove the now-empty `.leanforge/worktrees/`
+  directory and task scratch/temp dirs only when no diagnostic recovery state remains. **Leave no
+  disposable litter** — in that case, once the run finishes (3-doc moved into `NNN/` at archiving),
+  `.leanforge/` holds only `NNN/` archives, `status.json`, and `backup/` (the active 3-doc lives at the
+  root only between the producer writing it and archiving). This avoids repeated create/remove cycles
+  and a cluttered `.leanforge/`.
 - **Task worktrees do not contain the 3-doc.** `.leanforge/` is gitignored, so a freshly-added task
   worktree has **no** `spec.md` / `plan.md` / `handoff.md`. Pass every spec slice, task contract,
   and hard gate **inline in the subagent prompt**.
@@ -143,7 +188,7 @@ cross-wave interactions at the end.
   touching declared targets — checked with **three-dot** diff (`git diff base...task`).
 - **Restore the orchestrator's cwd after each wave.**
 - **Subagent output is bounded.**
-- **Practical parallelism ~5–8.**
+- **Parallelism follows the live-capacity contract above; never substitute a fixed numeric range.**
 - **Don't disable the build cache or daemon.** Warm it once and share across worktrees.
 - **Enable incremental / caching mode at scaffold** when the project's build or verify tools
   support it but default to off. Check the tool's config or documentation during scaffold setup;
@@ -221,29 +266,36 @@ re-dispatching past the ladder.
    orchestrator implements directly on the base; omitted `risk` remains unclassified, not
    `MECHANICAL`, until read-time judgment confirms the direct path; `RISKY` → a worktree subagent + merge-gate; a
    no-file-diff task → a base-pinned subagent. (Details in "Sequential wave — execution".)
-2. **Land it on the base** — orchestrator-direct / no-file-diff: verify the commit on the base
-   (`git log`; file-diff touches declared targets; no-file-diff: commit message + captured external
-   evidence). RISKY worktree: verify commit existence, then **merge-gate** into the base (strictly
-   ahead + diff touches declared targets). Never trust self-report.
-3. **Regen barriers** — run barriers whose `after` is now satisfied. Commit regenerated output if a
+2. **Verify the result without merging a RISKY branch yet** — orchestrator-direct / no-file-diff:
+   verify the commit on the base (`git log`; file-diff touches declared targets; no-file-diff: commit
+   message + captured external evidence). RISKY worktree: verify commit existence and the merge-gate
+   preconditions (strictly ahead + diff touches declared targets). Never trust self-report.
+3. **Spec review** (conditional) — complete it before a RISKY branch merges or downstream work begins.
+   Review the task branch for worktree execution, the raw base diff for orchestrator-direct/collapsed
+   work, or captured external evidence for a no-file-diff task.
+4. **Land the RISKY branch** — after a clear conditional review (when triggered), merge-gate it into
+   the base. Orchestrator-direct and no-file-diff work is already committed on the base.
+5. **Regen barriers** — run barriers whose `after` is now satisfied. Commit regenerated output if a
    later task depends on it. Recovery: if a barrier exits non-zero, capture command + exit + stderr,
    analyze whether a prior merge broke a precondition; if it would overwrite merged files, escalate.
-4. **Deferred wiring** — if applicable, the single writer appends shared registrations directly
+6. **Deferred wiring** — if applicable, the single writer appends shared registrations directly
    (no parallel siblings to collide). Commit on the base.
-5. **Spec review** (conditional) — only when the review policy calls for it.
-6. **No integration gate.** The self-checks ran on the cumulative base. → next wave.
+7. **No integration gate.** The self-checks ran on the cumulative base. → next wave.
 
 ### Parallel wave (multiple tasks)
 
-1. **Merge serially** into the base (commit-existence verified first). **Merge-gate:** task branch
-   strictly ahead, diff touches declared **file** targets (three-dot). (No-file-diff tasks never
-   reach this path — they were handled on the base; see Wave scheduling.) Merge commit must satisfy hooks.
+1. **Verify every task branch before merge.** Confirm commit existence and the merge-gate
+   preconditions: the branch is strictly ahead and its three-dot diff touches declared **file**
+   targets. No-file-diff tasks never reach this path; see Wave scheduling.
+2. **Spec review** (conditional) — review each triggered task branch before that branch is eligible to
+   merge. A blocking verdict stops the merge and downstream work.
+3. **Merge serially** into the base. The merge commit must satisfy hooks.
    Recovery: inspect hook output, verify branch state, retry with discovered convention; else escalate.
-2. **Regen barriers** — same as sequential. Commit if downstream depends on it.
-3. **Deferred wiring** — the single writer appends all registrations, **idempotently**
+4. **Regen barriers** — same as sequential. Commit if downstream depends on it.
+5. **Deferred wiring** — the single writer appends all registrations, **idempotently**
    (check-before-append; conflicts → escalate). **Commit on the base** — uncommitted wiring is
    silently lost to later worktrees and the final merge.
-4. **Integration gate** — run the project's verify commands on the merged + wired base; **green =
+6. **Integration gate** — run the project's verify commands on the merged + wired base; **green =
    exit 0, output captured**. This catches cross-task interactions. Failure → fix-dispatch or
    escalate. **If the producer found zero verify commands**, the absence of a gate is a recorded
    decision, not silence. **Record the base tip SHA after the gate passes** (e.g. `GATE_SHA=$(git rev-parse HEAD)`) — the
@@ -252,10 +304,9 @@ re-dispatching past the ladder.
    commands in a single Bash call, backgrounding each and collecting its exit code individually
    (e.g. `cmd1 & p1=$!; cmd2 & p2=$!; wait $p1; e1=$?; wait $p2; e2=$?`), then report per-command
    pass/fail.
-5. **Spec review** (conditional) — only when the review policy calls for it.
-6. **Clean up** task worktrees — only after asserting ancestor (`git merge-base --is-ancestor`).
-   Safe remove (no `--force`); remove share-symlinks first. Delete merged task branches.
-   Failed tasks' worktrees preserved for diagnosis. → next wave.
+7. **Retain or recycle** task worktrees. Reuse only clean worktrees whose landed commits are ancestors
+   of the base; preserve failed or ambiguous worktrees. Successful worktrees and merged task branches
+   remain until post-completion-gate batch cleanup. → next wave.
 
 ### Advancing waves
 
@@ -306,14 +357,14 @@ non-behavioral changes only — substantive findings still go to an independent 
 | architecture mismatch / suspected spec violation / data-corruption risk | **stop and escalate** |
 
 - **Partial wave failure — cleanup order + retry semantics**: keep the merged successful tasks.
-  **Preserve the failed task's worktree for diagnosis** (do not clean it). **Clean up only the
-  successful worktrees**, and only after the ancestor check (`git merge-base --is-ancestor`).
-  **Never delete the base.** On retry, create a **FRESH worktree branched from the
+  **Preserve the failed task's worktree for diagnosis** (do not clean it). Retain successful
+  worktrees until the completion gate; only a clean worktree whose landed commit is an ancestor of
+  the base may be recycled between waves. **Never delete the base.** On retry, create a **FRESH worktree branched from the
   CURRENT base tip** — which now includes this wave's already-merged successes (the base tip
   advances per merge), so the retry builds on the integrated state, not the stale pre-wave tip. The
   wave doesn't proceed until all pass.
-- **Safety net**: worktree isolation means a discarded failed task never affects the base.
-  Verify real work exists (`git log` / `git diff`) before relying on a result.
+- **Safety net**: failed task changes remain isolated from the base; preserve the worktree for
+  diagnosis. Verify real work exists (`git log` / `git diff`) before relying on a result.
 
 ## Escalate = ask the user
 

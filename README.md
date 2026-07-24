@@ -2,7 +2,7 @@
 
 <div align="center">
 
-# Leanforge v1.6.9
+# Leanforge v1.7.0
 
 ### Intent-to-implementation for Claude Code & Codex.
 
@@ -49,7 +49,6 @@ After install, the command palette should expose:
 - `Leanforge:Prime` (`/leanforge:prime`)
 - `Leanforge:Run` (`/leanforge:run`)
 - `Leanforge:Set` (`/leanforge:set`)
-- `Leanforge:Harness` (`/leanforge:harness`)
 - Codex only: `Leanforge:Run TDD` (`/leanforge:run-tdd`)
 
 ### First successful run
@@ -118,12 +117,11 @@ rationale **at the path every future session reads first**.
 
 ---
 
-## Four commands: design, execute, extend
+## Three commands: design, execute, onboard
 
 ```
   /leanforge:prime <INPUT> ──▶  /leanforge:run  ──▶  working code + project harness
-                              ├─ /leanforge:set (one-time onboarding)
-                              └─ /leanforge:harness (workflow design)
+                              └─ /leanforge:set (one-time onboarding)
 ```
 
 | Command | Consumes | Produces |
@@ -131,7 +129,6 @@ rationale **at the path every future session reads first**.
 | `Leanforge:Prime` (`/leanforge:prime`) | anything — one line to full documents | a reviewed, executable design contract |
 | `Leanforge:Run` (`/leanforge:run`) | the approved contract | verified code + the project harness |
 | `Leanforge:Set` (`/leanforge:set`) | an existing codebase | the project harness (one-time) |
-| `Leanforge:Harness` (`/leanforge:harness`) | design briefs, specs, repo-local skills | validated agent workflows + skill specs |
 
 ---
 
@@ -237,29 +234,6 @@ then on, the project runs on `/leanforge:prime` → `/leanforge:run`.
 
 ---
 
-## Bundled support skill
-
-### `/leanforge:harness` — Workflow design & team specifications
-
-The harness skill designs, audits, repairs, and validates durable
-repo-local agent workflows: team specs, role briefs, specialist skills,
-validation loops, and benchmark packs.
-
-It is an upper design layer over the per-cycle harness that `/leanforge:run` writes
-(into `CLAUDE.md` / `AGENTS.md` / `docs/`). Where `/leanforge:run` focuses on
-implementation-time orchestration, `/leanforge:harness` focuses on reusable workflow
-patterns — agents that work across projects, team conventions that scale,
-specialist roles that plug into parallel execution.
-
-Use `/leanforge:harness` when you want to:
-
-- Design and test a custom multi-agent workflow before running it at scale
-- Capture team standards, domain expertise, or validation rules as executable specs
-- Audit a workflow for safety, consistency, or correctness
-- Build a skill that will be invoked by other agents or projects
-
----
-
 ## Anatomy of a cycle
 
 `/leanforge:prime` → `/leanforge:run` is one pipeline with exactly two approval points — both
@@ -319,7 +293,6 @@ your-project/
 │   ├── engineering-notes.md   # hard-won knowledge: traps, mechanisms, checklists
 │   ├── operations.md          # how to run it: setup, build, deploy
 │   ├── contracts.md           # external interface contracts
-│   ├── harness/               # (optional) reusable workflows, team specs, roles
 │   └── tracking/
 │       ├── status.md          # where the project stands vs. its full scope
 │       ├── decisions/         # decision records — what was chosen, and why
@@ -384,16 +357,14 @@ what each one trusts.
 
 ## Platform notes
 
-- **Explicit invocation only.** The core lifecycle and harness never auto-trigger.
+- **Explicit invocation only.** The core lifecycle never auto-triggers.
   Nothing runs unless you call it.
 - **One source, two platforms.** Claude Code and Codex artifacts build
   from the canonical `src/skills/` tree into committed `claude/` and
   `codex/plugin/` bundles. The build checks plugin version parity and shared
   reference-file parity before release.
-- **Bundled support.** The `/leanforge:harness` skill is included in the plugin for
-  workflow design, audit, repair, and reusable specialist-skill authoring.
-- **The three lifecycle commands** (`Prime`, `Run`, `Set`) are the
-  steady-state pipeline; harness is an optional extension around it.
+- **The three lifecycle commands** (`Prime`, `Run`, `Set`) are the complete
+  core lifecycle surface. The Codex bundle also exposes the optional `Run TDD` wrapper.
 - **Requirements.** `git`, and Claude Code or Codex.
 
 ---

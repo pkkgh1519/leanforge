@@ -49,8 +49,8 @@ regen_barriers:
 ## What is NOT in the graph (do not look for it here)
 
 `produces` / `consumes` / `shared_write` / `waves` are deliberately absent:
-- **waves** are *derived by Run*, not encoded — topological sort of `depends`, then split into
-  batches of **≤8 concurrent** (practical parallelism ~5–8).
+- **waves** are *derived by Run*, not encoded — topological sort of `depends`, then action-local
+  runtime-capacity batching. No fixed concurrency ceiling is encoded in the graph.
 - **produces/consumes** were the producer's *reasoning* to derive `depends`; they don't survive
   into the graph.
 - **shared_write** is a prose hint in the plan, backed by Run's runtime overlap detection — not a

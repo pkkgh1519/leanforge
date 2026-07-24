@@ -33,8 +33,9 @@ class LeanforgeRenameContractTests(unittest.TestCase):
         self.assertEqual("pkkgh1519", claude_manifest["author"]["name"])
 
         prompts = "\n".join(codex_manifest["interface"]["defaultPrompt"])
-        for call in ("/leanforge:prime", "/leanforge:run", "/leanforge:harness"):
+        for call in ("/leanforge:prime", "/leanforge:run"):
             self.assertIn(call, prompts)
+        self.assertNotIn("/leanforge:harness", prompts)
 
     def test_docs_use_leanforge_distribution_path_without_homepage_site(self):
         for rel in ("README.md", "README_KO.md"):
@@ -55,6 +56,8 @@ class LeanforgeRenameContractTests(unittest.TestCase):
             "dryforge.vercel.app",
             "Website (legacy URL)",
             "/leanforge:herness",
+            "/leanforge:harness",
+            "Leanforge:Harness",
             "harness:*",
         )
         for path in user_facing_markdown_files():
@@ -85,7 +88,6 @@ class LeanforgeRenameContractTests(unittest.TestCase):
             "prime": "Leanforge:Prime",
             "run": "Leanforge:Run",
             "set": "Leanforge:Set",
-            "harness": "Leanforge:Harness",
             "run-tdd": "Leanforge:Run TDD",
         }
         for skill, display_name in expected.items():
@@ -95,16 +97,23 @@ class LeanforgeRenameContractTests(unittest.TestCase):
                 )
                 self.assertIn(f'display_name: "{display_name}"', yaml_text)
 
-    def test_readme_uses_harness_slash_command(self):
-        for rel in ("README.md", "README_KO.md"):
-            with self.subTest(rel=rel):
-                body = (ROOT / rel).read_text(encoding="utf-8")
-                self.assertIn("/leanforge:harness", body)
-                self.assertNotIn("harness:*", body)
-                self.assertNotIn("/leanforge:herness", body)
+    def test_retired_harness_command_is_absent_from_current_surfaces(self):
+        checked = {ROOT / "README.md", ROOT / "README_KO.md"}
+        for rel in ("docs", "src/skills", "platform", "claude/skills", "codex/plugin"):
+            checked.update(
+                path
+                for path in (ROOT / rel).rglob("*")
+                if path.is_file() and path.suffix in {".md", ".json", ".yaml", ".yml"}
+            )
 
-    def test_old_skill_directories_are_not_part_of_sources_or_packages(self):
-        old_skill_names = ("ready", "go", "migration", "dryforge-go-tdd")
+        for path in sorted(checked):
+            with self.subTest(rel=path.relative_to(ROOT)):
+                body = path.read_text(encoding="utf-8")
+                self.assertNotIn("/leanforge:harness", body)
+                self.assertNotIn("Leanforge:Harness", body)
+
+    def test_retired_skill_directories_are_not_part_of_sources_or_packages(self):
+        old_skill_names = ("ready", "go", "migration", "dryforge-go-tdd", "harness")
         roots = (
             ROOT / "src/skills",
             ROOT / "platform/codex/skills",
@@ -115,6 +124,72 @@ class LeanforgeRenameContractTests(unittest.TestCase):
             for skill in old_skill_names:
                 with self.subTest(root=root, skill=skill):
                     self.assertFalse((root / skill).exists())
+
+    def test_project_harness_contracts_remain_in_core_skills(self):
+        required = (
+            "src/skills/run/references/harness-format.md",
+            "src/skills/run/references/harness-lifecycle.md",
+            "src/skills/run/references/harness-review.md",
+            "src/skills/set/references/harness-format.md",
+            "src/skills/set/references/harness-review.md",
+        )
+        for rel in required:
+            with self.subTest(rel=rel):
+                self.assertTrue((ROOT / rel).is_file())
+
+    def test_readme_project_harness_tree_excludes_retired_meta_harness_output(self):
+        for rel in ("README.md", "README_KO.md"):
+            with self.subTest(rel=rel):
+                body = (ROOT / rel).read_text(encoding="utf-8")
+                self.assertNotIn("│   ├── harness/", body)
+
+    def test_set_blocks_active_canonical_run_before_any_write(self):
+        heading = "- **Active canonical state preflight — before any write.**"
+        required = (
+            "`.leanforge/run.json`",
+            "`in_progress`",
+            "`awaiting_user_approval`",
+            "`archive_in_progress`",
+            "`.leanforge/handoff.md`",
+            "`.leanforge/spec.md`",
+            "`.leanforge/plan.md`",
+            "`.leanforge/worktrees/`",
+            "stop without modifying the repository",
+            "resume, finish, abandon, or recover",
+            "Do not write `.leanforge/status.json`, harness/entry files, `.leanforge/backup/`, or `.gitignore`",
+            "`completed` or `abandoned` stale marker alone",
+            "unreadable marker, unknown status, or inconsistent state",
+        )
+
+        for surface in ("src/skills", "codex/plugin/skills", "claude/skills"):
+            with self.subTest(surface=surface):
+                body = (ROOT / surface / "set/SKILL.md").read_text(encoding="utf-8")
+                start = body.find(heading)
+                legacy = body.find("- **Legacy state preflight.**")
+                phase_one = body.find("## Phase 1")
+
+                self.assertGreaterEqual(start, 0, "missing canonical active-state guard")
+                self.assertGreater(legacy, start, "canonical guard must precede legacy migration")
+                self.assertGreater(phase_one, legacy, "all state preflights must precede Phase 1")
+
+                contract = " ".join(body[start:legacy].split())
+                missing = [term for term in required if term not in contract]
+                self.assertFalse(missing, f"missing canonical guard terms: {missing}")
+
+    def test_each_skill_blocks_migration_of_legacy_active_root_3doc(self):
+        for surface in ("src/skills", "codex/plugin/skills", "claude/skills"):
+            with self.subTest(surface=surface):
+                body = (ROOT / surface / "set/SKILL.md").read_text(encoding="utf-8")
+                preflight = re.search(
+                    r"(?ms)- \*\*Legacy state preflight\.\*\*(.*?)(?=\n\n## Phase 1)",
+                    body,
+                )
+                self.assertIsNotNone(preflight)
+                contract = " ".join(preflight.group(1).split())
+                self.assertIn("root active 3-doc", contract)
+                self.assertIn("active `run.json`", contract)
+                self.assertIn("`worktrees/`", contract)
+                self.assertIn("do not migrate", contract)
 
     def test_local_state_directory_is_leanforge_with_guarded_legacy_migration(self):
         combined = "\n".join(

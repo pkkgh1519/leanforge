@@ -1,5 +1,16 @@
 # Changelog
 
+## v1.7.0 (2026-07-24)
+
+- compress the Prime and Run instruction bodies while preserving the v1.6.9 execution philosophy and behavior
+- make Codex child dispatch explicit with fresh leaf children and `fork_turns: "none"`
+- size dispatch batches from live runtime slot capacity instead of a fixed concurrency ceiling
+- remove the optional Harness meta-skill and command while retaining the project harness maintained by Prime, Run, and Set
+- keep live-slot admission host-aware, with fresh Prime/Set reviews and narrowly scoped same-task Run retries
+- restore full planned-task completion, post-gate cleanup, and current-base worktree reuse contracts
+- make Run TDD self-contained and block legacy migration when a root active 3-doc is present
+- block Set before any write when canonical Run state is active, ambiguous, or retained for recovery
+
 ## v1.6.9 (2026-07-15)
 
 - preserve source differences as candidates without turning every difference into a Prime strategy question

@@ -74,28 +74,24 @@ class RunRecoveryContractTests(unittest.TestCase):
             "allowed-tools: Read, Edit, Write, Bash, Grep, Glob, Agent, AskUserQuestion\n"
         )
 
-        exact_codex_paths = [
-            "run/SKILL.md",
-            "run/references/harness-lifecycle.md",
-            "prime/SKILL.md",
-            "set/SKILL.md",
-        ]
-        for rel in exact_codex_paths:
+        source_files = sorted(
+            path.relative_to(ROOT / "src/skills")
+            for path in (ROOT / "src/skills").rglob("*")
+            if path.is_file()
+        )
+        for rel_path in source_files:
+            rel = rel_path.as_posix()
             with self.subTest(surface="codex", rel=rel):
                 self.assertEqual(read(f"src/skills/{rel}"), read(f"codex/plugin/skills/{rel}"))
 
-        claude_skill_paths = ["run/SKILL.md", "prime/SKILL.md", "set/SKILL.md"]
-        for rel in claude_skill_paths:
+        for rel_path in source_files:
+            rel = rel_path.as_posix()
             with self.subTest(surface="claude", rel=rel):
                 claude = read(f"claude/skills/{rel}")
-                self.assertIn(claude_injected_lines, claude)
-                self.assertEqual(read(f"src/skills/{rel}"), claude.replace(claude_injected_lines, "", 1))
-
-        with self.subTest(surface="claude", rel="run/references/harness-lifecycle.md"):
-            self.assertEqual(
-                read("src/skills/run/references/harness-lifecycle.md"),
-                read("claude/skills/run/references/harness-lifecycle.md"),
-            )
+                if rel_path.name == "SKILL.md":
+                    self.assertIn(claude_injected_lines, claude)
+                    claude = claude.replace(claude_injected_lines, "", 1)
+                self.assertEqual(read(f"src/skills/{rel}"), claude)
 
     def test_Leanforge_ops_is_not_packaged(self):
         removed_paths = [
@@ -122,6 +118,14 @@ class RunRecoveryContractTests(unittest.TestCase):
         body = codex_skill.read_text(encoding="utf-8")
         self.assertIn("Leanforge:Run remains the primary execution", body)
         self.assertIn("selective TDD guidance", body)
+        self.assertIn("self-contained", body)
+        self.assertIn("does not require a separately installed `tdd` skill", body)
+        self.assertNotIn("Read the `tdd` `SKILL.md`", body)
+        self.assertNotIn("standalone `tdd` skill's general advice", body)
+        self.assertEqual(
+            platform_skill.read_text(encoding="utf-8"),
+            codex_skill.read_text(encoding="utf-8"),
+        )
 
 
 if __name__ == "__main__":

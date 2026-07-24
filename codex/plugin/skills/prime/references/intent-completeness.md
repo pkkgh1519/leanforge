@@ -24,7 +24,8 @@ it doing the completeness work, the late 3-doc-gate finds little.
 
 ## Dispatch
 
-Dispatch a fresh subagent that did **not author** the intent. Give it:
+Apply Prime's action-local live-slot admission contract, then dispatch a fresh non-delegating leaf
+that did **not author** the intent. On Codex, set `fork_turns: "none"` explicitly. Give it:
 - **The chat session + ELICIT's decision surface** — it **reads the dialogue** (that is how it judges
   whether a slot's disposition is grounded in what the user actually said) plus the enumerated,
   dispositioned surface (each slot `grounded` / `deferred-tunable` / asked-and-answered), the domain

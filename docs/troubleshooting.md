@@ -15,7 +15,6 @@ Expected commands:
 - `Leanforge:Prime` (`/leanforge:prime`)
 - `Leanforge:Run` (`/leanforge:run`)
 - `Leanforge:Set` (`/leanforge:set`)
-- `Leanforge:Harness` (`/leanforge:harness`)
 - Codex only: `Leanforge:Run TDD` (`/leanforge:run-tdd`)
 
 ## `Leanforge:Run TDD` is missing

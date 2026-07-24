@@ -57,7 +57,6 @@ class RunRepoLensContractTests(unittest.TestCase):
         checked = [
             "README.md",
             "README_KO.md",
-            "docs/harness/harness-skill-improvement-plan.md",
         ]
         for surface in SURFACES:
             root = ROOT / surface

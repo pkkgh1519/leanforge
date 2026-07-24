@@ -32,6 +32,8 @@ Do not dispatch for:
 
 ## Dispatch contract
 
+- **Admission and isolation.** Apply Prime's action-local live-slot admission contract immediately
+  before dispatch. On Codex, create one non-delegating leaf with `fork_turns: "none"` explicitly.
 - **Read-only.** The scout inspects files and commands only as evidence. It does not write, edit,
   commit, install, run Sets, or perform implementation.
 - **Evidence pointers only.** Return compact path/line/command pointers and why each pointer matters.

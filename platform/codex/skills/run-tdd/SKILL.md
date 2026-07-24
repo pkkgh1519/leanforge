@@ -15,11 +15,13 @@ Use this skill as a thin wrapper around `Leanforge:Run` when the user wants Lean
 
 The original `Leanforge:Run` workflow remains authoritative. This skill only adds selective TDD guidance for implementation tasks that change observable behavior.
 
+This wrapper is self-contained and does not require a separately installed `tdd` skill.
+
 ## Required loading order
 
 1. Read this `SKILL.md`.
 2. Read the original `Leanforge:Run` `SKILL.md` completely and follow it as the primary workflow.
-3. Read the `tdd` `SKILL.md` completely and use it only as subordinate guidance where this skill says TDD applies.
+3. Apply the self-contained selective TDD policy below where this skill says TDD applies.
 
 If the original `Leanforge:Run` skill path is not obvious from available skill metadata, ask the user for the path instead of guessing.
 
@@ -31,7 +33,6 @@ Follow this priority order:
 2. Project-local `AGENTS.md` and repository constraints.
 3. Original `Leanforge:Run` handoff/spec/plan execution workflow.
 4. This wrapper's selective TDD guidance.
-5. The standalone `tdd` skill's general advice.
 
 If TDD guidance conflicts with the original `Leanforge:Run` flow, the Leanforge handoff/spec/plan execution flow wins.
 

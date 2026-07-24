@@ -4,6 +4,9 @@ One subagent implements one task, **verified-first** (test-first where it fits),
 worktree, then commits and reports. The prompt has **required elements** (mandated — the scaffold)
 and **wording you adapt** (the example below is one phrasing, not a fixed script).
 
+Create it as a non-delegating leaf. On Codex, set `fork_turns: "none"` explicitly; never omit it or
+use `"all"`. Apply the live-capacity admission contract in `orchestration.md` first.
+
 ## Required elements (every implementer prompt must pin)
 
 - **Task contract** — the task's goal and **work targets (files | state | external resource)**,

@@ -21,7 +21,7 @@ The graph encodes only:
 
 Do **not** encode produces / consumes / shared_write / waves:
 - produces/consumes are the *reasoning you use to derive `depends`*, not graph fields.
-- **waves** are derived by Run (topological sort of `depends`, then ≤8-concurrent batches).
+- **waves** are derived by Run (topological sort of `depends`, then action-local runtime-capacity batches).
 - **shared_write** is a prose hint (below), with a runtime safety net.
 
 ## Deriving `depends`
