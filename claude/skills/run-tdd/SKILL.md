@@ -5,6 +5,8 @@ description: >
   run-tdd, Leanforge:Run TDD, or asks to run Leanforge:Run while automatically applying TDD to
   observable behavior changes. This is a wrapper: Leanforge:Run remains the primary execution
   authority, and TDD is subordinate verification guidance for suitable implementation tasks.
+disable-model-invocation: true
+allowed-tools: Read, Edit, Write, Bash, Grep, Glob, Agent, SendMessage, AskUserQuestion
 ---
 
 # Leanforge:Run TDD
@@ -30,7 +32,7 @@ If the original `Leanforge:Run` skill path is not obvious from available skill m
 Follow this priority order:
 
 1. System, developer, sandbox, tool, and safety instructions.
-2. Project-local `AGENTS.md` and repository constraints.
+2. Project-local `CLAUDE.md`/`AGENTS.md` and repository constraints.
 3. Original `Leanforge:Run` handoff/spec/plan execution workflow.
 4. This wrapper's selective TDD guidance.
 

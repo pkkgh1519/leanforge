@@ -49,7 +49,7 @@ After install, the command palette should expose:
 - `Leanforge:Prime` (`/leanforge:prime`)
 - `Leanforge:Run` (`/leanforge:run`)
 - `Leanforge:Set` (`/leanforge:set`)
-- Codex only: `Leanforge:Run TDD` (`/leanforge:run-tdd`)
+- `Leanforge:Run TDD` (`/leanforge:run-tdd`) — optional, see [when to use it](docs/troubleshooting.md#when-to-use-leanforgerun-tdd-instead-of-leanforgerun)
 
 ### First successful run
 
@@ -364,7 +364,7 @@ what each one trusts.
   `codex/plugin/` bundles. The build checks plugin version parity and shared
   reference-file parity before release.
 - **The three lifecycle commands** (`Prime`, `Run`, `Set`) are the complete
-  core lifecycle surface. The Codex bundle also exposes the optional `Run TDD` wrapper.
+  core lifecycle surface. Both bundles also expose the optional `Run TDD` wrapper.
 - **Requirements.** `git`, and Claude Code or Codex.
 
 ---

@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.8.0 (2026-08-03)
+
+- promote `run-tdd` to the canonical `src/skills/` source so Claude Code and Codex build it from the same file; the Codex-only platform duplicate is retired
+- package `Leanforge:Run TDD` for Claude Code with the same `allowed-tools` as `Run` (it assumes Run's full responsibility plus TDD overlay guidance)
+- document when `Run TDD` earns its cost over plain `Run` in troubleshooting.md, and drop the now-inaccurate "Codex-only" wording from README, installation, and the productization-release skill
+
 ## v1.7.1 (2026-08-03)
 
 - stop serializing Claude Code dispatch to one child at a time: the host queues children without a capacity preflight, so a ready wave dispatches as parallel `Agent` calls bounded only by an explicit user limit

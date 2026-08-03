@@ -23,7 +23,7 @@ PLAT="$ROOT/platform"
 claude_tools() {
   case "$1" in
     set|prime) echo "Read, Edit, Write, Bash, Grep, Glob, Agent, AskUserQuestion" ;;
-    run)       echo "Read, Edit, Write, Bash, Grep, Glob, Agent, SendMessage, AskUserQuestion" ;;
+    run|run-tdd) echo "Read, Edit, Write, Bash, Grep, Glob, Agent, SendMessage, AskUserQuestion" ;;
   esac
 }
 
@@ -32,7 +32,7 @@ echo "=== build: claude ==="
 rm -rf "$ROOT/claude"
 mkdir -p "$ROOT/claude/.claude-plugin"
 cp -R "$SRC" "$ROOT/claude/skills"
-for s in prime run set; do
+for s in prime run set run-tdd; do
   perl -0777 -i -pe 's/\r\n/\n/g' "$ROOT/claude/skills/$s/SKILL.md"
   INJECT=$'disable-model-invocation: true\nallowed-tools: '"$(claude_tools "$s")" \
     perl -0777 -i -pe 'BEGIN{$j=$ENV{INJECT}} s/\A(---\r?\n.*?\r?\n)---\r?\n/$1$j\n---\n/s or die "failed to inject Claude frontmatter\n"' \

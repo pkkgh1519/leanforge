@@ -15,12 +15,35 @@ Expected commands:
 - `Leanforge:Prime` (`/leanforge:prime`)
 - `Leanforge:Run` (`/leanforge:run`)
 - `Leanforge:Set` (`/leanforge:set`)
-- Codex only: `Leanforge:Run TDD` (`/leanforge:run-tdd`)
+- `Leanforge:Run TDD` (`/leanforge:run-tdd`) — optional, available on both Claude Code and Codex
 
-## `Leanforge:Run TDD` is missing
+## When to use `Leanforge:Run TDD` instead of `Leanforge:Run`
 
-`Leanforge:Run TDD` is Codex-only. Claude Code installations should use the core
-`Leanforge:Prime` -> `Leanforge:Run` lifecycle.
+`Run TDD` is a thin wrapper: it runs the exact same `Run` workflow and adds one thing — a
+mandatory vertical red-green-refactor loop for tasks that change observable behavior, plus a
+standing refusal to accept shallow evidence (file existence, source-string checks, symbol
+existence, skipped tests, weakened assertions) as proof a behavior works. `Run` alone already
+applies right-sized, test-first verification by judgment; `Run TDD` removes the judgment call
+for behavior-changing work and makes the discipline structural instead of optional.
+
+Reach for `Run TDD` over plain `Run` when:
+
+- the task carries real cost if wrong — business logic, authorization, financial or
+  scoring calculations, state transitions, validation rules;
+- other systems depend on the behavior — public API surface, parsing/serialization formats,
+  anything with external consumers where a late-caught regression is expensive;
+- the spec has an Acceptance & Evidence Matrix and you want each AC walked test-first,
+  one behavior at a time, instead of implemented in one pass and verified after the fact;
+- prior work in this codebase has shipped shallow or retrofitted tests, and you want the
+  wrapper's explicit evidence exclusions enforced rather than left to judgment;
+- the behavior has enough edge cases that implementing it in one pass tends to hide bugs —
+  the vertical slice-by-slice loop surfaces them incrementally instead.
+
+Stay on plain `Run` when the task is documentation-only, a harness or agent-instruction
+update, formatting-only, a file move or rename, mechanical import/path wiring, a simple
+configuration change, scaffolding with no observable behavior yet, or build/CI plumbing with
+no product behavior change — `Run TDD` explicitly excludes these from forced TDD anyway, so
+invoking it buys nothing `Run` doesn't already do.
 
 ## Git is missing
 

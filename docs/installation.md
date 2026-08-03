@@ -40,10 +40,10 @@ After installation, the command palette should expose these commands:
 | `Leanforge:Prime` (`/leanforge:prime`) | Turn intent into a reviewed executable design contract. |
 | `Leanforge:Run` (`/leanforge:run`) | Execute the approved contract with evidence gates. |
 | `Leanforge:Set` (`/leanforge:set`) | Onboard an existing codebase into the project harness. |
-| `Leanforge:Run TDD` (`/leanforge:run-tdd`) | Codex-only wrapper for behavior-changing work with selective TDD guidance. |
+| `Leanforge:Run TDD` (`/leanforge:run-tdd`) | Optional wrapper around `Run` that adds selective TDD discipline for behavior-changing work. |
 
-If `Leanforge:Run TDD` is absent in Claude Code, that is expected: it is a
-Codex-only wrapper. The core lifecycle is still `Prime` -> `Run`.
+`Leanforge:Run TDD` is optional on both Claude Code and Codex; the core lifecycle is
+`Prime` -> `Run`. See [when to use it](troubleshooting.md#when-to-use-leanforgerun-tdd-instead-of-leanforgerun).
 
 ## First successful run
 
@@ -64,6 +64,8 @@ and project harness updates when applicable.
 
 ## Version notes
 
+- `v1.8.0` packages `Leanforge:Run TDD` for Claude Code, generated from the same canonical
+  source as the Codex wrapper. Behavior and content are unchanged; only availability widens.
 - `v1.7.1` restores parallel wave execution on Claude Code. That host queues children
   without exposing a capacity preflight, so `Run` no longer degrades a ready wave to one
   child at a time; it dispatches the wave in parallel, bounded only by a limit you set.

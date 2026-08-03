@@ -47,7 +47,7 @@ codex plugin add leanforge@leanforge
 - `Leanforge:Prime` (`/leanforge:prime`)
 - `Leanforge:Run` (`/leanforge:run`)
 - `Leanforge:Set` (`/leanforge:set`)
-- Codex 전용: `Leanforge:Run TDD` (`/leanforge:run-tdd`)
+- `Leanforge:Run TDD` (`/leanforge:run-tdd`) — 선택 사항, [언제 쓰면 좋은지 보기](docs/troubleshooting.md#when-to-use-leanforgerun-tdd-instead-of-leanforgerun)
 
 ### 첫 실행
 
@@ -246,7 +246,7 @@ your-project/
 
 - **명시적으로 불러야 동작합니다.** core lifecycle은 자동으로 트리거되지 않습니다. 호출하지 않으면 아무것도 실행되지 않습니다.
 - **소스는 하나, 플랫폼은 둘입니다.** Claude Code와 Codex 번들은 플랫폼 중립 `src/skills/` 트리에서 `claude/`와 `codex/plugin/`으로 빌드됩니다. 릴리스 전에는 plugin version parity와 shared reference file parity를 확인합니다.
-- **핵심 표면.** `Prime`, `Run`, `Set`이 완전한 core lifecycle을 구성합니다. Codex 번들에는 선택형 `Run TDD` wrapper도 포함됩니다.
+- **핵심 표면.** `Prime`, `Run`, `Set`이 완전한 core lifecycle을 구성합니다. 두 번들 모두 선택형 `Run TDD` wrapper도 포함합니다.
 - **필수 요구 사항.** `git`, 그리고 Claude Code 또는 Codex가 필요합니다.
 
 ---

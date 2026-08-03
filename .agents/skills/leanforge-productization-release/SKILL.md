@@ -84,7 +84,7 @@ For each doc batch:
   - `/leanforge:prime`
   - `/leanforge:run`
   - `/leanforge:set`
-  - `/leanforge:run-tdd` for Codex only
+  - `/leanforge:run-tdd` (optional, both platforms)
 - Keep marketplace source as `pkkgh1519/leanforge`.
 - Keep plugin identity as `leanforge`.
 - Avoid legacy URLs and old owner paths.

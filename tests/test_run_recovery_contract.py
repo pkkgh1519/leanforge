@@ -82,6 +82,10 @@ class RunRecoveryContractTests(unittest.TestCase):
                 "disable-model-invocation: true\n"
                 "allowed-tools: Read, Edit, Write, Bash, Grep, Glob, Agent, AskUserQuestion\n"
             ),
+            "run-tdd": (
+                "disable-model-invocation: true\n"
+                "allowed-tools: Read, Edit, Write, Bash, Grep, Glob, Agent, SendMessage, AskUserQuestion\n"
+            ),
         }
 
         source_files = sorted(
@@ -115,28 +119,29 @@ class RunRecoveryContractTests(unittest.TestCase):
             with self.subTest(path=path):
                 self.assertFalse(path.exists())
 
-    def test_codex_only_run_tdd_wrapper_is_packaged(self):
+    def test_run_tdd_wrapper_is_packaged_for_both_platforms(self):
+        src_skill = ROOT / "src/skills/run-tdd/SKILL.md"
         codex_skill = ROOT / "codex/plugin/skills/run-tdd/SKILL.md"
         codex_agent = ROOT / "codex/plugin/skills/run-tdd/agents/openai.yaml"
-        platform_skill = ROOT / "platform/codex/skills/run-tdd/SKILL.md"
         claude_skill = ROOT / "claude/skills/run-tdd/SKILL.md"
+        # Superseded by src/skills/run-tdd/SKILL.md; a stale copy here would silently
+        # overwrite the SSOT-derived Codex build on the next `cp -R` overlay step.
+        retired_platform_skill = ROOT / "platform/codex/skills/run-tdd/SKILL.md"
 
-        self.assertTrue(platform_skill.exists())
+        self.assertTrue(src_skill.exists())
         self.assertTrue(codex_skill.exists())
         self.assertTrue(codex_agent.exists())
-        self.assertFalse(claude_skill.exists())
+        self.assertTrue(claude_skill.exists())
+        self.assertFalse(retired_platform_skill.exists())
 
-        body = codex_skill.read_text(encoding="utf-8")
+        body = src_skill.read_text(encoding="utf-8")
         self.assertIn("Leanforge:Run remains the primary execution", body)
         self.assertIn("selective TDD guidance", body)
         self.assertIn("self-contained", body)
         self.assertIn("does not require a separately installed `tdd` skill", body)
         self.assertNotIn("Read the `tdd` `SKILL.md`", body)
         self.assertNotIn("standalone `tdd` skill's general advice", body)
-        self.assertEqual(
-            platform_skill.read_text(encoding="utf-8"),
-            codex_skill.read_text(encoding="utf-8"),
-        )
+        self.assertEqual(src_skill.read_text(encoding="utf-8"), codex_skill.read_text(encoding="utf-8"))
 
 
 if __name__ == "__main__":

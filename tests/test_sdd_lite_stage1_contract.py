@@ -80,7 +80,7 @@ class SddLiteStage1ContractTests(unittest.TestCase):
                 body = read(f"{surface}/run/references/reviewer-prompt.md")
                 self.assertTermsPresent(body, required, "Run reviewer SDD-lite lens terms")
 
-    def test_run_tdd_is_behavior_first_and_ac_derived_on_codex_surface(self):
+    def test_run_tdd_is_behavior_first_and_ac_derived(self):
         required = [
             "Acceptance & Evidence Matrix",
             "derive each TDD slice",
@@ -93,8 +93,9 @@ class SddLiteStage1ContractTests(unittest.TestCase):
             "do not count as AC evidence",
         ]
         for rel in (
-            "platform/codex/skills/run-tdd/SKILL.md",
+            "src/skills/run-tdd/SKILL.md",
             "codex/plugin/skills/run-tdd/SKILL.md",
+            "claude/skills/run-tdd/SKILL.md",
         ):
             with self.subTest(rel=rel):
                 body = collapsed(rel)
@@ -110,12 +111,13 @@ class SddLiteStage1ContractTests(unittest.TestCase):
             ("src/skills/run/references/implementer-prompt.md", "claude/skills/run/references/implementer-prompt.md"),
             ("src/skills/run/references/reviewer-prompt.md", "codex/plugin/skills/run/references/reviewer-prompt.md"),
             ("src/skills/run/references/reviewer-prompt.md", "claude/skills/run/references/reviewer-prompt.md"),
-            ("platform/codex/skills/run-tdd/SKILL.md", "codex/plugin/skills/run-tdd/SKILL.md"),
+            ("src/skills/run-tdd/SKILL.md", "codex/plugin/skills/run-tdd/SKILL.md"),
         ]
         for source, generated in exact_pairs:
             with self.subTest(source=source, generated=generated):
                 self.assertEqual(read(source), read(generated))
         self.assertEqual(markdown_body("src/skills/run/SKILL.md"), markdown_body("claude/skills/run/SKILL.md"))
+        self.assertEqual(markdown_body("src/skills/run-tdd/SKILL.md"), markdown_body("claude/skills/run-tdd/SKILL.md"))
 
     def test_stage1_non_goals_remain_documented(self):
         body = read("docs/harness/sdd-lite-stage-1-roadmap.md")
@@ -133,7 +135,7 @@ class SddLiteStage1ContractTests(unittest.TestCase):
         prime = read("src/skills/prime/references/output-format.md")
         implementer = read("src/skills/run/references/implementer-prompt.md")
         reviewer = " ".join(read("src/skills/run/references/reviewer-prompt.md").split())
-        run_tdd = " ".join(read("platform/codex/skills/run-tdd/SKILL.md").split())
+        run_tdd = " ".join(read("src/skills/run-tdd/SKILL.md").split())
 
         self.assertTermsPresent(
             prime,
@@ -180,7 +182,7 @@ class SddLiteStage1ContractTests(unittest.TestCase):
     def test_non_behavioral_scenario_stays_lightweight(self):
         """Smoke scenario: docs/config/scaffold work is not forced through the behavior matrix or TDD."""
         prime = read("src/skills/prime/references/output-format.md")
-        run_tdd = read("platform/codex/skills/run-tdd/SKILL.md")
+        run_tdd = read("src/skills/run-tdd/SKILL.md")
         roadmap = read("docs/harness/sdd-lite-stage-1-roadmap.md")
 
         self.assertTermsPresent(
