@@ -64,6 +64,10 @@ and project harness updates when applicable.
 
 ## Version notes
 
+- `v1.7.1` restores parallel wave execution on Claude Code. That host queues children
+  without exposing a capacity preflight, so `Run` no longer degrades a ready wave to one
+  child at a time; it dispatches the wave in parallel, bounded only by a limit you set.
+  Codex admission behavior is unchanged.
 - `v1.7.0` compresses the Prime and Run instructions, makes Codex leaf dispatch and
   `fork_turns: "none"` explicit, sizes batches from host-aware live runtime slots,
   restores the full completion and post-gate cleanup contracts, makes Run TDD
