@@ -313,7 +313,9 @@ class RuntimeDispatchContractTests(unittest.TestCase):
                     self.assertIn(tool, codex)
             with self.subTest(rel=rel, host="Claude Code"):
                 self.assertIn("`Agent`", claude)
-                self.assertIn("one child at a time", claude)
+                self.assertIn("no preflight signal", claude)
+                self.assertIn("queues", claude)
+                self.assertNotIn("one child at a time", claude)
                 for tool in (*codex_tools, "followup_task", "send_message"):
                     self.assertNotIn(tool, claude)
 
@@ -359,6 +361,8 @@ class RuntimeDispatchContractTests(unittest.TestCase):
         for term in (
             "`NEEDS_CONTEXT`",
             "`BLOCKED`",
+            "`SendMessage`",
+            "single message",
             "immediately preceding structured status",
             "same task",
             "unchanged contract",

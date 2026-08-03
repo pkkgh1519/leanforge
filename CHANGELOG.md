@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.7.1 (2026-08-03)
+
+- stop serializing Claude Code dispatch to one child at a time: the host queues children without a capacity preflight, so a ready wave dispatches as parallel `Agent` calls bounded only by an explicit user limit
+- name `SendMessage` as the Claude Code continuation channel for the bounded `NEEDS_CONTEXT`/`BLOCKED` implementer retry and add it to Run's Claude `allowed-tools`
+
 ## v1.7.0 (2026-07-24)
 
 - compress the Prime and Run instruction bodies while preserving the v1.6.9 execution philosophy and behavior

@@ -18,10 +18,12 @@ SRC="$ROOT/src/skills"
 PLAT="$ROOT/platform"
 
 # Per-skill allowed-tools for the Claude build. These skills perform file edits,
-# shell validation, and/or subagent dispatch. bash 3.2 — no assoc arrays.
+# shell validation, and/or subagent dispatch. Run additionally gets SendMessage for
+# the bounded NEEDS_CONTEXT/BLOCKED implementer continuation. bash 3.2 — no assoc arrays.
 claude_tools() {
   case "$1" in
-    set|prime|run) echo "Read, Edit, Write, Bash, Grep, Glob, Agent, AskUserQuestion" ;;
+    set|prime) echo "Read, Edit, Write, Bash, Grep, Glob, Agent, AskUserQuestion" ;;
+    run)       echo "Read, Edit, Write, Bash, Grep, Glob, Agent, SendMessage, AskUserQuestion" ;;
   esac
 }
 

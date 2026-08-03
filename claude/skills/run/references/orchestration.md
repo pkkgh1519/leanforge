@@ -89,14 +89,17 @@ long as each exit code is captured separately. The completion gate remains the f
     contract, same role, and same pinned work location. A different task or role, a changed task
     contract or work location, any review or re-review, `DONE` or `DONE_WITH_CONCERNS`, a fix-dispatch,
     and the upgraded-model attempt require a fresh child.
-  - **Claude Code.** Use only live capacity or child-state signals exposed by the host and dispatch via
-    `Agent`. If total capacity or a separate preflight signal is unavailable, admit **one child at a
-    time**. At zero capacity or on a capacity rejection, wait for a running child result, refresh once,
-    and block on no state change or a second rejection. A prior implementer may continue only when its
-    immediately preceding structured status was `NEEDS_CONTEXT` or `BLOCKED` and the bounded retry keeps
-    the same task, unchanged contract, same role, and same pinned work location. Every review,
-    re-review, upgraded-model attempt, changed task, contract, role, or work location, `DONE` or
-    `DONE_WITH_CONCERNS`, and fix-dispatch starts a fresh child.
+  - **Claude Code.** The host exposes no slot arithmetic and queues excess children itself; there is
+    no preflight signal to read, so never emulate one and never serialize a ready wave to compensate.
+    Treat `runtime_total_slots` as unbounded on this host: `free_slots` never binds, and `batch_size`
+    reduces to `min(ready_dispatchable_tasks, explicit_user_limit_or_infinity)`. Dispatch the admitted
+    batch as parallel `Agent` calls in a single message and collect completions as the host reports
+    them; a failed dispatch gets one bounded retry, and a second failure or no state change blocks
+    rather than looping. A prior implementer may continue via `SendMessage` to that same child only
+    when its immediately preceding structured status was `NEEDS_CONTEXT` or `BLOCKED` and the bounded
+    retry keeps the same task, unchanged contract, same role, and same pinned work location. Every
+    review, re-review, upgraded-model attempt, changed task, contract, role, or work location, `DONE`
+    or `DONE_WITH_CONCERNS`, and fix-dispatch starts a fresh child.
   Slot pressure may delay an independent review but never replace it with self-review.
 - **Fresh leaf children.** Every Codex child creation sets `fork_turns: "none"` explicitly; never omit
   the field or use `"all"`. Children receive only task-local inputs and may not delegate or spawn.

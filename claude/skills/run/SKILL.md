@@ -5,7 +5,7 @@ description: >
   wave-based parallel implementation with right-sized verification (test-first where it fits),
   spec-first review, and integration gates. Use when the user invokes the `Run` skill after `Prime` wrote the 3-doc. Requires git.
 disable-model-invocation: true
-allowed-tools: Read, Edit, Write, Bash, Grep, Glob, Agent, AskUserQuestion
+allowed-tools: Read, Edit, Write, Bash, Grep, Glob, Agent, SendMessage, AskUserQuestion
 ---
 
 # Leanforge:Run

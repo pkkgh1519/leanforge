@@ -69,10 +69,20 @@ class RunRecoveryContractTests(unittest.TestCase):
 
 
     def test_generated_skill_surfaces_match_src_contract(self):
-        claude_injected_lines = (
-            "disable-model-invocation: true\n"
-            "allowed-tools: Read, Edit, Write, Bash, Grep, Glob, Agent, AskUserQuestion\n"
-        )
+        claude_injected_lines_by_skill = {
+            "prime": (
+                "disable-model-invocation: true\n"
+                "allowed-tools: Read, Edit, Write, Bash, Grep, Glob, Agent, AskUserQuestion\n"
+            ),
+            "run": (
+                "disable-model-invocation: true\n"
+                "allowed-tools: Read, Edit, Write, Bash, Grep, Glob, Agent, SendMessage, AskUserQuestion\n"
+            ),
+            "set": (
+                "disable-model-invocation: true\n"
+                "allowed-tools: Read, Edit, Write, Bash, Grep, Glob, Agent, AskUserQuestion\n"
+            ),
+        }
 
         source_files = sorted(
             path.relative_to(ROOT / "src/skills")
@@ -89,6 +99,7 @@ class RunRecoveryContractTests(unittest.TestCase):
             with self.subTest(surface="claude", rel=rel):
                 claude = read(f"claude/skills/{rel}")
                 if rel_path.name == "SKILL.md":
+                    claude_injected_lines = claude_injected_lines_by_skill[rel_path.parts[0]]
                     self.assertIn(claude_injected_lines, claude)
                     claude = claude.replace(claude_injected_lines, "", 1)
                 self.assertEqual(read(f"src/skills/{rel}"), claude)

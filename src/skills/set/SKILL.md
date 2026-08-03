@@ -52,11 +52,11 @@ independent piece of work, and a fresh session keeps the task-level dialogue cle
     make one bounded retry and then block. Only after that fresh check call `spawn_agent`. If it loses
     a capacity race, wait/re-list and retry once; a second capacity rejection or no state change blocks.
     Every review or re-review uses a fresh child; never reactivate an idle child.
-  - **Claude Code.** Use the live capacity or child-state signal exposed by the host and dispatch the
-    reviewer via `Agent`. If total capacity or a separate preflight signal is unavailable, admit **one
-    child at a time**. At zero capacity or on a capacity rejection, wait for a running child result,
-    refresh once, and block on no state change or a second rejection. Every review or re-review uses a
-    fresh child; never reactivate an idle child or emulate unavailable operations.
+  - **Claude Code.** Dispatch the reviewer via `Agent`. The host exposes no slot arithmetic and
+    queues children itself; there is no preflight signal to read, so never emulate one. Dispatch the
+    single reviewer directly, collect the child result the host reports, and give a failed dispatch
+    one bounded retry before blocking on a second failure or no state change. Every review or
+    re-review uses a fresh child; never reactivate an idle child or emulate unavailable operations.
   Never replace the independent review with self-review.
 - **Stack-agnostic.** No stack/framework/library name in this skill. Discover all specifics
   (conventions, module boundaries, build/verify commands, external deps) at runtime from the project.

@@ -56,11 +56,11 @@ where the input came from. The 3-doc contract is in `references/output-format.md
     then blocks rather than spawning blind. Only fresh admission permits `spawn_agent`. A
     capacity-race rejection gets one wait/re-list retry; a second capacity rejection reports capacity
     exhaustion and blocks. Every Prime dispatch starts a fresh child; never reactivate an idle child.
-  - **Claude Code.** Use the live capacity or child-state signal exposed by the host and dispatch via
-    `Agent`. If total capacity or a separate preflight signal is unavailable, admit one child at a
-    time. At zero capacity or on a capacity rejection, wait for a running child result, refresh once,
-    and block on no state change or a second rejection. Every Prime dispatch starts a fresh child;
-    never reactivate an idle child or emulate unavailable operations.
+  - **Claude Code.** Dispatch via `Agent`. The host exposes no slot arithmetic and queues children
+    itself; there is no preflight signal to read, so never emulate one. Dispatch each required check
+    at its stage, collect the child result the host reports, and give a failed dispatch one bounded
+    retry before blocking on a second failure or no state change. Every Prime dispatch starts a fresh
+    child; never reactivate an idle child or emulate unavailable operations.
   Slot pressure never permits self-review. The two required independent checks use fresh
   general-purpose children with full read/inspect tools, never plan-only or search-only roles; the
   optional scout remains read-only under its reference.
