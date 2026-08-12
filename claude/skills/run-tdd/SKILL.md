@@ -50,6 +50,19 @@ Apply TDD when a task changes observable behavior, such as:
 - parsing, calculation, sorting, filtering, or authorization behavior
 - user-visible flows
 
+### Seams
+
+A seam is the public boundary where behavior is observed without reaching inside. Fix the seams
+before writing the first test for a task, not while writing it.
+
+- With a `Prime` Acceptance & Evidence Matrix, the AC's observable behavior fixes the seam.
+- Without one, the orchestrator states the intended seams and confirms them with the user before
+  dispatch. A subagent does not invent a seam mid-task; if the assigned seam cannot observe the
+  behavior, it reports that back instead of testing somewhere else.
+
+Testing everything is not the goal. Agreeing the seams up front is how test effort lands on
+critical paths and complex logic instead of every edge case.
+
 For those tasks, use a vertical red-green-refactor loop:
 
 1. Write one behavior-focused failing test through the public interface.
@@ -61,11 +74,13 @@ For those tasks, use a vertical red-green-refactor loop:
 
 Tests should verify behavior through public interfaces, not private helpers, internal structure, source strings, or incidental implementation details.
 
+An assertion must not recompute its expected value the way the code under test does. `expect(add(a, b)).toBe(a + b)`, a snapshot produced by the same function it verifies, or a constant asserted against itself passes by construction and can never disagree with the implementation, so it stays green through the bug it was meant to catch. Expected values come from an independent source of truth: a known-good literal, a worked example, or the AC itself.
+
 When the `Prime` spec provides an Acceptance & Evidence Matrix, derive each TDD slice from the
 relevant AC's observable behavior; AC evidence must be a behavior assertion through the smallest
 stable public surface. File existence, source-string checks, symbol existence, skipped tests,
-weakened assertions, swallowed exceptions, or tests coupled to private helpers do not count as AC
-evidence.
+weakened assertions, tautological assertions, swallowed exceptions, or tests coupled to private
+helpers do not count as AC evidence.
 
 ## TDD exclusion policy
 

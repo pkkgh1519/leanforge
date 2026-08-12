@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.8.1 (2026-08-13)
+
+- require `Run TDD` to fix the seams under test before the first test of a task: an Acceptance & Evidence Matrix fixes the seam from the AC's observable behavior, and without one the orchestrator confirms the intended seams with the user before dispatch
+- reject tautological assertions, which recompute the expected value the way the code under test does and stay green through the bug they were meant to catch; expected values must come from an independent source of truth
+- add tautological assertions to the list of results that do not count as AC evidence
+
 ## v1.8.0 (2026-08-03)
 
 - promote `run-tdd` to the canonical `src/skills/` source so Claude Code and Codex build it from the same file; the Codex-only platform duplicate is retired

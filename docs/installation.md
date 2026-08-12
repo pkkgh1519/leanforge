@@ -64,6 +64,8 @@ and project harness updates when applicable.
 
 ## Version notes
 
+- `v1.8.1` tightens the `Run TDD` policy: seams are fixed before the first test of a task, and
+  tautological assertions are rejected as tests and as AC evidence.
 - `v1.8.0` packages `Leanforge:Run TDD` for Claude Code, generated from the same canonical
   source as the Codex wrapper. Behavior and content are unchanged; only availability widens.
 - `v1.7.1` restores parallel wave execution on Claude Code. That host queues children
