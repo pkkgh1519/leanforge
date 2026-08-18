@@ -5,6 +5,20 @@ harness, and archiving the 3-doc. Runs **after the completion gate, before the f
 Load alongside `harness-format.md` (the harness spec) — this file is the *process*, that one is the
 *spec*.
 
+<!-- leanforge:run-semantic:RUN-LIFECYCLE-OWNERSHIP:start -->
+```json
+{
+  "id": "RUN-LIFECYCLE-OWNERSHIP",
+  "kind": "lifecycle_ownership",
+  "definition": "Harness lifecycle owns startup, interrupted-run recovery, archive, and migration decisions; the runtime failure overlay owns runtime task, gate, and review failures.",
+  "constraints": [
+    "Harness lifecycle owns startup, interrupted-run recovery, archive, and migration.",
+    "The runtime failure overlay owns runtime task, gate, and review failures."
+  ]
+}
+```
+<!-- leanforge:run-semantic:RUN-LIFECYCLE-OWNERSHIP:end -->
+
 ## State directory compatibility — `.leanforge/` canonical, `.dryforge/` legacy
 
 `.leanforge/` is the canonical Leanforge state directory. `.dryforge/` is a legacy Dryforge-era state

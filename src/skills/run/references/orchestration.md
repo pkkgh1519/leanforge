@@ -146,6 +146,21 @@ A single-task wave runs in one of three modes (by `risk` + target type; see Wave
   not a file diff. (A worktree would isolate files, not the external runtime it mutates, and the
   file-diff merge-gate can't verify it.)
 
+<!-- leanforge:run-semantic:RUN-EXTERNAL-PROOF:start -->
+```json
+{
+  "id": "RUN-EXTERNAL-PROOF",
+  "kind": "external_proof",
+  "definition": "The external implementer is mechanically pinned by a non-empty scalar base value exactly equal to the selected base before action; a successful route then captures green external evidence, makes one unconditional implementer-owned base commit, and receives independent git-log commit proof.",
+  "constraints": [
+    "The selected-base fact and implementer base-pin fact each carry one non-empty scalar value, the values are equal, and both facts precede external action.",
+    "Green external evidence follows the action and precedes one unconditional implementer-owned base commit.",
+    "Independent orchestrator-owned git-log commit proof follows the base commit."
+  ]
+}
+```
+<!-- leanforge:run-semantic:RUN-EXTERNAL-PROOF:end -->
+
 **Both dispatched modes:** verify the commit after return (`git log`; for file-diff, the diff touches
 declared targets — never trust self-report); **restore the orchestrator's cwd** (subagent runs can
 drift it); **subagent output is bounded** (large results → file + digest). **No integration gate** for
@@ -329,6 +344,24 @@ also use the test runner's affected-only filter; the completion gate always runs
 **Advisory findings are recorded, never dropped.** Findings not fix-dispatched must be explicitly
 marked accepted — never silently dropped.
 
+<!-- leanforge:run-semantic:RUN-CONCERN-DISPOSITION:start -->
+```json
+{
+  "id": "RUN-CONCERN-DISPOSITION",
+  "kind": "concern_disposition",
+  "definition": "Every recorded concern has exactly one correlated disposition that follows its record and carries a non-empty value from resolved, explicitly_accepted, user_accepted, promoted_to_failure, and pending. Every concern record and its disposition precede every completion or user-gate endpoint. Pending blocks completion and the user gate without entering the failure overlay. A promoted_to_failure disposition is a failure result whose runtime-owned failure overlay precedes every continuation that follows the disposition, including wave-completion output, without retroactively constraining earlier progress or routine events. On every selected route, a promoted concern may remain a terminal failure or recover through the route-neutral ordered overlay, remedial worktree, implementer continuation, post-remediation green completion full verify or valid reusable completion facts and decision, green final review, and clear verdict before an endpoint. User-owned requirement, compatibility, and safety concerns may remain pending or be promoted to failure without user acceptance, while a resolved or accepted terminal disposition must be user-owned. The failure overlay wins every overlap.",
+  "constraints": [
+    "Every recorded concern precedes exactly one correlated disposition with a non-empty value from the five closed dispositions.",
+    "A disposition cannot precede its correlated concern record, including pending and promoted-to-failure dispositions.",
+    "Every concern record and its correlated pending, promoted, resolved, or accepted disposition precede every completion or user-gate endpoint.",
+    "Pending blocks completion and the user gate without entering the failure overlay; promoted-to-failure enters the runtime-owned failure overlay before every continuation that follows the disposition, including wave-completion output, while prior progress and routine events remain allowed.",
+    "On direct, single-risky, parallel, and external routes alike, a promoted concern may stop terminally after the overlay; if completion or user gate follows, the route-neutral trace requires overlay, remedial worktree, implementer continuation, post-remediation green completion full verify or valid reusable completion facts and decision, green final review, and clear verdict in that order.",
+    "User-owned requirement, compatibility, and safety concerns permit pending or promoted-to-failure dispositions without acceptance; resolved, explicitly accepted, or user-accepted terminal dispositions must be user-owned."
+  ]
+}
+```
+<!-- leanforge:run-semantic:RUN-CONCERN-DISPOSITION:end -->
+
 ### Fix-dispatch and lightweight fix
 
 **Substantive fix-dispatch** (bugs, review blocking findings): dispatched as a subagent on a branch
@@ -344,6 +377,24 @@ Do not skip advisories as "accepted" when a lightweight fix would take seconds. 
 non-behavioral changes only — substantive findings still go to an independent fix-dispatch.
 
 ## Failure handling
+
+<!-- leanforge:run-semantic:RUN-FAIL-CLOSED:start -->
+```json
+{
+  "id": "RUN-FAIL-CLOSED",
+  "kind": "failure_overlay",
+  "definition": "Every result-bearing event carries one non-empty closed outcome, and every blocking, non-green, or unevaluable result enters the explicit failure overlay owned by runtime_failure_overlay before every continuation that follows that result. A concern disposition of promoted_to_failure is a failure result under the same forward-only overlay-before-continuation rule; earlier progress or routine events are not retroactively constrained. Continuations include route work and action, remedial worktree and implementer continuation, dispatch, merge, gate, cleanup, progress, user_output_wave_completion, and every routine read, write, dispatch, merge, gate, and cleanup event. The closed results cover task and merge checks, regeneration and wiring, integration, external evidence, completion verification, runtime smoke, conditional spec review, final review, and review verdict. Final full-diff review uses green for success and blocking, non-green, or unevaluable for failure; clear is verdict-only. Overlay alone does not recover a continued completion-gate or runtime-smoke failure: before any later dependent phase, the latest applicable attempt of that result type is orchestrator-owned and green. A terminal failure may stop after entering the overlay. Unevaluable is never green.",
+  "constraints": [
+    "Each event allows only its closed event-specific metadata and requires every identifier, value, owner, overlay, or result field used by its invariant.",
+    "Every result-bearing event requires one non-empty outcome from its closed result vocabulary.",
+    "Every blocking, non-green, and unevaluable closed result event, including all three final full-diff review failure outcomes and a blocking review verdict, and every promoted-to-failure concern disposition enters the failure overlay before any continuation that follows it, including user_output_wave_completion.",
+    "failure_overlay_entered requires overlay failure and owner runtime_failure_overlay, and precedes every present route-work, remedial, dispatch, merge, gate, cleanup, progress, wave-completion output, or routine continuation after a failed result or promoted-to-failure disposition; prior continuations remain allowed.",
+    "A failed completion gate or runtime smoke remains blocking in a continued flow until a later orchestrator-owned green attempt of the same result type precedes every dependent verification, smoke, final-review, verdict, completion, or user-gate phase.",
+    "No continuation event is required after a terminal failure enters the overlay."
+  ]
+}
+```
+<!-- leanforge:run-semantic:RUN-FAIL-CLOSED:end -->
 
 | Failure | Response |
 |---|---|

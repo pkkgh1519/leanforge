@@ -1,0 +1,290 @@
+{
+  "schema_version": 1,
+  "contract_id": "leanforge.run.semantics",
+  "vocabulary": {
+    "route": [
+      "direct",
+      "single_risky",
+      "parallel",
+      "external"
+    ],
+    "overlay": [
+      "failure"
+    ],
+    "outcome": [
+      "green",
+      "non_green",
+      "unevaluable",
+      "clear",
+      "blocking"
+    ],
+    "disposition": [
+      "resolved",
+      "explicitly_accepted",
+      "user_accepted",
+      "promoted_to_failure",
+      "pending"
+    ],
+    "owner": [
+      "orchestrator",
+      "implementer",
+      "reviewer",
+      "harness_lifecycle",
+      "runtime_failure_overlay",
+      "user"
+    ],
+    "event": [
+      "route_selected",
+      "worktree_created",
+      "isolated_task_worktrees",
+      "task_implementation",
+      "task_verification",
+      "task_verifications_complete",
+      "evidence_captured",
+      "merge_precondition",
+      "merge_gate",
+      "merge_gates_complete",
+      "serial_merge",
+      "task_merged",
+      "regeneration",
+      "wiring",
+      "integration_gate",
+      "selected_base",
+      "external_base_pin",
+      "external_action",
+      "external_evidence",
+      "base_commit",
+      "conditional_base_commit",
+      "independent_commit_proof",
+      "failure_overlay_entered",
+      "retry",
+      "cleanup",
+      "downstream_dispatch",
+      "progress",
+      "completion_gate",
+      "runtime_smoke",
+      "prior_integration",
+      "prior_verify_set",
+      "completion_verify_set",
+      "prior_gate_base_tip",
+      "current_base_tip",
+      "completion_reused",
+      "completion_full_verify",
+      "concern_recorded",
+      "user_owned_requirement_concern",
+      "user_owned_compatibility_concern",
+      "user_owned_safety_concern",
+      "concern_disposition",
+      "completion",
+      "user_gate",
+      "startup",
+      "interrupted_run",
+      "archive",
+      "migration",
+      "runtime_task_failure",
+      "runtime_gate_failure",
+      "runtime_review_failure",
+      "risky_task",
+      "non_risky_task",
+      "downstream_cascade_risk",
+      "no_downstream_cascade_risk",
+      "conditional_spec_review",
+      "final_full_diff_review",
+      "review_verdict",
+      "routine_read",
+      "routine_write",
+      "routine_dispatch",
+      "routine_merge",
+      "routine_gate",
+      "routine_cleanup",
+      "remedial_worktree_created",
+      "remedial_implementer_continuation",
+      "user_output_needed_question",
+      "user_output_actual_blocker",
+      "user_output_wave_completion",
+      "user_output_final_result",
+      "user_output_approval_request",
+      "user_output_routine_progress"
+    ],
+    "result_event": [
+      "task_verification",
+      "task_verifications_complete",
+      "merge_precondition",
+      "merge_gate",
+      "merge_gates_complete",
+      "regeneration",
+      "wiring",
+      "integration_gate",
+      "external_evidence",
+      "completion_gate",
+      "completion_full_verify",
+      "runtime_smoke",
+      "conditional_spec_review",
+      "final_full_diff_review",
+      "review_verdict"
+    ],
+    "continuation_event": [
+      "task_verification",
+      "task_verifications_complete",
+      "merge_precondition",
+      "merge_gate",
+      "merge_gates_complete",
+      "regeneration",
+      "wiring",
+      "integration_gate",
+      "external_evidence",
+      "completion_gate",
+      "completion_full_verify",
+      "runtime_smoke",
+      "conditional_spec_review",
+      "final_full_diff_review",
+      "review_verdict",
+      "route_selected",
+      "worktree_created",
+      "isolated_task_worktrees",
+      "task_implementation",
+      "evidence_captured",
+      "selected_base",
+      "external_base_pin",
+      "external_action",
+      "retry",
+      "task_merged",
+      "serial_merge",
+      "conditional_base_commit",
+      "base_commit",
+      "independent_commit_proof",
+      "cleanup",
+      "downstream_dispatch",
+      "progress",
+      "completion_reused",
+      "completion",
+      "user_gate",
+      "routine_read",
+      "routine_write",
+      "routine_dispatch",
+      "routine_merge",
+      "routine_gate",
+      "routine_cleanup",
+      "remedial_worktree_created",
+      "remedial_implementer_continuation",
+      "user_output_wave_completion"
+    ],
+    "invariant_kind": [
+      "route_topology",
+      "external_proof",
+      "failure_overlay",
+      "completion_reuse",
+      "concern_disposition",
+      "lifecycle_ownership",
+      "review_topology",
+      "output_semantics"
+    ]
+  },
+  "invariants": [
+    {
+      "id": "RUN-ROUTE-TOPOLOGY",
+      "kind": "route_topology",
+      "definition": "Run has exactly four closed success routes, and any route-specific event requires exactly one orchestrator-owned route_selected with a closed route value. Their topologies are mutually exclusive: direct implementation, captured evidence, and the base commit are orchestrator-owned on the base; single_risky has exactly one orchestrator-created worktree, one implementer-owned implementation, captured evidence, and verification, then one orchestrator-owned merge precondition, gate, and task merge in that order; parallel has at least two isolated task worktrees with per-task implementation, verification, branch-gate, and task-merge evidence correlated by stable non-empty task identities before aggregate results, serial merge, regeneration, wiring, and a green wave integration gate; and external is a base-pinned implementer route without a file diff. A non-success result in the currently reached route phase may stop terminally after validating the reached prefix. If downstream phases continue, the failed route result requires an owned failure overlay, an explicit orchestrator-owned retry, a matching green reattempt, and the route's full success closure before downstream begins. Promoted-concern remediation is a route-neutral overlay at its actual route phase, while direct substantive remediation remains direct-only. Failure is an overlay, not a success route.",
+      "constraints": [
+        "The closed success-route set is direct, single_risky, parallel, and external.",
+        "Any route-specific event requires exactly one orchestrator-owned route_selected event with one closed route value.",
+        "Every route-specific work or action event belongs to the selected route and cannot mix topologies.",
+        "Direct implementation, captured evidence, and the base commit remain on the base under orchestrator ownership.",
+        "Single-risky work has exact owner, cardinality, order, and one stable non-empty task identity across every per-task event: orchestrator-created worktree, implementer implementation, captured evidence, and verification, then orchestrator merge precondition, merge gate, and one task merge.",
+        "Parallel work correlates at least two isolated task worktrees through each reached per-task implementation, verification, branch gate, and task merge stage by the same stable non-empty task identities; each aggregate verification, aggregate gate, serial merge, regeneration, wiring, and integration event occurs exactly once under orchestrator ownership in its reached prefix.",
+        "External work is performed by a base-pinned implementer without a task worktree or file diff; selected base, base pin, action, evidence, base commit, and independent proof use their exact route owners and cardinalities.",
+        "A non-success result in the currently reached route phase validates the ordered reached prefix and may stop terminally with later success-only stages absent.",
+        "If downstream phases continue after a failed route result, a runtime-owned overlay and orchestrator-owned retry precede a matching green reattempt, and the selected route reaches its full success closure before downstream begins.",
+        "Downstream dispatch, completion gate, completion full verify, runtime smoke, final full-diff review, and review verdict events require the selected route's full successful closure; their failures cannot retroactively truncate route requirements.",
+        "Direct post-failure substantive remediation is not initial route mixing: the closed failure boundary and runtime-owned failure overlay precede one orchestrator-owned remedial worktree and then one implementer continuation.",
+        "A promoted concern at its actual phase on any selected route may use the same ordered overlay, orchestrator-owned remedial worktree, and implementer continuation without changing the selected route.",
+        "Failure is an overlay and never a fifth success route."
+      ]
+    },
+    {
+      "id": "RUN-EXTERNAL-PROOF",
+      "kind": "external_proof",
+      "definition": "The external implementer is mechanically pinned by a non-empty scalar base value exactly equal to the selected base before action; a successful route then captures green external evidence, makes one unconditional implementer-owned base commit, and receives independent git-log commit proof.",
+      "constraints": [
+        "The selected-base fact and implementer base-pin fact each carry one non-empty scalar value, the values are equal, and both facts precede external action.",
+        "Green external evidence follows the action and precedes one unconditional implementer-owned base commit.",
+        "Independent orchestrator-owned git-log commit proof follows the base commit."
+      ]
+    },
+    {
+      "id": "RUN-FAIL-CLOSED",
+      "kind": "failure_overlay",
+      "definition": "Every result-bearing event carries one non-empty closed outcome, and every blocking, non-green, or unevaluable result enters the explicit failure overlay owned by runtime_failure_overlay before every continuation that follows that result. A concern disposition of promoted_to_failure is a failure result under the same forward-only overlay-before-continuation rule; earlier progress or routine events are not retroactively constrained. Continuations include route work and action, remedial worktree and implementer continuation, dispatch, merge, gate, cleanup, progress, user_output_wave_completion, and every routine read, write, dispatch, merge, gate, and cleanup event. The closed results cover task and merge checks, regeneration and wiring, integration, external evidence, completion verification, runtime smoke, conditional spec review, final review, and review verdict. Final full-diff review uses green for success and blocking, non-green, or unevaluable for failure; clear is verdict-only. Overlay alone does not recover a continued completion-gate or runtime-smoke failure: before any later dependent phase, the latest applicable attempt of that result type is orchestrator-owned and green. A terminal failure may stop after entering the overlay. Unevaluable is never green.",
+      "constraints": [
+        "Each event allows only its closed event-specific metadata and requires every identifier, value, owner, overlay, or result field used by its invariant.",
+        "Every result-bearing event requires one non-empty outcome from its closed result vocabulary.",
+        "Every blocking, non-green, and unevaluable closed result event, including all three final full-diff review failure outcomes and a blocking review verdict, and every promoted-to-failure concern disposition enters the failure overlay before any continuation that follows it, including user_output_wave_completion.",
+        "failure_overlay_entered requires overlay failure and owner runtime_failure_overlay, and precedes every present route-work, remedial, dispatch, merge, gate, cleanup, progress, wave-completion output, or routine continuation after a failed result or promoted-to-failure disposition; prior continuations remain allowed.",
+        "A failed completion gate or runtime smoke remains blocking in a continued flow until a later orchestrator-owned green attempt of the same result type precedes every dependent verification, smoke, final-review, verdict, completion, or user-gate phase.",
+        "No continuation event is required after a terminal failure enters the overlay."
+      ]
+    },
+    {
+      "id": "RUN-COMPLETION-REUSE",
+      "kind": "completion_reuse",
+      "definition": "Completion reuses prior integration only from unique actual facts: exactly one prior green integration result, one identical non-empty prior and completion verify set, and one identical non-empty prior-gate and current base-tip SHA. All five evidence facts precede the single completion_reused decision, and that decision precedes final full-diff review, review verdict, and every completion or user-gate endpoint. Duplicate or conflicting facts are invalid; any missing, non-green, unevaluable, or unequal fact requires the completion full verify set. Within each completion attempt, the latest applicable orchestrator-owned green full verify precedes green runtime smoke, final review, verdict, and endpoint. A failed final review may start a new attempt only through an owned overlay and retry or remedial continuation; its new full verify is allowed after that restart, while no full verify may follow a successful final review or endpoint.",
+      "constraints": [
+        "Reuse requires each of the five actual fact kinds exactly once: prior green integration, identical non-empty verify sets, and identical non-empty prior-gate and current base-tip SHAs.",
+        "All five reuse evidence facts precede the single completion reuse decision, which precedes final full-diff review, review verdict, and every completion or user-gate endpoint.",
+        "Duplicate or conflicting completion facts are rejected rather than selected or collapsed.",
+        "Missing, non-green, unevaluable, or unequal facts require full verification and forbid reuse.",
+        "Within one completion attempt, completion full verify precedes green runtime smoke, final full-diff review, review verdict, and every completion or user-gate endpoint.",
+        "A runtime-smoke, final-review, verdict, completion, or user-gate phase after completion full verification requires the latest applicable full verify to be orchestrator-owned and green.",
+        "A non-green or unevaluable full verify remains blocking until a later green full verify precedes every dependent phase.",
+        "A failed final review followed by an owned failure overlay and retry or remedial continuation starts a new completion attempt that may run a new full verify; a successful final review or endpoint closes the attempt and forbids later full verify.",
+        "A full verify may be run even when all reuse facts match."
+      ]
+    },
+    {
+      "id": "RUN-CONCERN-DISPOSITION",
+      "kind": "concern_disposition",
+      "definition": "Every recorded concern has exactly one correlated disposition that follows its record and carries a non-empty value from resolved, explicitly_accepted, user_accepted, promoted_to_failure, and pending. Every concern record and its disposition precede every completion or user-gate endpoint. Pending blocks completion and the user gate without entering the failure overlay. A promoted_to_failure disposition is a failure result whose runtime-owned failure overlay precedes every continuation that follows the disposition, including wave-completion output, without retroactively constraining earlier progress or routine events. On every selected route, a promoted concern may remain a terminal failure or recover through the route-neutral ordered overlay, remedial worktree, implementer continuation, post-remediation green completion full verify or valid reusable completion facts and decision, green final review, and clear verdict before an endpoint. User-owned requirement, compatibility, and safety concerns may remain pending or be promoted to failure without user acceptance, while a resolved or accepted terminal disposition must be user-owned. The failure overlay wins every overlap.",
+      "constraints": [
+        "Every recorded concern precedes exactly one correlated disposition with a non-empty value from the five closed dispositions.",
+        "A disposition cannot precede its correlated concern record, including pending and promoted-to-failure dispositions.",
+        "Every concern record and its correlated pending, promoted, resolved, or accepted disposition precede every completion or user-gate endpoint.",
+        "Pending blocks completion and the user gate without entering the failure overlay; promoted-to-failure enters the runtime-owned failure overlay before every continuation that follows the disposition, including wave-completion output, while prior progress and routine events remain allowed.",
+        "On direct, single-risky, parallel, and external routes alike, a promoted concern may stop terminally after the overlay; if completion or user gate follows, the route-neutral trace requires overlay, remedial worktree, implementer continuation, post-remediation green completion full verify or valid reusable completion facts and decision, green final review, and clear verdict in that order.",
+        "User-owned requirement, compatibility, and safety concerns permit pending or promoted-to-failure dispositions without acceptance; resolved, explicitly accepted, or user-accepted terminal dispositions must be user-owned."
+      ]
+    },
+    {
+      "id": "RUN-LIFECYCLE-OWNERSHIP",
+      "kind": "lifecycle_ownership",
+      "definition": "Harness lifecycle owns startup, interrupted-run recovery, archive, and migration decisions; the runtime failure overlay owns runtime task, gate, and review failures.",
+      "constraints": [
+        "Harness lifecycle owns startup, interrupted-run recovery, archive, and migration.",
+        "The runtime failure overlay owns runtime task, gate, and review failures."
+      ]
+    },
+    {
+      "id": "RUN-REVIEW-TOPOLOGY",
+      "kind": "review_topology",
+      "definition": "For each stable non-empty task_id, conditional spec review occurs if and only if exactly one non-contradictory risky-task fact and one downstream-cascade-risk fact apply to that same task; unrelated or contradictory task facts cannot combine to trigger it. Each conditional spec review is owned by a fresh independent reviewer leaf and never replaces final full-diff review on a continued or completion path after a clear conditional result; a later failed result may stop before final review only when its required failure overlay is followed by no closed continuation. Final full-diff review succeeds only with green. Blocking, non-green, and unevaluable final reviews require the runtime-owned overlay and may recover only after a retry or remedial implementer continuation; the restarted attempt may run a new full verify before its later green final review. A successful completion or user gate follows the latest applicable green final full-diff review and then exactly one clear review verdict. Duplicate or conflicting verdicts and final-review sequences other than failed attempt(s) followed by one ordered recovery are invalid.",
+      "constraints": [
+        "Conditional review risk fact, cascade fact, and result carry the same stable non-empty task_id; duplicate, contradictory, or mixed-task facts are rejected.",
+        "Each risky downstream cascade task requires exactly one fresh-reviewer-owned conditional spec review before dispatch and final review; either missing prerequisite forbids it, while a later failed result does not require an unreached final review only when its required overlay has no later closed continuation. Wave completion closes this terminal exemption; an orchestrator-owned actual-blocker output does not.",
+        "Conditional and final review events and review verdicts carry their actual closed result values; final full-diff review accepts green success or blocking, non-green, and unevaluable failure, never verdict-only clear, and final review and verdict remain fresh-reviewer-owned.",
+        "Each failed final full-diff review enters the runtime-owned failure overlay and forbids a clear verdict or completion endpoint unless a retry or remedial implementer continuation starts a later attempt that ends in a green final review.",
+        "A restarted review attempt may run a new completion full verify after the restart and before its runtime smoke or later green final review.",
+        "Successful completion and the user gate require the latest applicable final full-diff review to be green, then exactly one clear review verdict, then an orchestrator-owned endpoint.",
+        "Every verdict requires one latest applicable final full-diff review; clear correlates only to green, blocking correlates only to blocking, and blocking enters the runtime-owned failure overlay before continuation."
+      ]
+    },
+    {
+      "id": "RUN-OUTPUT-SEMANTICS",
+      "kind": "output_semantics",
+      "definition": "User output is limited to a needed question, an actual blocker, wave completion, the final result, or an approval request. All five allowed output events require orchestrator ownership; implementers, reviewers, users, and child agents do not own them, and children never ask the user directly. Routine operations do not emit routine-progress narration, but they do not suppress a later actual blocker or final result.",
+      "constraints": [
+        "Needed questions, actual blockers, wave completion, final results, and approval requests are allowed only with a required orchestrator owner; implementer, reviewer, and user owners are rejected, and children never ask directly.",
+        "A distinct routine-progress narration output is forbidden.",
+        "An actual blocker or final result remains allowed after any routine operation."
+      ]
+    }
+  ]
+}
