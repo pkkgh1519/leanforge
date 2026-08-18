@@ -380,12 +380,12 @@ non-behavioral changes only — substantive findings still go to an independent 
 {
   "id": "RUN-FAIL-CLOSED",
   "kind": "failure_overlay",
-  "definition": "Every result-bearing event carries one non-empty closed outcome, and every blocking, non-green, or unevaluable result enters the explicit failure overlay owned by runtime_failure_overlay before every present continuation, including work and action events. The closed results cover task and merge checks, regeneration and wiring, integration, external evidence, completion verification, runtime smoke, conditional spec review, and final review. A terminal failure may stop after entering the overlay. Unevaluable is never green.",
+  "definition": "Every result-bearing event carries one non-empty closed outcome, and every blocking, non-green, or unevaluable result enters the explicit failure overlay owned by runtime_failure_overlay before every present continuation. Continuations include route work and action, dispatch, merge, gate, cleanup, progress, and routine write, dispatch, merge, gate, and cleanup events. The closed results cover task and merge checks, regeneration and wiring, integration, external evidence, completion verification, runtime smoke, conditional spec review, final review, and review verdict. A terminal failure may stop after entering the overlay. Unevaluable is never green.",
   "constraints": [
     "Each event allows only its closed event-specific metadata and requires every identifier, value, owner, overlay, or result field used by its invariant.",
     "Every result-bearing event requires one non-empty outcome from its closed result vocabulary.",
-    "Every blocking, non-green, and unevaluable closed result event enters the failure overlay.",
-    "failure_overlay_entered requires overlay failure and owner runtime_failure_overlay, and precedes every continuation event that follows a failed result.",
+    "Every blocking, non-green, and unevaluable closed result event, including a blocking review verdict, enters the failure overlay.",
+    "failure_overlay_entered requires overlay failure and owner runtime_failure_overlay, and precedes every present route-work, dispatch, merge, gate, cleanup, progress, or routine continuation after a failed result.",
     "No continuation event is required after a terminal failure enters the overlay."
   ]
 }

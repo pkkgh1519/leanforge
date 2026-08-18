@@ -157,6 +157,19 @@
       "id": "failure-verification-non-green",
       "trace": [
         {
+          "event": "route_selected",
+          "route": "single_risky",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "worktree_created",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "task_implementation",
+          "owner": "implementer"
+        },
+        {
           "event": "task_verification",
           "outcome": "non_green",
           "owner": "orchestrator"
@@ -168,10 +181,6 @@
         },
         {
           "event": "retry",
-          "owner": "orchestrator"
-        },
-        {
-          "event": "task_merged",
           "owner": "orchestrator"
         },
         {
@@ -194,6 +203,19 @@
       "id": "failure-verification-unevaluable",
       "trace": [
         {
+          "event": "route_selected",
+          "route": "single_risky",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "worktree_created",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "task_implementation",
+          "owner": "implementer"
+        },
+        {
           "event": "task_verification",
           "outcome": "unevaluable",
           "owner": "orchestrator"
@@ -205,10 +227,6 @@
         },
         {
           "event": "retry",
-          "owner": "orchestrator"
-        },
-        {
-          "event": "task_merged",
           "owner": "orchestrator"
         },
         {
@@ -231,6 +249,29 @@
       "id": "failure-merge-non-green",
       "trace": [
         {
+          "event": "route_selected",
+          "route": "single_risky",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "worktree_created",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "task_implementation",
+          "owner": "implementer"
+        },
+        {
+          "event": "task_verification",
+          "outcome": "green",
+          "owner": "implementer"
+        },
+        {
+          "event": "merge_precondition",
+          "outcome": "green",
+          "owner": "orchestrator"
+        },
+        {
           "event": "merge_gate",
           "outcome": "non_green",
           "owner": "orchestrator"
@@ -242,10 +283,6 @@
         },
         {
           "event": "retry",
-          "owner": "orchestrator"
-        },
-        {
-          "event": "task_merged",
           "owner": "orchestrator"
         },
         {
@@ -268,6 +305,29 @@
       "id": "failure-merge-unevaluable",
       "trace": [
         {
+          "event": "route_selected",
+          "route": "single_risky",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "worktree_created",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "task_implementation",
+          "owner": "implementer"
+        },
+        {
+          "event": "task_verification",
+          "outcome": "green",
+          "owner": "implementer"
+        },
+        {
+          "event": "merge_precondition",
+          "outcome": "green",
+          "owner": "orchestrator"
+        },
+        {
           "event": "merge_gate",
           "outcome": "unevaluable",
           "owner": "orchestrator"
@@ -279,10 +339,6 @@
         },
         {
           "event": "retry",
-          "owner": "orchestrator"
-        },
-        {
-          "event": "task_merged",
           "owner": "orchestrator"
         },
         {
@@ -305,6 +361,43 @@
       "id": "failure-integration-non-green",
       "trace": [
         {
+          "event": "route_selected",
+          "route": "parallel",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "isolated_task_worktrees",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "task_implementation",
+          "owner": "implementer"
+        },
+        {
+          "event": "task_verifications_complete",
+          "outcome": "green",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "merge_gates_complete",
+          "outcome": "green",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "serial_merge",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "regeneration",
+          "outcome": "green",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "wiring",
+          "outcome": "green",
+          "owner": "orchestrator"
+        },
+        {
           "event": "integration_gate",
           "outcome": "non_green",
           "owner": "orchestrator"
@@ -316,10 +409,6 @@
         },
         {
           "event": "retry",
-          "owner": "orchestrator"
-        },
-        {
-          "event": "task_merged",
           "owner": "orchestrator"
         },
         {
@@ -342,6 +431,43 @@
       "id": "failure-integration-unevaluable",
       "trace": [
         {
+          "event": "route_selected",
+          "route": "parallel",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "isolated_task_worktrees",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "task_implementation",
+          "owner": "implementer"
+        },
+        {
+          "event": "task_verifications_complete",
+          "outcome": "green",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "merge_gates_complete",
+          "outcome": "green",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "serial_merge",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "regeneration",
+          "outcome": "green",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "wiring",
+          "outcome": "green",
+          "owner": "orchestrator"
+        },
+        {
           "event": "integration_gate",
           "outcome": "unevaluable",
           "owner": "orchestrator"
@@ -353,10 +479,6 @@
         },
         {
           "event": "retry",
-          "owner": "orchestrator"
-        },
-        {
-          "event": "task_merged",
           "owner": "orchestrator"
         },
         {
@@ -393,10 +515,6 @@
           "owner": "orchestrator"
         },
         {
-          "event": "task_merged",
-          "owner": "orchestrator"
-        },
-        {
           "event": "cleanup",
           "owner": "orchestrator"
         },
@@ -427,10 +545,6 @@
         },
         {
           "event": "retry",
-          "owner": "orchestrator"
-        },
-        {
-          "event": "task_merged",
           "owner": "orchestrator"
         },
         {
@@ -467,10 +581,6 @@
           "owner": "orchestrator"
         },
         {
-          "event": "task_merged",
-          "owner": "orchestrator"
-        },
-        {
           "event": "cleanup",
           "owner": "orchestrator"
         },
@@ -501,10 +611,6 @@
         },
         {
           "event": "retry",
-          "owner": "orchestrator"
-        },
-        {
-          "event": "task_merged",
           "owner": "orchestrator"
         },
         {
@@ -541,10 +647,6 @@
           "owner": "orchestrator"
         },
         {
-          "event": "task_merged",
-          "owner": "orchestrator"
-        },
-        {
           "event": "cleanup",
           "owner": "orchestrator"
         },
@@ -578,10 +680,6 @@
           "owner": "orchestrator"
         },
         {
-          "event": "task_merged",
-          "owner": "orchestrator"
-        },
-        {
           "event": "cleanup",
           "owner": "orchestrator"
         },
@@ -601,6 +699,33 @@
       "id": "failure-regeneration-non-green",
       "trace": [
         {
+          "event": "route_selected",
+          "route": "parallel",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "isolated_task_worktrees",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "task_implementation",
+          "owner": "implementer"
+        },
+        {
+          "event": "task_verifications_complete",
+          "outcome": "green",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "merge_gates_complete",
+          "outcome": "green",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "serial_merge",
+          "owner": "orchestrator"
+        },
+        {
           "event": "regeneration",
           "outcome": "non_green",
           "owner": "orchestrator"
@@ -612,10 +737,6 @@
         },
         {
           "event": "retry",
-          "owner": "orchestrator"
-        },
-        {
-          "event": "task_merged",
           "owner": "orchestrator"
         },
         {
@@ -638,6 +759,33 @@
       "id": "failure-regeneration-unevaluable",
       "trace": [
         {
+          "event": "route_selected",
+          "route": "parallel",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "isolated_task_worktrees",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "task_implementation",
+          "owner": "implementer"
+        },
+        {
+          "event": "task_verifications_complete",
+          "outcome": "green",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "merge_gates_complete",
+          "outcome": "green",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "serial_merge",
+          "owner": "orchestrator"
+        },
+        {
           "event": "regeneration",
           "outcome": "unevaluable",
           "owner": "orchestrator"
@@ -649,10 +797,6 @@
         },
         {
           "event": "retry",
-          "owner": "orchestrator"
-        },
-        {
-          "event": "task_merged",
           "owner": "orchestrator"
         },
         {
@@ -846,7 +990,7 @@
         },
         {
           "event": "final_full_diff_review",
-          "outcome": "clear",
+          "outcome": "green",
           "owner": "orchestrator"
         },
         {
@@ -878,7 +1022,7 @@
         },
         {
           "event": "final_full_diff_review",
-          "outcome": "clear",
+          "outcome": "green",
           "owner": "orchestrator"
         },
         {
@@ -910,7 +1054,7 @@
         },
         {
           "event": "final_full_diff_review",
-          "outcome": "clear",
+          "outcome": "green",
           "owner": "orchestrator"
         },
         {
@@ -1060,7 +1204,7 @@
         },
         {
           "event": "final_full_diff_review",
-          "outcome": "clear",
+          "outcome": "green",
           "owner": "orchestrator"
         },
         {
@@ -1170,6 +1314,19 @@
       "id": "failure-terminal-non-green",
       "trace": [
         {
+          "event": "route_selected",
+          "route": "single_risky",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "worktree_created",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "task_implementation",
+          "owner": "implementer"
+        },
+        {
           "event": "task_verification",
           "outcome": "non_green",
           "owner": "implementer"
@@ -1186,6 +1343,24 @@
     {
       "id": "failure-merge-precondition-unevaluable",
       "trace": [
+        {
+          "event": "route_selected",
+          "route": "single_risky",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "worktree_created",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "task_implementation",
+          "owner": "implementer"
+        },
+        {
+          "event": "task_verification",
+          "outcome": "green",
+          "owner": "implementer"
+        },
         {
           "event": "merge_precondition",
           "outcome": "unevaluable",
@@ -1597,6 +1772,19 @@
       "id": "unevaluable-verification-treated-as-green",
       "trace": [
         {
+          "event": "route_selected",
+          "route": "single_risky",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "worktree_created",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "task_implementation",
+          "owner": "implementer"
+        },
+        {
           "event": "task_verification",
           "outcome": "unevaluable",
           "owner": "orchestrator"
@@ -1758,6 +1946,24 @@
         {
           "event": "startup",
           "owner": "harness_lifecycle"
+        },
+        {
+          "event": "route_selected",
+          "route": "single_risky",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "worktree_created",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "task_implementation",
+          "owner": "implementer"
+        },
+        {
+          "event": "task_verification",
+          "outcome": "green",
+          "owner": "implementer"
         },
         {
           "event": "merge_precondition",
@@ -2323,6 +2529,346 @@
       "expected_outcome": "rejected",
       "expected_contract_id": "RUN-FAIL-CLOSED",
       "expected_reason": "failure overlay must be runtime-failure-overlay-owned"
+    },
+    {
+      "id": "route-omitted-direct-events",
+      "trace": [
+        {
+          "event": "task_implementation",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "evidence_captured",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "base_commit",
+          "owner": "orchestrator"
+        }
+      ],
+      "expected_valid": false,
+      "expected_outcome": "rejected",
+      "expected_contract_id": "RUN-ROUTE-TOPOLOGY",
+      "expected_reason": "route-specific events require exactly one selected route"
+    },
+    {
+      "id": "route-omitted-complete-mixed-routes",
+      "trace": [
+        {
+          "event": "task_implementation",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "evidence_captured",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "base_commit",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "worktree_created",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "task_implementation",
+          "owner": "implementer"
+        },
+        {
+          "event": "task_verification",
+          "outcome": "green",
+          "owner": "implementer"
+        },
+        {
+          "event": "merge_precondition",
+          "outcome": "green",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "merge_gate",
+          "outcome": "green",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "task_merged",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "isolated_task_worktrees",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "task_implementation",
+          "owner": "implementer"
+        },
+        {
+          "event": "task_verifications_complete",
+          "outcome": "green",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "merge_gates_complete",
+          "outcome": "green",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "serial_merge",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "regeneration",
+          "outcome": "green",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "wiring",
+          "outcome": "green",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "integration_gate",
+          "outcome": "green",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "selected_base",
+          "value": "sha-A",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "external_base_pin",
+          "value": "sha-A",
+          "owner": "implementer"
+        },
+        {
+          "event": "external_action",
+          "owner": "implementer"
+        },
+        {
+          "event": "external_evidence",
+          "outcome": "green",
+          "owner": "implementer"
+        },
+        {
+          "event": "base_commit",
+          "owner": "implementer"
+        },
+        {
+          "event": "independent_commit_proof",
+          "owner": "orchestrator"
+        }
+      ],
+      "expected_valid": false,
+      "expected_outcome": "rejected",
+      "expected_contract_id": "RUN-ROUTE-TOPOLOGY",
+      "expected_reason": "route-specific events require exactly one selected route"
+    },
+    {
+      "id": "failure-routine-write-before-overlay",
+      "trace": [
+        {
+          "event": "completion_gate",
+          "outcome": "non_green",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "routine_write",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "failure_overlay_entered",
+          "overlay": "failure",
+          "owner": "runtime_failure_overlay"
+        }
+      ],
+      "expected_valid": false,
+      "expected_outcome": "rejected",
+      "expected_contract_id": "RUN-FAIL-CLOSED",
+      "expected_reason": "failure overlay must precede any present continuation"
+    },
+    {
+      "id": "failure-routine-dispatch-before-overlay",
+      "trace": [
+        {
+          "event": "completion_gate",
+          "outcome": "non_green",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "routine_dispatch",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "failure_overlay_entered",
+          "overlay": "failure",
+          "owner": "runtime_failure_overlay"
+        }
+      ],
+      "expected_valid": false,
+      "expected_outcome": "rejected",
+      "expected_contract_id": "RUN-FAIL-CLOSED",
+      "expected_reason": "failure overlay must precede any present continuation"
+    },
+    {
+      "id": "failure-routine-merge-before-overlay",
+      "trace": [
+        {
+          "event": "completion_gate",
+          "outcome": "non_green",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "routine_merge",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "failure_overlay_entered",
+          "overlay": "failure",
+          "owner": "runtime_failure_overlay"
+        }
+      ],
+      "expected_valid": false,
+      "expected_outcome": "rejected",
+      "expected_contract_id": "RUN-FAIL-CLOSED",
+      "expected_reason": "failure overlay must precede any present continuation"
+    },
+    {
+      "id": "failure-routine-gate-before-overlay",
+      "trace": [
+        {
+          "event": "completion_gate",
+          "outcome": "non_green",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "routine_gate",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "failure_overlay_entered",
+          "overlay": "failure",
+          "owner": "runtime_failure_overlay"
+        }
+      ],
+      "expected_valid": false,
+      "expected_outcome": "rejected",
+      "expected_contract_id": "RUN-FAIL-CLOSED",
+      "expected_reason": "failure overlay must precede any present continuation"
+    },
+    {
+      "id": "failure-routine-cleanup-before-overlay",
+      "trace": [
+        {
+          "event": "completion_gate",
+          "outcome": "non_green",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "routine_cleanup",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "failure_overlay_entered",
+          "overlay": "failure",
+          "owner": "runtime_failure_overlay"
+        }
+      ],
+      "expected_valid": false,
+      "expected_outcome": "rejected",
+      "expected_contract_id": "RUN-FAIL-CLOSED",
+      "expected_reason": "failure overlay must precede any present continuation"
+    },
+    {
+      "id": "final-review-clear-success",
+      "trace": [
+        {
+          "event": "route_selected",
+          "route": "direct",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "task_implementation",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "evidence_captured",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "base_commit",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "final_full_diff_review",
+          "outcome": "clear",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "review_verdict",
+          "outcome": "clear",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "completion",
+          "owner": "orchestrator"
+        }
+      ],
+      "expected_valid": false,
+      "expected_outcome": "rejected",
+      "expected_contract_id": "RUN-REVIEW-TOPOLOGY",
+      "expected_reason": "clear review verdict requires one green final full-diff review"
+    },
+    {
+      "id": "review-verdict-blocking-no-overlay",
+      "trace": [
+        {
+          "event": "final_full_diff_review",
+          "outcome": "green",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "review_verdict",
+          "outcome": "blocking",
+          "owner": "orchestrator"
+        }
+      ],
+      "expected_valid": false,
+      "expected_outcome": "rejected",
+      "expected_contract_id": "RUN-FAIL-CLOSED",
+      "expected_reason": "blocking review verdict must enter failure overlay"
+    },
+    {
+      "id": "review-verdict-conflicting-completion",
+      "trace": [
+        {
+          "event": "final_full_diff_review",
+          "outcome": "green",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "review_verdict",
+          "outcome": "blocking",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "failure_overlay_entered",
+          "overlay": "failure",
+          "owner": "runtime_failure_overlay"
+        },
+        {
+          "event": "review_verdict",
+          "outcome": "clear",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "completion",
+          "owner": "orchestrator"
+        }
+      ],
+      "expected_valid": false,
+      "expected_outcome": "rejected",
+      "expected_contract_id": "RUN-REVIEW-TOPOLOGY",
+      "expected_reason": "review verdict must occur exactly once"
     }
   ]
 }

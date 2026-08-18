@@ -39,6 +39,7 @@ RESULT_EVENTS = [
     "runtime_smoke",
     "conditional_spec_review",
     "final_full_diff_review",
+    "review_verdict",
 ]
 CONTINUATION_EVENTS = RESULT_EVENTS + [
     "route_selected",
@@ -61,7 +62,11 @@ CONTINUATION_EVENTS = RESULT_EVENTS + [
     "completion_reused",
     "completion",
     "user_gate",
-    "review_verdict",
+    "routine_write",
+    "routine_dispatch",
+    "routine_merge",
+    "routine_gate",
+    "routine_cleanup",
 ]
 FAILURE_OUTCOMES = {"non_green", "unevaluable", "blocking"}
 RESULT_OUTCOMES = {
@@ -81,6 +86,7 @@ RESULT_OUTCOMES["final_full_diff_review"] = {
     "non_green",
     "unevaluable",
 }
+RESULT_OUTCOMES["review_verdict"] = {"clear", "blocking"}
 EXPECTED_VOCABULARY = {
     "route": ["direct", "single_risky", "parallel", "external"],
     "overlay": ["failure"],
@@ -302,6 +308,16 @@ EXPECTED_MUTANT_IDS = {
     "task-verification-missing-outcome",
     "failure-overlay-missing-overlay",
     "failure-overlay-missing-owner",
+    "route-omitted-direct-events",
+    "route-omitted-complete-mixed-routes",
+    "failure-routine-write-before-overlay",
+    "failure-routine-dispatch-before-overlay",
+    "failure-routine-merge-before-overlay",
+    "failure-routine-gate-before-overlay",
+    "failure-routine-cleanup-before-overlay",
+    "final-review-clear-success",
+    "review-verdict-blocking-no-overlay",
+    "review-verdict-conflicting-completion",
 }
 
 
@@ -477,6 +493,7 @@ def validate_required_metadata(trace, vocabulary):
         "runtime_smoke": "runtime smoke requires a non-empty closed outcome",
         "conditional_spec_review": "conditional spec review requires an actual result",
         "final_full_diff_review": "final full-diff review requires an actual result",
+        "review_verdict": "review verdict requires a non-empty closed outcome",
     }
     completion_value_reasons = {
         "prior_verify_set": "completion reuse requires the prior verify set",
@@ -491,7 +508,11 @@ def validate_required_metadata(trace, vocabulary):
         if event in RESULT_OUTCOMES and occurrence.get("outcome") not in RESULT_OUTCOMES[event]:
             invariant_id = (
                 "RUN-REVIEW-TOPOLOGY"
-                if event in {"conditional_spec_review", "final_full_diff_review"}
+                if event in {
+                    "conditional_spec_review",
+                    "final_full_diff_review",
+                    "review_verdict",
+                }
                 else "RUN-FAIL-CLOSED"
             )
             return invariant_id, result_reasons[event]
@@ -753,6 +774,8 @@ def validate_reached_route_prefix(trace, route, route_index, failure_index):
 def validate_route_topology(trace):
     selected = matching_indexes(trace, "route_selected")
     if not selected:
+        if any(item.get("event") in ROUTE_SPECIFIC_EVENTS for item in trace):
+            return "route-specific events require exactly one selected route"
         return None
     if len(selected) != 1:
         return "a success route must be selected exactly once"
@@ -1039,6 +1062,7 @@ def validate_failure_overlay(trace):
         "runtime_smoke": "runtime smoke result",
         "conditional_spec_review": "conditional spec review result",
         "final_full_diff_review": "final review result",
+        "review_verdict": "review verdict",
     }
     continuations = set(CONTINUATION_EVENTS)
     for result_index, occurrence in enumerate(trace):
@@ -1227,6 +1251,7 @@ def validate_review_topology(trace):
     review_facts = has_risky or has_non_risky or has_cascade or no_cascade
     conditional_indexes = matching_indexes(trace, "conditional_spec_review")
     final_indexes = matching_indexes(trace, "final_full_diff_review")
+    verdict_indexes = matching_indexes(trace, "review_verdict")
     clear_verdicts = matching_indexes(trace, "review_verdict", outcome="clear")
     conditional = bool(conditional_indexes)
     final_review = bool(final_indexes)
@@ -1257,6 +1282,8 @@ def validate_review_topology(trace):
 
     if len(final_indexes) > 1:
         return "final full-diff review must occur exactly once"
+    if len(verdict_indexes) > 1:
+        return "review verdict must occur exactly once"
     if final_review:
         final_outcome = trace[final_indexes[0]].get("outcome")
         if final_outcome not in RESULT_OUTCOMES["final_full_diff_review"]:
@@ -1268,19 +1295,18 @@ def validate_review_topology(trace):
     if clear_verdicts:
         if len(clear_verdicts) != 1 or len(final_indexes) != 1:
             return "clear review verdict requires one successful final full-diff review"
-        if trace[final_indexes[0]].get("outcome") not in {"green", "clear"}:
-            return "clear review verdict requires one successful final full-diff review"
+        if trace[final_indexes[0]].get("outcome") != "green":
+            return "clear review verdict requires one green final full-diff review"
         if not ordered(trace, "final_full_diff_review", "review_verdict"):
             return "successful final full-diff review must precede clear verdict"
 
     endpoints = matching_indexes(trace, "completion") + matching_indexes(trace, "user_gate")
     if endpoints:
-        if len(final_indexes) != 1 or trace[final_indexes[0]].get("outcome") not in {
-            "green",
-            "clear",
-        }:
+        if len(final_indexes) != 1:
             return "successful completion or user gate requires final full-diff review"
-        if len(clear_verdicts) != 1:
+        if trace[final_indexes[0]].get("outcome") != "green":
+            return "successful completion or user gate requires green final full-diff review"
+        if len(verdict_indexes) != 1 or len(clear_verdicts) != 1:
             return "successful completion or user gate requires a clear review verdict"
         if any(clear_verdicts[0] >= endpoint for endpoint in endpoints):
             return "clear review verdict must precede completion or user gate"
@@ -1405,6 +1431,10 @@ class RunSemanticContractTests(unittest.TestCase):
     def test_validator_derives_failure_overlay_despite_lifecycle_facts(self):
         trace = [
             {"event": "startup", "owner": "harness_lifecycle"},
+            {"event": "route_selected", "route": "single_risky", "owner": "orchestrator"},
+            {"event": "worktree_created", "owner": "orchestrator"},
+            {"event": "task_implementation", "owner": "implementer"},
+            {"event": "task_verification", "outcome": "green", "owner": "implementer"},
             {"event": "merge_precondition", "outcome": "unevaluable", "owner": "orchestrator"},
             {"event": "progress", "owner": "orchestrator"},
         ]
@@ -1417,6 +1447,9 @@ class RunSemanticContractTests(unittest.TestCase):
 
     def test_terminal_failure_overlay_does_not_require_continuations(self):
         trace = [
+            {"event": "route_selected", "route": "single_risky", "owner": "orchestrator"},
+            {"event": "worktree_created", "owner": "orchestrator"},
+            {"event": "task_implementation", "owner": "implementer"},
             {"event": "task_verification", "outcome": "non_green", "owner": "implementer"},
             {"event": "failure_overlay_entered", "overlay": "failure", "owner": "runtime_failure_overlay"},
         ]
@@ -1660,6 +1693,101 @@ class RunSemanticContractTests(unittest.TestCase):
             {"event": "user_gate", "owner": "orchestrator"},
         ]
         self.assertTrue(validate_semantics(self.contract, successful_completion)["valid"])
+
+    def test_route_specific_events_require_one_compatible_selected_route(self):
+        missing_route_reason = "route-specific events require exactly one selected route"
+        for event in sorted(ROUTE_SPECIFIC_EVENTS):
+            with self.subTest(event=event, route="omitted"):
+                self.assertEqual(
+                    validate_route_topology([{"event": event}]),
+                    missing_route_reason,
+                )
+
+        for route, allowed_events in ROUTE_ALLOWED_EVENTS.items():
+            for event in sorted(ROUTE_SPECIFIC_EVENTS - allowed_events):
+                with self.subTest(event=event, route=route):
+                    self.assertEqual(
+                        validate_route_topology(
+                            [
+                                {"event": "route_selected", "route": route},
+                                {"event": event},
+                            ]
+                        ),
+                        f"{route.replace('_', '-')} route forbids route-specific event {event}",
+                    )
+
+    def test_failure_overlay_precedes_every_closed_continuation_category(self):
+        categories = {
+            "route_work": ROUTE_SPECIFIC_EVENTS,
+            "routine_work": {
+                "routine_write",
+                "routine_dispatch",
+                "routine_merge",
+                "routine_gate",
+                "routine_cleanup",
+            },
+            "dispatch": {"downstream_dispatch", "routine_dispatch"},
+            "merge": {"task_merged", "serial_merge", "routine_merge"},
+            "gate": {
+                "merge_precondition",
+                "merge_gate",
+                "merge_gates_complete",
+                "integration_gate",
+                "completion_gate",
+                "routine_gate",
+            },
+            "cleanup": {"cleanup", "routine_cleanup"},
+            "progress": {"progress"},
+        }
+        closed_continuations = set(self.contract["vocabulary"]["continuation_event"])
+        for category, events in categories.items():
+            with self.subTest(category=category):
+                self.assertTrue(events.issubset(closed_continuations))
+
+        for event in sorted(closed_continuations):
+            trace = [
+                {"event": "completion_gate", "outcome": "non_green"},
+                {"event": event},
+                {
+                    "event": "failure_overlay_entered",
+                    "overlay": "failure",
+                    "owner": "runtime_failure_overlay",
+                },
+            ]
+            with self.subTest(continuation=event):
+                self.assertEqual(
+                    validate_failure_overlay(trace),
+                    "failure overlay must precede any present continuation",
+                )
+
+    def test_final_review_success_and_verdict_are_exact_and_cardinal(self):
+        for endpoint in ("completion", "user_gate"):
+            trace = [
+                {"event": "final_full_diff_review", "outcome": "clear"},
+                {"event": "review_verdict", "outcome": "clear"},
+                {"event": endpoint},
+            ]
+            with self.subTest(endpoint=endpoint):
+                self.assertEqual(
+                    validate_review_topology(trace),
+                    "clear review verdict requires one green final full-diff review",
+                )
+
+        conflicting_verdicts = [
+            {"event": "final_full_diff_review", "outcome": "green"},
+            {"event": "review_verdict", "outcome": "blocking"},
+            {
+                "event": "failure_overlay_entered",
+                "overlay": "failure",
+                "owner": "runtime_failure_overlay",
+            },
+            {"event": "review_verdict", "outcome": "clear"},
+            {"event": "completion"},
+        ]
+        self.assertEqual(
+            validate_review_topology(conflicting_verdicts),
+            "review verdict must occur exactly once",
+        )
 
     def test_trace_metadata_is_event_specific(self):
         with self.assertRaises(ValueError):

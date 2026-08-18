@@ -120,10 +120,11 @@ merge gates, wiring, verification, context budget, cleanup, and failure handling
 {
   "id": "RUN-ROUTE-TOPOLOGY",
   "kind": "route_topology",
-  "definition": "Run has exactly four closed success routes with mutually exclusive route-specific topology: direct is orchestrator-owned on the base with captured evidence, single_risky uses one isolated implementer worktree with verification and merge gates, parallel uses isolated task worktrees with serial merge, regeneration, wiring, and a green wave integration gate, and external is a base-pinned implementer route without a file diff. Topology validates the ordered prefix reached before the first failed result, forbids later route advancement, and does not require unreached success-only stages. Failure is an overlay, not a success route.",
+  "definition": "Run has exactly four closed success routes, and any route-specific event requires exactly one route_selected with a closed route value. Their topologies are mutually exclusive: direct is orchestrator-owned on the base with captured evidence, single_risky uses one isolated implementer worktree with verification and merge gates, parallel uses isolated task worktrees with serial merge, regeneration, wiring, and a green wave integration gate, and external is a base-pinned implementer route without a file diff. Topology validates the ordered prefix reached before the first failed result, forbids later route advancement, and does not require unreached success-only stages. Failure is an overlay, not a success route.",
   "constraints": [
     "The closed success-route set is direct, single_risky, parallel, and external.",
-    "Route-specific work and action events belong to exactly their selected route and cannot mix topologies.",
+    "Any route-specific event requires exactly one route_selected event with one closed route value.",
+    "Every route-specific work or action event belongs to the selected route and cannot mix topologies.",
     "Direct work remains on the base under orchestrator ownership and captures evidence.",
     "Single-risky work uses one isolated implementer worktree and verifies before merge gates and merge.",
     "Parallel work uses isolated task worktrees, serial merge, regeneration, wiring, and a green integration gate in that order.",
@@ -161,12 +162,12 @@ merge gates, wiring, verification, context budget, cleanup, and failure handling
 {
   "id": "RUN-REVIEW-TOPOLOGY",
   "kind": "review_topology",
-  "definition": "Conditional spec review occurs if and only if both risky-task and downstream-cascade-risk facts are present, and it never replaces final full-diff review after a clear conditional result. Every successful completion or user gate follows one successful final full-diff review and its correlated clear verdict. A clear verdict requires and follows an actual green or clear final review and cannot coexist with a blocking, non-green, or unevaluable conditional or final review result.",
+  "definition": "Conditional spec review occurs if and only if both risky-task and downstream-cascade-risk facts are present, and it never replaces final full-diff review after a clear conditional result. Every successful completion or user gate follows exactly one final full-diff review with outcome green and then exactly one review verdict with outcome clear. A clear verdict correlates only to that unique green final review. Duplicate or conflicting verdicts are invalid, and a blocking verdict is a failed review result that enters the runtime-owned failure overlay before continuation.",
   "constraints": [
     "Risky downstream cascade requires conditional spec review before dispatch and final review, and either missing prerequisite forbids it.",
-    "Conditional and final review events carry their actual closed result values.",
-    "Successful completion and the user gate require successful final review, then a correlated clear verdict, in that order.",
-    "A clear verdict cannot coexist with a blocking, non-green, or unevaluable conditional or final review result."
+    "Conditional and final review events and review verdicts carry their actual closed result values.",
+    "Successful completion and the user gate require exactly one green final full-diff review, then exactly one clear review verdict, then the endpoint.",
+    "Review verdicts cannot duplicate or conflict; clear correlates only to the unique green final review, while blocking enters the runtime-owned failure overlay before continuation."
   ]
 }
 ```
