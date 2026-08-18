@@ -3226,6 +3226,31 @@
           "event": "user_output_needed_question",
           "filter": {},
           "expected": 1
+        },
+        {
+          "op": "owner",
+          "event": "user_output_needed_question",
+          "expected_owner": "orchestrator"
+        },
+        {
+          "op": "owner",
+          "event": "user_output_actual_blocker",
+          "expected_owner": "orchestrator"
+        },
+        {
+          "op": "owner",
+          "event": "user_output_wave_completion",
+          "expected_owner": "orchestrator"
+        },
+        {
+          "op": "owner",
+          "event": "user_output_final_result",
+          "expected_owner": "orchestrator"
+        },
+        {
+          "op": "owner",
+          "event": "user_output_approval_request",
+          "expected_owner": "orchestrator"
         }
       ]
     },
@@ -3962,6 +3987,326 @@
         "expected_contract_id": "RUN-FAIL-CLOSED",
         "expected_reason": "blocking review verdict must enter failure overlay"
       }
+    },
+    {
+      "id": "promoted-terminal-direct",
+      "trace": [
+        {
+          "event": "route_selected",
+          "route": "direct",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "task_implementation",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "concern_recorded",
+          "value": "C-promoted-direct",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "concern_disposition",
+          "value": "C-promoted-direct",
+          "disposition": "promoted_to_failure",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "failure_overlay_entered",
+          "overlay": "failure",
+          "owner": "runtime_failure_overlay"
+        }
+      ],
+      "expected_valid": true,
+      "expected_outcome": "accepted",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "route_selected",
+          "filter": {
+            "route": "direct"
+          },
+          "expected": 1
+        },
+        {
+          "op": "before",
+          "event_a": "task_implementation",
+          "event_b": "concern_disposition"
+        },
+        {
+          "op": "before",
+          "event_a": "concern_disposition",
+          "event_b": "failure_overlay_entered"
+        }
+      ]
+    },
+    {
+      "id": "promoted-terminal-single-risky",
+      "trace": [
+        {
+          "event": "route_selected",
+          "route": "single_risky",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "worktree_created",
+          "task_id": "task-a",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "task_implementation",
+          "task_id": "task-a",
+          "owner": "implementer"
+        },
+        {
+          "event": "evidence_captured",
+          "task_id": "task-a",
+          "owner": "implementer"
+        },
+        {
+          "event": "concern_recorded",
+          "value": "C-promoted-single-risky",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "concern_disposition",
+          "value": "C-promoted-single-risky",
+          "disposition": "promoted_to_failure",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "failure_overlay_entered",
+          "overlay": "failure",
+          "owner": "runtime_failure_overlay"
+        }
+      ],
+      "expected_valid": true,
+      "expected_outcome": "accepted",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "worktree_created",
+          "filter": {
+            "task_id": "task-a"
+          },
+          "expected": 1
+        },
+        {
+          "op": "before",
+          "event_a": "evidence_captured",
+          "event_b": "concern_disposition"
+        },
+        {
+          "op": "before",
+          "event_a": "concern_disposition",
+          "event_b": "failure_overlay_entered"
+        }
+      ]
+    },
+    {
+      "id": "promoted-terminal-parallel",
+      "trace": [
+        {
+          "event": "route_selected",
+          "route": "parallel",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "isolated_task_worktrees",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "worktree_created",
+          "task_id": "task-a",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "worktree_created",
+          "task_id": "task-b",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "task_implementation",
+          "task_id": "task-a",
+          "owner": "implementer"
+        },
+        {
+          "event": "task_implementation",
+          "task_id": "task-b",
+          "owner": "implementer"
+        },
+        {
+          "event": "concern_recorded",
+          "value": "C-promoted-parallel",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "concern_disposition",
+          "value": "C-promoted-parallel",
+          "disposition": "promoted_to_failure",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "failure_overlay_entered",
+          "overlay": "failure",
+          "owner": "runtime_failure_overlay"
+        }
+      ],
+      "expected_valid": true,
+      "expected_outcome": "accepted",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "worktree_created",
+          "filter": {},
+          "expected": 2
+        },
+        {
+          "op": "count",
+          "event": "task_implementation",
+          "filter": {},
+          "expected": 2
+        },
+        {
+          "op": "before",
+          "event_a": "task_implementation",
+          "event_b": "concern_disposition"
+        },
+        {
+          "op": "before",
+          "event_a": "concern_disposition",
+          "event_b": "failure_overlay_entered"
+        }
+      ]
+    },
+    {
+      "id": "promoted-terminal-external",
+      "trace": [
+        {
+          "event": "route_selected",
+          "route": "external",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "selected_base",
+          "value": "sha-A",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "external_base_pin",
+          "value": "sha-A",
+          "owner": "implementer"
+        },
+        {
+          "event": "external_action",
+          "owner": "implementer"
+        },
+        {
+          "event": "concern_recorded",
+          "value": "C-promoted-external",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "concern_disposition",
+          "value": "C-promoted-external",
+          "disposition": "promoted_to_failure",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "failure_overlay_entered",
+          "overlay": "failure",
+          "owner": "runtime_failure_overlay"
+        }
+      ],
+      "expected_valid": true,
+      "expected_outcome": "accepted",
+      "assertions": [
+        {
+          "op": "same",
+          "event_a": "selected_base",
+          "field_a": "value",
+          "event_b": "external_base_pin",
+          "field_b": "value"
+        },
+        {
+          "op": "before",
+          "event_a": "external_action",
+          "event_b": "concern_disposition"
+        },
+        {
+          "op": "before",
+          "event_a": "concern_disposition",
+          "event_b": "failure_overlay_entered"
+        }
+      ]
+    },
+    {
+      "id": "promoted-terminal-after-clear-conditional-review",
+      "trace": [
+        {
+          "event": "risky_task",
+          "task_id": "task-a",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "downstream_cascade_risk",
+          "task_id": "task-a",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "conditional_spec_review",
+          "task_id": "task-a",
+          "outcome": "clear",
+          "owner": "reviewer"
+        },
+        {
+          "event": "concern_recorded",
+          "value": "C-promoted-after-clear-review",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "concern_disposition",
+          "value": "C-promoted-after-clear-review",
+          "disposition": "promoted_to_failure",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "failure_overlay_entered",
+          "overlay": "failure",
+          "owner": "runtime_failure_overlay"
+        },
+        {
+          "event": "user_output_actual_blocker",
+          "owner": "orchestrator"
+        }
+      ],
+      "expected_valid": true,
+      "expected_outcome": "accepted",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "conditional_spec_review",
+          "filter": {
+            "outcome": "clear"
+          },
+          "expected": 1
+        },
+        {
+          "op": "before",
+          "event_a": "conditional_spec_review",
+          "event_b": "concern_disposition"
+        },
+        {
+          "op": "before",
+          "event_a": "concern_disposition",
+          "event_b": "failure_overlay_entered"
+        },
+        {
+          "op": "owner",
+          "event": "user_output_actual_blocker",
+          "expected_owner": "orchestrator"
+        }
+      ]
     }
   ],
   "mutants": [
@@ -6466,6 +6811,106 @@
           "op": "before",
           "event_a": "concern_disposition",
           "event_b": "concern_recorded"
+        }
+      ]
+    },
+    {
+      "id": "output-needed-question-wrong-owner",
+      "trace": [
+        {
+          "event": "user_output_needed_question",
+          "owner": "implementer"
+        }
+      ],
+      "expected_valid": false,
+      "expected_outcome": "rejected",
+      "expected_contract_id": "RUN-OUTPUT-SEMANTICS",
+      "expected_reason": "allowed user output must be orchestrator-owned",
+      "assertions": [
+        {
+          "op": "owner",
+          "event": "user_output_needed_question",
+          "expected_owner": "implementer"
+        }
+      ]
+    },
+    {
+      "id": "output-actual-blocker-wrong-owner",
+      "trace": [
+        {
+          "event": "user_output_actual_blocker",
+          "owner": "reviewer"
+        }
+      ],
+      "expected_valid": false,
+      "expected_outcome": "rejected",
+      "expected_contract_id": "RUN-OUTPUT-SEMANTICS",
+      "expected_reason": "allowed user output must be orchestrator-owned",
+      "assertions": [
+        {
+          "op": "owner",
+          "event": "user_output_actual_blocker",
+          "expected_owner": "reviewer"
+        }
+      ]
+    },
+    {
+      "id": "output-wave-completion-wrong-owner",
+      "trace": [
+        {
+          "event": "user_output_wave_completion",
+          "owner": "user"
+        }
+      ],
+      "expected_valid": false,
+      "expected_outcome": "rejected",
+      "expected_contract_id": "RUN-OUTPUT-SEMANTICS",
+      "expected_reason": "allowed user output must be orchestrator-owned",
+      "assertions": [
+        {
+          "op": "owner",
+          "event": "user_output_wave_completion",
+          "expected_owner": "user"
+        }
+      ]
+    },
+    {
+      "id": "output-final-result-wrong-owner",
+      "trace": [
+        {
+          "event": "user_output_final_result",
+          "owner": "implementer"
+        }
+      ],
+      "expected_valid": false,
+      "expected_outcome": "rejected",
+      "expected_contract_id": "RUN-OUTPUT-SEMANTICS",
+      "expected_reason": "allowed user output must be orchestrator-owned",
+      "assertions": [
+        {
+          "op": "owner",
+          "event": "user_output_final_result",
+          "expected_owner": "implementer"
+        }
+      ]
+    },
+    {
+      "id": "output-approval-request-wrong-owner",
+      "trace": [
+        {
+          "event": "user_output_approval_request",
+          "owner": "reviewer"
+        }
+      ],
+      "expected_valid": false,
+      "expected_outcome": "rejected",
+      "expected_contract_id": "RUN-OUTPUT-SEMANTICS",
+      "expected_reason": "allowed user output must be orchestrator-owned",
+      "assertions": [
+        {
+          "op": "owner",
+          "event": "user_output_approval_request",
+          "expected_owner": "reviewer"
         }
       ]
     }
