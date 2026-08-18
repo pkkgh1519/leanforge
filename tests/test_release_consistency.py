@@ -174,6 +174,34 @@ class ReleaseConsistencyTests(unittest.TestCase):
         self.assertEqual(0, completed.returncode, completed.stderr)
         self.assertIn(f"version OK: v{self.current_release}", completed.stdout)
 
+    def test_build_release_guard_ignores_exact_title_in_fenced_code_block(self):
+        def add_fenced_title(fixture: Path) -> None:
+            title = f"# Leanforge v{self.current_release}"
+            replace_once(
+                fixture / "README.md",
+                title,
+                f"{title}\n\n```markdown\n# Leanforge v9.9.9\n```",
+            )
+
+        completed = self.run_isolated_build(add_fenced_title)
+
+        self.assertEqual(0, completed.returncode, completed.stderr)
+        self.assertIn(f"version OK: v{self.current_release}", completed.stdout)
+
+    def test_build_release_guard_ignores_exact_title_in_html_comment(self):
+        def add_commented_title(fixture: Path) -> None:
+            title = f"# Leanforge v{self.current_release}"
+            replace_once(
+                fixture / "README.md",
+                title,
+                f"{title}\n\n<!--\n# Leanforge v9.9.9\n-->",
+            )
+
+        completed = self.run_isolated_build(add_commented_title)
+
+        self.assertEqual(0, completed.returncode, completed.stderr)
+        self.assertIn(f"version OK: v{self.current_release}", completed.stdout)
+
     def test_build_release_guard_rejects_missing_label_on_every_surface(self):
         def remove_labels(fixture: Path) -> None:
             for rel in ("README.md", "README_KO.md"):

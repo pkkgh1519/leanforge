@@ -58,6 +58,30 @@ find "$ROOT/claude" "$ROOT/codex" -type d -name "__pycache__" -prune -exec rm -r
 # and generated manifests. This remains Git-free so source archives can build too.
 readme_versions() {
   perl -ne '
+    if ($in_fence) {
+      if (/^ {0,3}(`+|~+)[ \t]*$/) {
+        my $closing_fence = $1;
+        if (substr($closing_fence, 0, 1) eq $fence_char
+            && length($closing_fence) >= $fence_length) {
+          $in_fence = 0;
+        }
+      }
+      next;
+    }
+    if ($in_comment) {
+      $in_comment = 0 if /-->/;
+      next;
+    }
+    if (/^ {0,3}(`{3,}|~{3,})/) {
+      $in_fence = 1;
+      $fence_char = substr($1, 0, 1);
+      $fence_length = length($1);
+      next;
+    }
+    if (/<!--/) {
+      $in_comment = 1 unless /<!--.*-->/;
+      next;
+    }
     if (!$found_heading) {
       next unless /^#{1,6}\s+/;
       $found_heading = 1;
