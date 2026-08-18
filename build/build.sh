@@ -54,27 +54,180 @@ find "$ROOT/claude" "$ROOT/codex" -name ".DS_Store" -delete 2>/dev/null || true
 find "$ROOT/claude" "$ROOT/codex" -type d -name "__pycache__" -prune -exec rm -rf {} + 2>/dev/null || true
 
 # ── consistency guard ───────────────────────────────────────────────────────
-# Assert the release version invariant: all 4 plugin.json carry the same version
-# AND it matches the CHANGELOG top entry. Catches the manual-edit skew at build
-# time instead of leaving it for a human (or another agent) to spot.
-# (git tagging belongs to the release flow — kept out here so build stays git-free.)
-pj_ver() { perl -ne 'if(/"version"\s*:\s*"([^"]+)"/){print $1; last}' "$1"; }
-VERS="$(pj_ver "$PLAT/claude/plugin.json")
-$(pj_ver "$PLAT/codex/plugin.json")
-$(pj_ver "$ROOT/claude/.claude-plugin/plugin.json")
-$(pj_ver "$ROOT/codex/plugin/.codex-plugin/plugin.json")"
-UNIQ="$(printf '%s\n' "$VERS" | sort -u)"
+# Assert one release version across documentation, changelog, canonical manifests,
+# and generated manifests. This remains Git-free so source archives can build too.
+readme_versions() {
+  perl -ne '
+    if ($in_fence) {
+      if (/^ {0,3}(`+|~+)[ \t]*$/) {
+        my $closing_fence = $1;
+        if (substr($closing_fence, 0, 1) eq $fence_char
+            && length($closing_fence) >= $fence_length) {
+          $in_fence = 0;
+        }
+      }
+      next;
+    }
+    if ($in_comment) {
+      $in_comment = 0 if /-->/;
+      next;
+    }
+    if (/^ {0,3}(`{3,}|~{3,})/) {
+      $in_fence = 1;
+      $fence_char = substr($1, 0, 1);
+      $fence_length = length($1);
+      next;
+    }
+    if (/<!--/) {
+      $in_comment = 1 unless /<!--.*-->/;
+      next;
+    }
+    if (!$found_heading) {
+      next unless /^#{1,6}\s+/;
+      $found_heading = 1;
+      if (/^# Leanforge v([0-9]+(?:\.[0-9]+)*)\s*$/) {
+        print "$1\n";
+        next;
+      }
+      last;
+    }
+    if (/^# Leanforge v([0-9]+(?:\.[0-9]+)*)\s*$/) {
+      print "$1\n";
+    }
+  ' "$1"
+}
+changelog_versions() {
+  perl -ne '
+    if (!$found_title) {
+      next unless /^#\s+Changelog\s*$/;
+      $found_title = 1;
+      next;
+    }
+    next if /^\s*$/;
+    if (/^##\s+v([0-9]+(?:\.[0-9]+)*)\s+\([^)]*\)\s*$/) {
+      print "$1\n";
+      next;
+    }
+    last;
+  ' "$1"
+}
+pj_versions() {
+  perl -0777 -ne '
+    sub json_string {
+      my ($text, $start) = @_;
+      my ($value, $i) = ("", $start + 1);
+      while ($i < length($text)) {
+        my $char = substr($text, $i, 1);
+        if ($char eq "\\") {
+          $value .= substr($text, $i, 2);
+          $i += 2;
+          next;
+        }
+        return ($value, $i + 1) if $char eq q{"};
+        $value .= $char;
+        $i++;
+      }
+      return ($value, $i);
+    }
+
+    my ($depth, $i, $length) = (0, 0, length($_));
+    while ($i < $length) {
+      my $char = substr($_, $i, 1);
+      if ($char eq q{"}) {
+        my ($token, $next) = json_string($_, $i);
+        if ($depth == 1 && $token eq "version") {
+          my $value_start = $next;
+          $value_start++ while substr($_, $value_start, 1) =~ /\s/;
+          if (substr($_, $value_start, 1) eq ":") {
+            $value_start++;
+            $value_start++ while substr($_, $value_start, 1) =~ /\s/;
+            if (substr($_, $value_start, 1) eq q{"}) {
+              my ($version) = json_string($_, $value_start);
+              print "$version\n" if $version =~ /^[0-9]+(?:\.[0-9]+)*$/;
+            }
+          }
+        }
+        $i = $next;
+        next;
+      }
+      $depth++ if $char eq "{" || $char eq "[";
+      $depth-- if $char eq "}" || $char eq "]";
+      $i++;
+    }
+  ' "$1"
+}
+
+VERSION_LABELS=(
+  "README.md"
+  "README_KO.md"
+  "CHANGELOG.md"
+  "platform/claude/plugin.json"
+  "platform/codex/plugin.json"
+  "claude/.claude-plugin/plugin.json"
+  "codex/plugin/.codex-plugin/plugin.json"
+)
+VERSION_KINDS=(
+  "readme"
+  "readme"
+  "changelog"
+  "manifest"
+  "manifest"
+  "manifest"
+  "manifest"
+)
+VERSION_PATHS=(
+  "$ROOT/README.md"
+  "$ROOT/README_KO.md"
+  "$ROOT/CHANGELOG.md"
+  "$PLAT/claude/plugin.json"
+  "$PLAT/codex/plugin.json"
+  "$ROOT/claude/.claude-plugin/plugin.json"
+  "$ROOT/codex/plugin/.codex-plugin/plugin.json"
+)
+
+VERSION_VALUES=()
+VERSION_ERRORS=0
+for i in "${!VERSION_LABELS[@]}"; do
+  case "${VERSION_KINDS[$i]}" in
+    readme) MATCHES="$(readme_versions "${VERSION_PATHS[$i]}")" ;;
+    changelog) MATCHES="$(changelog_versions "${VERSION_PATHS[$i]}")" ;;
+    manifest) MATCHES="$(pj_versions "${VERSION_PATHS[$i]}")" ;;
+  esac
+
+  MATCH_COUNT=0
+  MATCH_VALUE=""
+  while IFS= read -r version; do
+    [ -n "$version" ] || continue
+    MATCH_COUNT=$((MATCH_COUNT + 1))
+    MATCH_VALUE="$version"
+  done <<EOF
+$MATCHES
+EOF
+
+  if [ "$MATCH_COUNT" -eq 0 ]; then
+    echo "✗ release version missing: ${VERSION_LABELS[$i]}" >&2
+    VERSION_ERRORS=1
+  elif [ "$MATCH_COUNT" -gt 1 ]; then
+    echo "✗ release version ambiguous: ${VERSION_LABELS[$i]} ($MATCH_COUNT matching labels)" >&2
+    printf '%s\n' "$MATCHES" | sed '/^$/d; s/^/    v/' >&2
+    VERSION_ERRORS=1
+  else
+    VERSION_VALUES[$i]="$MATCH_VALUE"
+  fi
+done
+if [ "$VERSION_ERRORS" -ne 0 ]; then
+  exit 1
+fi
+
+UNIQ="$(printf '%s\n' "${VERSION_VALUES[@]}" | sort -u)"
 if [ "$(printf '%s\n' "$UNIQ" | grep -c .)" -ne 1 ]; then
-  echo "✗ version mismatch across plugin.json:" >&2
-  printf '%s\n' "$VERS" >&2
+  echo "✗ release version mismatch; invariant requires one identical version across:" >&2
+  for i in "${!VERSION_LABELS[@]}"; do
+    printf '    %s: v%s\n' "${VERSION_LABELS[$i]}" "${VERSION_VALUES[$i]}" >&2
+  done
   exit 1
 fi
-CL_VER="$(perl -ne 'if(/^##\s+v([0-9][^\s(]*)/){print $1; last}' "$ROOT/CHANGELOG.md")"
-if [ "$UNIQ" != "$CL_VER" ]; then
-  echo "✗ plugin.json=v$UNIQ but CHANGELOG top=v$CL_VER" >&2
-  exit 1
-fi
-echo "✓ version OK: v$UNIQ (4 manifests + CHANGELOG)"
+echo "✓ version OK: v$UNIQ (README titles + CHANGELOG + 4 manifests)"
 
 # ── duplicate-reference parity guard ────────────────────────────────────────
 # Three reference files are intentionally shared across skills. A skill bundles

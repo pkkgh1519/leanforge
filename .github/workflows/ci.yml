@@ -17,5 +17,17 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Run contract tests
+      - name: Build generated plugins
+        run: bash build/build.sh
+
+      - name: Check tracked generated files
+        run: git diff --exit-code -- claude codex
+
+      - name: Check untracked generated files
+        run: test -z "$(git status --porcelain --untracked-files=all -- claude codex)"
+
+      - name: Run all unit tests
         run: python -m unittest discover -s tests -v
+
+      - name: Check whitespace errors
+        run: git diff --check
