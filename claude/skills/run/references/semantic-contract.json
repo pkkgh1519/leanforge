@@ -28,6 +28,7 @@
     "owner": [
       "orchestrator",
       "implementer",
+      "reviewer",
       "harness_lifecycle",
       "runtime_failure_overlay",
       "user"
@@ -182,14 +183,14 @@
     {
       "id": "RUN-ROUTE-TOPOLOGY",
       "kind": "route_topology",
-      "definition": "Run has exactly four closed success routes, and any route-specific event requires exactly one route_selected with a closed route value. Their topologies are mutually exclusive: direct implementation, captured evidence, and the base commit are orchestrator-owned on the base, single_risky uses one isolated implementer worktree with verification and merge gates, parallel uses isolated task worktrees with serial merge, regeneration, wiring, and a green wave integration gate, and external is a base-pinned implementer route without a file diff. Topology validates the ordered prefix reached before the first failed result, forbids later success-route advancement, and does not require unreached success-only stages. A direct route may enter a distinct post-failure remedial topology only after the failure overlay, with an orchestrator-owned remedial worktree followed by an implementer continuation. Failure is an overlay, not a success route.",
+      "definition": "Run has exactly four closed success routes, and any route-specific event requires exactly one route_selected with a closed route value. Their topologies are mutually exclusive: direct implementation, captured evidence, and the base commit are orchestrator-owned on the base, single_risky uses one isolated implementer worktree with verification and merge gates, parallel uses at least two isolated task worktrees with per-task implementation, verification, branch-gate, and task-merge evidence correlated by stable non-empty task identities before aggregate results, serial merge, regeneration, wiring, and a green wave integration gate, and external is a base-pinned implementer route without a file diff. Topology validates the ordered prefix reached before the first failed result, forbids later success-route advancement, and does not require unreached success-only stages. A direct route may enter a distinct post-failure remedial topology only after the failure overlay, with an orchestrator-owned remedial worktree followed by an implementer continuation. Failure is an overlay, not a success route.",
       "constraints": [
         "The closed success-route set is direct, single_risky, parallel, and external.",
         "Any route-specific event requires exactly one route_selected event with one closed route value.",
         "Every route-specific work or action event belongs to the selected route and cannot mix topologies.",
         "Direct implementation, captured evidence, and the base commit remain on the base under orchestrator ownership.",
         "Single-risky work uses one isolated implementer worktree and verifies before merge gates and merge.",
-        "Parallel work uses isolated task worktrees, serial merge, regeneration, wiring, and a green integration gate in that order.",
+        "Parallel work correlates at least two isolated task worktrees through per-task implementation, green verification, branch gate, and task merge facts by stable non-empty task identity; aggregate verification and gate results precede serial merge, regeneration, wiring, and a green integration gate.",
         "External work is performed by a base-pinned implementer without a task worktree or file diff.",
         "The reached route prefix is ordered; a failed or unevaluable result ends it, forbids downstream success-route advancement, and leaves unreached success events optional.",
         "Direct post-failure substantive remediation is not initial route mixing: the failed result and runtime-owned failure overlay precede one orchestrator-owned remedial worktree and then one implementer continuation.",
@@ -209,12 +210,12 @@
     {
       "id": "RUN-FAIL-CLOSED",
       "kind": "failure_overlay",
-      "definition": "Every result-bearing event carries one non-empty closed outcome, and every blocking, non-green, or unevaluable result enters the explicit failure overlay owned by runtime_failure_overlay before every present continuation. A concern disposition of promoted_to_failure is a failure result under the same overlay-before-continuation rule. Continuations include route work and action, remedial worktree and implementer continuation, dispatch, merge, gate, cleanup, progress, and every routine read, write, dispatch, merge, gate, and cleanup event. The closed results cover task and merge checks, regeneration and wiring, integration, external evidence, completion verification, runtime smoke, conditional spec review, final review, and review verdict. A terminal failure may stop after entering the overlay. Unevaluable is never green.",
+      "definition": "Every result-bearing event carries one non-empty closed outcome, and every blocking, non-green, or unevaluable result enters the explicit failure overlay owned by runtime_failure_overlay before every continuation that follows that result. A concern disposition of promoted_to_failure is a failure result under the same forward-only overlay-before-continuation rule; earlier progress or routine events are not retroactively constrained. Continuations include route work and action, remedial worktree and implementer continuation, dispatch, merge, gate, cleanup, progress, and every routine read, write, dispatch, merge, gate, and cleanup event. The closed results cover task and merge checks, regeneration and wiring, integration, external evidence, completion verification, runtime smoke, conditional spec review, final review, and review verdict. A terminal failure may stop after entering the overlay. Unevaluable is never green.",
       "constraints": [
         "Each event allows only its closed event-specific metadata and requires every identifier, value, owner, overlay, or result field used by its invariant.",
         "Every result-bearing event requires one non-empty outcome from its closed result vocabulary.",
-        "Every blocking, non-green, and unevaluable closed result event, including a blocking review verdict, and every promoted-to-failure concern disposition enters the failure overlay.",
-        "failure_overlay_entered requires overlay failure and owner runtime_failure_overlay, and precedes every present route-work, remedial, dispatch, merge, gate, cleanup, progress, or routine continuation after a failed result or promoted-to-failure disposition.",
+        "Every blocking, non-green, and unevaluable closed result event, including a blocking review verdict, and every promoted-to-failure concern disposition enters the failure overlay before any continuation that follows it.",
+        "failure_overlay_entered requires overlay failure and owner runtime_failure_overlay, and precedes every present route-work, remedial, dispatch, merge, gate, cleanup, progress, or routine continuation after a failed result or promoted-to-failure disposition; prior continuations remain allowed.",
         "No continuation event is required after a terminal failure enters the overlay."
       ]
     },
@@ -235,10 +236,10 @@
     {
       "id": "RUN-CONCERN-DISPOSITION",
       "kind": "concern_disposition",
-      "definition": "Every recorded concern has exactly one correlated disposition with a non-empty value from resolved, explicitly_accepted, user_accepted, promoted_to_failure, and pending. Pending blocks completion and the user gate without entering the failure overlay. A promoted_to_failure disposition is a failure result whose runtime-owned failure overlay precedes every closed continuation. User-owned requirement, compatibility, and safety concerns may remain pending or be promoted to failure without user acceptance, while a resolved or accepted terminal disposition must be user-owned. The failure overlay wins every overlap.",
+      "definition": "Every recorded concern has exactly one correlated disposition with a non-empty value from resolved, explicitly_accepted, user_accepted, promoted_to_failure, and pending. Pending blocks completion and the user gate without entering the failure overlay. A promoted_to_failure disposition is a failure result whose runtime-owned failure overlay precedes every continuation that follows the disposition without retroactively constraining earlier progress or routine events. User-owned requirement, compatibility, and safety concerns may remain pending or be promoted to failure without user acceptance, while a resolved or accepted terminal disposition must be user-owned. The failure overlay wins every overlap.",
       "constraints": [
         "Every recorded concern correlates to exactly one non-empty value from the five closed dispositions.",
-        "Pending blocks completion and the user gate without entering the failure overlay; promoted-to-failure enters the runtime-owned failure overlay before every closed continuation.",
+        "Pending blocks completion and the user gate without entering the failure overlay; promoted-to-failure enters the runtime-owned failure overlay before every continuation that follows the disposition, while prior progress and routine events remain allowed.",
         "User-owned requirement, compatibility, and safety concerns permit pending or promoted-to-failure dispositions without acceptance; resolved, explicitly accepted, or user-accepted terminal dispositions must be user-owned."
       ]
     },
@@ -254,11 +255,11 @@
     {
       "id": "RUN-REVIEW-TOPOLOGY",
       "kind": "review_topology",
-      "definition": "Conditional spec review occurs if and only if both risky-task and downstream-cascade-risk facts are present, and it never replaces final full-diff review after a clear conditional result. Every successful completion or user gate follows exactly one final full-diff review with outcome green and then exactly one review verdict with outcome clear. Every review verdict requires exactly one applicable final full-diff review: clear correlates only to its unique green review, while blocking correlates only to its unique blocking review and remains a failed result that enters the runtime-owned failure overlay before continuation. Duplicate or conflicting verdicts are invalid.",
+      "definition": "Conditional spec review occurs if and only if both risky-task and downstream-cascade-risk facts are present, and it never replaces final full-diff review after a clear conditional result. Every successful completion or user gate follows exactly one final full-diff review with outcome green and then exactly one review verdict with outcome clear. The final full-diff review and its verdict are owned by a fresh independent reviewer, while completion and user-gate endpoints remain orchestrator-owned. Every review verdict requires exactly one applicable final full-diff review: clear correlates only to its unique green review, while blocking correlates only to its unique blocking review and remains a failed result that enters the runtime-owned failure overlay before continuation. Duplicate or conflicting verdicts are invalid.",
       "constraints": [
         "Risky downstream cascade requires conditional spec review before dispatch and final review, and either missing prerequisite forbids it.",
-        "Conditional and final review events and review verdicts carry their actual closed result values.",
-        "Successful completion and the user gate require exactly one green final full-diff review, then exactly one clear review verdict, then the endpoint.",
+        "Conditional and final review events and review verdicts carry their actual closed result values; final full-diff review and review verdict are fresh-reviewer-owned.",
+        "Successful completion and the user gate require exactly one green final full-diff review, then exactly one clear review verdict, then an orchestrator-owned endpoint.",
         "Every verdict requires exactly one applicable final full-diff review; clear correlates only to a unique green final review, blocking correlates only to a unique blocking final review, and blocking enters the runtime-owned failure overlay before continuation."
       ]
     },
