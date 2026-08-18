@@ -85,10 +85,7 @@ RESULT_OUTCOMES["conditional_spec_review"] = {
 }
 RESULT_OUTCOMES["final_full_diff_review"] = {
     "green",
-    "clear",
     "blocking",
-    "non_green",
-    "unevaluable",
 }
 RESULT_OUTCOMES["review_verdict"] = {"clear", "blocking"}
 EXPECTED_VOCABULARY = {
@@ -192,7 +189,9 @@ EXPECTED_VOCABULARY = {
 TASK_CORRELATION_EVENTS = {
     "worktree_created",
     "task_implementation",
+    "evidence_captured",
     "task_verification",
+    "merge_precondition",
     "merge_gate",
     "task_merged",
 }
@@ -274,8 +273,8 @@ EXPECTED_SCENARIO_IDS = {
     "failure-completion-unevaluable",
     "failure-runtime-non-green",
     "failure-runtime-unevaluable",
-    "failure-review-non-green",
-    "failure-review-unevaluable",
+    "failure-final-review-blocking-retry",
+    "failure-review-verdict-blocking-cleanup",
     "failure-regeneration-non-green",
     "failure-regeneration-unevaluable",
     "failure-terminal-non-green",
@@ -345,7 +344,7 @@ EXPECTED_MUTANT_IDS = {
     "failure-external-evidence-no-overlay",
     "failure-completion-full-verify-no-overlay",
     "failure-conditional-review-no-overlay",
-    "failure-final-review-clear-verdict-no-overlay",
+    "failure-final-review-blocking-verdict-no-overlay",
     "failure-overlay-wrong-owner",
     "concern-missing-disposition-value",
     "concern-unknown-disposition-value",
@@ -450,7 +449,7 @@ def validate_contract(contract):
     visit(contract)
 
 
-def validate_trace(trace, vocabulary, label):
+def validate_trace(trace, vocabulary, label, *, check_event_outcomes=True):
     if not isinstance(trace, list):
         raise ValueError(f"{label} must be an array")
     value_events = {
@@ -508,9 +507,13 @@ def validate_trace(trace, vocabulary, label):
             raise ValueError(f"{occurrence_label}.disposition must be a string")
         if "value" in occurrence and not isinstance(occurrence["value"], str):
             raise ValueError(f"{occurrence_label}.value must be a string")
-        if event in RESULT_OUTCOMES and "outcome" in occurrence:
-            if occurrence["outcome"] not in RESULT_OUTCOMES[event]:
-                raise ValueError(f"{occurrence_label} has an invalid result outcome")
+        if (
+            check_event_outcomes
+            and event in RESULT_OUTCOMES
+            and "outcome" in occurrence
+            and occurrence["outcome"] not in RESULT_OUTCOMES[event]
+        ):
+            raise ValueError(f"{occurrence_label} has an invalid result outcome")
         if event == "prior_integration" and "outcome" in occurrence:
             if occurrence["outcome"] not in {"green", "non_green", "unevaluable"}:
                 raise ValueError(f"{occurrence_label} has an invalid prior integration result")
@@ -802,7 +805,12 @@ def validate_fixture(fixture, vocabulary):
                 raise ValueError(f"{label}.expected_valid has the wrong literal")
             if item["expected_outcome"] != expected_outcome:
                 raise ValueError(f"{label}.expected_outcome has the wrong literal")
-            validate_trace(item["trace"], vocabulary, f"{label}.trace")
+            validate_trace(
+                item["trace"],
+                vocabulary,
+                f"{label}.trace",
+                check_event_outcomes=collection_name == "scenarios",
+            )
             validate_assertions(item["assertions"], vocabulary, f"{label}.assertions")
             assertion_failures = evaluate_assertions(item["trace"], item["assertions"])
             if assertion_failures:
@@ -1121,7 +1129,15 @@ def validate_route_event_contract(trace, route, boundary_index):
             task_ids = set(worktrees)
             for event in reached:
                 event_indexes = route_task_index_map(prefix, event)
-                if event_indexes is None or set(event_indexes) != task_ids:
+                failure_stage = (
+                    event == trace[boundary_index].get("event")
+                    and result_failed(trace[boundary_index])
+                )
+                correlated_ids = set(event_indexes or {})
+                if event_indexes is None or (
+                    failure_stage
+                    and (not correlated_ids or not correlated_ids.issubset(task_ids))
+                ) or (not failure_stage and correlated_ids != task_ids):
                     return "parallel task work, verification, gate, and merge evidence must correlate by task_id"
     return None
 
@@ -1183,10 +1199,25 @@ def validate_reached_route_prefix(
             task_ids = set(worktrees)
             for event in reached_task_events:
                 indexes = route_task_index_map(prefix, event)
-                if indexes is None or set(indexes) != task_ids:
+                failure_stage = (
+                    event == trace[failure_index].get("event")
+                    and result_failed(trace[failure_index])
+                )
+                correlated_ids = set(indexes or {})
+                if indexes is None or (
+                    failure_stage
+                    and (not correlated_ids or not correlated_ids.issubset(task_ids))
+                ) or (not failure_stage and correlated_ids != task_ids):
                     return "parallel task work, verification, gate, and merge evidence must correlate by task_id"
 
     if route == "single_risky":
+        task_ids = [
+            trace[index].get("task_id")
+            for event in TASK_CORRELATION_EVENTS
+            for index in matching_indexes(prefix, event)
+        ]
+        if task_ids and (any(not task_id for task_id in task_ids) or len(set(task_ids)) != 1):
+            return "single-risky per-task events must correlate by task_id"
         verification = matching_indexes(prefix, "task_verification")
         precondition = matching_indexes(prefix, "merge_precondition")
         merged = matching_indexes(prefix, "task_merged")
@@ -1217,9 +1248,9 @@ def validate_reached_route_prefix(
         for index in matching_indexes(prefix, event):
             if trace[index].get("owner") != owner:
                 return f"{route.replace('_', '-')} route prefix has wrong {event} owner"
-    for occurrence in prefix:
+    for index, occurrence in enumerate(prefix):
         if occurrence.get("event") in RESULT_EVENTS and occurrence.get("event") in stages:
-            if occurrence.get("outcome") not in {"green", "clear"}:
+            if index != failure_index and occurrence.get("outcome") not in {"green", "clear"}:
                 return f"{route.replace('_', '-')} route prefix contains a failed result"
     if route == "external" and has_event(prefix, "conditional_base_commit"):
         return "external base commit must not be conditional"
@@ -1265,11 +1296,7 @@ def validate_route_topology(trace):
     )
     if route_contract_reason is not None:
         return route_contract_reason
-    route_result_events = ROUTE_ALLOWED_EVENTS[route].intersection(RESULT_EVENTS)
-    if (
-        failure_index is not None
-        and trace[failure_index].get("event") not in route_result_events
-    ):
+    if failure_index is not None:
         return validate_reached_route_prefix(trace, route, selected[0], failure_index)
     if route == "direct":
         checks = (
@@ -2150,6 +2177,248 @@ def validate_semantics(contract, trace):
     return {"valid": True, "outcome": "accepted", "contract_id": None, "reason": None}
 
 
+
+def repair_known_opposite(mutant_id, trace):
+    """Apply one explicit independent repair for each hand-authored mutant."""
+    repaired = copy.deepcopy(trace)
+
+    def occurrence(event, index=0):
+        return [item for item in repaired if item["event"] == event][index]
+
+    def add_failure_overlay(index=None):
+        overlay = {
+            "event": "failure_overlay_entered",
+            "overlay": "failure",
+            "owner": "runtime_failure_overlay",
+        }
+        if index is None:
+            repaired.append(overlay)
+        else:
+            repaired.insert(index, overlay)
+
+    if mutant_id == "external-conditional-base-commit":
+        occurrence("conditional_base_commit")["event"] = "base_commit"
+    elif mutant_id == "external-missing-independent-proof":
+        repaired.append({"event": "independent_commit_proof", "owner": "orchestrator"})
+    elif mutant_id == "external-mismatched-base-pin":
+        occurrence("external_base_pin")["value"] = "sha-A"
+    elif mutant_id == "single-risky-merge-before-verification":
+        merged = occurrence("task_merged")
+        repaired.remove(merged)
+        repaired.append(merged)
+    elif mutant_id == "single-risky-merge-before-precondition":
+        precondition = occurrence("merge_precondition")
+        repaired.remove(precondition)
+        gate_index = next(
+            index for index, item in enumerate(repaired) if item["event"] == "merge_gate"
+        )
+        repaired.insert(gate_index, precondition)
+    elif mutant_id == "parallel-missing-integration-gate":
+        repaired.append(
+            {
+                "event": "integration_gate",
+                "outcome": "green",
+                "owner": "orchestrator",
+            }
+        )
+    elif mutant_id == "completion-reuse-missing-sha":
+        repaired.insert(-1, {"event": "current_base_tip", "value": "sha-A"})
+    elif mutant_id == "completion-reuse-missing-verify-set":
+        repaired.insert(
+            -1,
+            {"event": "completion_verify_set", "value": "build,test,lint"},
+        )
+    elif mutant_id in {
+        "unevaluable-verification-treated-as-green",
+        "merge-precondition-labeled-lifecycle-only",
+    }:
+        progress_index = next(
+            index for index, item in enumerate(repaired) if item["event"] == "progress"
+        )
+        add_failure_overlay(progress_index)
+    elif mutant_id == "startup-wrong-owner":
+        occurrence("startup")["owner"] = "harness_lifecycle"
+    elif mutant_id == "pending-concern-completes":
+        repaired = [item for item in repaired if item["event"] != "completion"]
+    elif mutant_id == "user-safety-non-user-acceptance":
+        occurrence("concern_disposition")["owner"] = "user"
+    elif mutant_id == "conditional-review-replaces-final":
+        repaired.extend(
+            [
+                {
+                    "event": "final_full_diff_review",
+                    "outcome": "green",
+                    "owner": "reviewer",
+                },
+                {"event": "review_verdict", "outcome": "clear", "owner": "reviewer"},
+            ]
+        )
+    elif mutant_id == "routine-progress-narration":
+        repaired = [
+            item for item in repaired if item["event"] != "user_output_routine_progress"
+        ]
+    elif mutant_id == "external-missing-base-pin-value":
+        occurrence("external_base_pin")["value"] = "sha-A"
+    elif mutant_id in {
+        "completion-skip-full-verify-missing-green",
+        "completion-skip-full-verify-mismatched-set",
+        "completion-skip-full-verify-mismatched-sha",
+    }:
+        repaired.append(
+            {
+                "event": "completion_full_verify",
+                "outcome": "green",
+                "owner": "orchestrator",
+            }
+        )
+    elif mutant_id in {
+        "failure-external-evidence-no-overlay",
+        "failure-completion-full-verify-no-overlay",
+        "failure-conditional-review-no-overlay",
+    }:
+        add_failure_overlay()
+    elif mutant_id == "failure-final-review-blocking-verdict-no-overlay":
+        verdict_index = next(
+            index for index, item in enumerate(repaired) if item["event"] == "review_verdict"
+        )
+        add_failure_overlay(verdict_index)
+        add_failure_overlay()
+    elif mutant_id == "failure-overlay-wrong-owner":
+        occurrence("failure_overlay_entered")["owner"] = "runtime_failure_overlay"
+    elif mutant_id == "concern-missing-disposition-value":
+        occurrence("concern_disposition")["disposition"] = "resolved"
+    elif mutant_id == "concern-unknown-disposition-value":
+        occurrence("concern_disposition")["disposition"] = "resolved"
+    elif mutant_id == "conditional-review-without-cascade":
+        repaired.insert(
+            1,
+            {
+                "event": "downstream_cascade_risk",
+                "task_id": occurrence("risky_task")["task_id"],
+                "owner": "orchestrator",
+            },
+        )
+    elif mutant_id == "direct-parallel-action-mixing":
+        repaired = [item for item in repaired if item["event"] != "serial_merge"]
+    elif mutant_id == "single-risky-work-after-failed-verification-before-overlay":
+        verification_index = next(
+            index
+            for index, item in enumerate(repaired)
+            if item["event"] == "task_verification"
+        )
+        later_implementation = next(
+            index
+            for index, item in enumerate(repaired)
+            if index > verification_index and item["event"] == "task_implementation"
+        )
+        del repaired[later_implementation]
+    elif mutant_id == "completion-reuse-conflicting-prior-integration":
+        conflicting = [
+            item for item in repaired if item["event"] == "prior_integration"
+        ][1]
+        repaired.remove(conflicting)
+    elif mutant_id in {
+        "direct-completion-without-final-review",
+        "direct-user-gate-without-final-review",
+    }:
+        endpoint_index = next(
+            index
+            for index, item in enumerate(repaired)
+            if item["event"] in {"completion", "user_gate"}
+        )
+        repaired[endpoint_index:endpoint_index] = [
+            {
+                "event": "final_full_diff_review",
+                "outcome": "green",
+                "owner": "reviewer",
+            },
+            {"event": "review_verdict", "outcome": "clear", "owner": "reviewer"},
+        ]
+    elif mutant_id == "blocking-conditional-review-clear-verdict":
+        repaired = [item for item in repaired if item["event"] != "review_verdict"]
+    elif mutant_id == "clear-verdict-without-green-final-review":
+        repaired.insert(
+            0,
+            {
+                "event": "final_full_diff_review",
+                "outcome": "green",
+                "owner": "reviewer",
+            },
+        )
+    elif mutant_id == "task-verification-missing-outcome":
+        occurrence("task_verification")["outcome"] = "green"
+    elif mutant_id == "failure-overlay-missing-overlay":
+        occurrence("failure_overlay_entered")["overlay"] = "failure"
+    elif mutant_id == "failure-overlay-missing-owner":
+        occurrence("failure_overlay_entered")["owner"] = "runtime_failure_overlay"
+    elif mutant_id == "route-omitted-direct-events":
+        repaired.insert(
+            0,
+            {
+                "event": "route_selected",
+                "route": "direct",
+                "owner": "orchestrator",
+            },
+        )
+    elif mutant_id == "route-omitted-complete-mixed-routes":
+        repaired = [
+            {
+                "event": "route_selected",
+                "route": "direct",
+                "owner": "orchestrator",
+            },
+            *repaired[:3],
+        ]
+    elif mutant_id.startswith("failure-routine-"):
+        overlay = occurrence("failure_overlay_entered")
+        repaired.remove(overlay)
+        repaired.insert(1, overlay)
+    elif mutant_id == "final-review-clear-success":
+        occurrence("final_full_diff_review")["outcome"] = "green"
+    elif mutant_id == "review-verdict-blocking-no-overlay":
+        add_failure_overlay()
+    elif mutant_id == "review-verdict-conflicting-completion":
+        repaired = [
+            item
+            for item in repaired
+            if not (
+                item["event"] == "review_verdict"
+                and item.get("outcome") == "blocking"
+            )
+            and item["event"] != "failure_overlay_entered"
+        ]
+    elif mutant_id == "completion-endpoint-without-reuse-or-full-verify":
+        repaired.insert(
+            0,
+            {
+                "event": "completion_full_verify",
+                "outcome": "green",
+                "owner": "orchestrator",
+            },
+        )
+    elif mutant_id == "blocking-verdict-without-review":
+        repaired.insert(
+            0,
+            {
+                "event": "final_full_diff_review",
+                "outcome": "blocking",
+                "owner": "reviewer",
+            },
+        )
+        add_failure_overlay(1)
+    elif mutant_id == "green-review-blocking-verdict":
+        occurrence("review_verdict")["outcome"] = "clear"
+        repaired = [
+            item for item in repaired if item["event"] != "failure_overlay_entered"
+        ]
+    elif mutant_id == "external-base-commit-wrong-owner":
+        occurrence("base_commit")["owner"] = "implementer"
+    elif mutant_id == "concern-disposition-before-record":
+        repaired.reverse()
+    else:
+        raise AssertionError(f"missing independent repair oracle for {mutant_id}")
+    return repaired
+
 def render_protected_block(invariant):
     invariant_json = json.dumps(invariant, ensure_ascii=False, indent=2)
     invariant_id = invariant["id"]
@@ -2273,9 +2542,9 @@ class RunSemanticContractTests(unittest.TestCase):
             {"event": "route_selected", "route": "single_risky", "owner": "orchestrator"},
             {"event": "worktree_created", "task_id": "task-a", "owner": "orchestrator"},
             {"event": "task_implementation", "task_id": "task-a", "owner": "implementer"},
-            {"event": "evidence_captured", "owner": "implementer"},
+            {"event": "evidence_captured", "task_id": "task-a", "owner": "implementer"},
             {"event": "task_verification", "task_id": "task-a", "outcome": "green", "owner": "implementer"},
-            {"event": "merge_precondition", "outcome": "unevaluable", "owner": "orchestrator"},
+            {"event": "merge_precondition", "task_id": "task-a", "outcome": "unevaluable", "owner": "orchestrator"},
             {"event": "progress", "owner": "orchestrator"},
         ]
         result = validate_semantics(self.contract, trace)
@@ -2290,7 +2559,7 @@ class RunSemanticContractTests(unittest.TestCase):
             {"event": "route_selected", "route": "single_risky", "owner": "orchestrator"},
             {"event": "worktree_created", "task_id": "task-a", "owner": "orchestrator"},
             {"event": "task_implementation", "task_id": "task-a", "owner": "implementer"},
-            {"event": "evidence_captured", "owner": "implementer"},
+            {"event": "evidence_captured", "task_id": "task-a", "owner": "implementer"},
             {"event": "task_verification", "task_id": "task-a", "outcome": "non_green", "owner": "implementer"},
             {"event": "failure_overlay_entered", "overlay": "failure", "owner": "runtime_failure_overlay"},
         ]
@@ -2489,7 +2758,7 @@ class RunSemanticContractTests(unittest.TestCase):
             {"event": "route_selected", "route": "single_risky", "owner": "orchestrator"},
             {"event": "worktree_created", "task_id": "task-a", "owner": "orchestrator"},
             {"event": "task_implementation", "task_id": "task-a", "owner": "implementer"},
-            {"event": "evidence_captured", "owner": "implementer"},
+            {"event": "evidence_captured", "task_id": "task-a", "owner": "implementer"},
             {"event": "task_verification", "task_id": "task-a", "outcome": "non_green", "owner": "implementer"},
             {"event": "failure_overlay_entered", "overlay": "failure", "owner": "runtime_failure_overlay"},
         ]
@@ -2651,7 +2920,7 @@ class RunSemanticContractTests(unittest.TestCase):
         conditional_without_cascade = [
             {"event": "risky_task", "task_id": "task-review", "owner": "orchestrator"},
             {"event": "conditional_spec_review", "task_id": "task-review", "outcome": "clear", "owner": "reviewer"},
-            {"event": "final_full_diff_review", "outcome": "clear", "owner": "reviewer"},
+            {"event": "final_full_diff_review", "outcome": "green", "owner": "reviewer"},
         ]
         result = validate_semantics(self.contract, conditional_without_cascade)
         self.assertEqual(result["contract_id"], "RUN-REVIEW-TOPOLOGY")
@@ -2664,7 +2933,7 @@ class RunSemanticContractTests(unittest.TestCase):
             {"event": "risky_task", "task_id": "task-review", "owner": "orchestrator"},
             {"event": "downstream_cascade_risk", "task_id": "task-review", "owner": "orchestrator"},
             {"event": "conditional_spec_review", "task_id": "task-review", "owner": "reviewer"},
-            {"event": "final_full_diff_review", "outcome": "clear", "owner": "reviewer"},
+            {"event": "final_full_diff_review", "outcome": "green", "owner": "reviewer"},
         ]
         result = validate_semantics(self.contract, missing_result)
         self.assertEqual(result["contract_id"], "RUN-REVIEW-TOPOLOGY")
@@ -3059,7 +3328,7 @@ class RunSemanticContractTests(unittest.TestCase):
             with self.subTest(endpoint=endpoint):
                 self.assertEqual(
                     validate_review_topology(trace),
-                    "clear review verdict requires one green final full-diff review",
+                    "final full-diff review requires an actual result",
                 )
 
         conflicting_verdicts = [
@@ -3158,7 +3427,7 @@ class RunSemanticContractTests(unittest.TestCase):
         self.assertTrue(validate_semantics(self.contract, external)["valid"])
 
     def test_review_outcome_and_verdict_pairs_are_exact_and_cardinal(self):
-        reason = "blocking review verdict requires one blocking final full-diff review"
+        reason = "final full-diff review requires an actual result"
         for final_outcome in ("clear", "non_green", "unevaluable"):
             trace = [
                 {"event": "final_full_diff_review", "outcome": final_outcome, "owner": "reviewer"},
@@ -3526,9 +3795,9 @@ class RunSemanticContractTests(unittest.TestCase):
             {"event": "route_selected", "route": "single_risky", "owner": "orchestrator"},
             {"event": "worktree_created", "task_id": "task-a", "owner": "orchestrator"},
             {"event": "task_implementation", "task_id": "task-a", "owner": "implementer"},
-            {"event": "evidence_captured", "owner": "implementer"},
+            {"event": "evidence_captured", "task_id": "task-a", "owner": "implementer"},
             {"event": "task_verification", "task_id": "task-a", "outcome": "green", "owner": "implementer"},
-            {"event": "merge_precondition", "outcome": "green", "owner": "orchestrator"},
+            {"event": "merge_precondition", "task_id": "task-a", "outcome": "green", "owner": "orchestrator"},
             {"event": "merge_gate", "task_id": "task-a", "outcome": "green", "owner": "orchestrator"},
             {"event": "task_merged", "task_id": "task-a", "owner": "orchestrator"},
         ]
@@ -3920,78 +4189,93 @@ class RunSemanticContractTests(unittest.TestCase):
             "conditional review never replaces final full-diff review",
         )
 
-    def test_repaired_known_opposites_have_independent_exact_oracles(self):
-        cases = {
-            "external-missing-independent-proof": {
-                "assertion": {
-                    "op": "forbid",
-                    "event": "independent_commit_proof",
-                    "filter": {},
-                },
-                "repair": {
-                    "event": "independent_commit_proof",
-                    "owner": "orchestrator",
-                },
+    def test_parallel_terminal_failure_validates_only_the_completed_prefix(self):
+        trace = [
+            {"event": "route_selected", "route": "parallel", "owner": "orchestrator"},
+            {"event": "isolated_task_worktrees", "owner": "orchestrator"},
+            {"event": "worktree_created", "task_id": "task-a", "owner": "orchestrator"},
+            {"event": "worktree_created", "task_id": "task-b", "owner": "orchestrator"},
+            {"event": "task_implementation", "task_id": "task-a", "owner": "implementer"},
+            {"event": "task_implementation", "task_id": "task-b", "owner": "implementer"},
+            {
+                "event": "task_verification",
+                "task_id": "task-a",
+                "outcome": "non_green",
+                "owner": "implementer",
             },
-            "completion-reuse-missing-sha": {
-                "assertion": {
-                    "op": "forbid",
-                    "event": "current_base_tip",
-                    "filter": {},
-                },
-                "repair": {"event": "current_base_tip", "value": "sha-A"},
+            {
+                "event": "failure_overlay_entered",
+                "overlay": "failure",
+                "owner": "runtime_failure_overlay",
             },
-            "completion-reuse-missing-verify-set": {
-                "assertion": {
-                    "op": "forbid",
-                    "event": "completion_verify_set",
-                    "filter": {},
-                },
-                "repair": {
-                    "event": "completion_verify_set",
-                    "value": "build,test,lint",
-                },
-            },
-            "routine-progress-narration": {
-                "assertion": {
-                    "op": "count",
-                    "event": "user_output_routine_progress",
-                    "filter": {},
-                    "expected": 1,
-                },
-                "repair": None,
-            },
-        }
-        for mutant_id, case in cases.items():
-            mutant = next(
-                item for item in self.fixture["mutants"] if item["id"] == mutant_id
-            )
-            trace = mutant["trace"]
-            assertion = case["assertion"]
-            with self.subTest(mutant=mutant_id, phase="fixture-literal"):
-                self.assertIn(assertion, mutant["assertions"])
-                self.assertEqual(evaluate_assertions(trace, [assertion]), [])
+        ]
+        self.assertTrue(validate_semantics(self.contract, trace)["valid"])
 
-            repaired = copy.deepcopy(trace)
-            if case["repair"] is None:
-                repaired = [
-                    item
-                    for item in repaired
-                    if item["event"] != "user_output_routine_progress"
-                ]
-            elif mutant_id == "external-missing-independent-proof":
-                repaired.append(case["repair"])
-            else:
-                repaired.insert(-1, case["repair"])
-            with self.subTest(mutant=mutant_id, phase="opposite-detected"):
-                self.assertNotEqual(evaluate_assertions(repaired, [assertion]), [])
-                validator = {
-                    "external-missing-independent-proof": validate_external_proof,
-                    "completion-reuse-missing-sha": validate_completion_reuse,
-                    "completion-reuse-missing-verify-set": validate_completion_reuse,
-                    "routine-progress-narration": validate_output_semantics,
-                }[mutant_id]
-                self.assertIsNone(validator(repaired))
+        malformed = copy.deepcopy(trace)
+        malformed.pop(5)
+        result = validate_semantics(self.contract, malformed)
+        self.assertEqual(result["contract_id"], "RUN-ROUTE-TOPOLOGY")
+        self.assertEqual(
+            result["reason"],
+            "parallel task work, verification, gate, and merge evidence must correlate by task_id",
+        )
+
+    def test_single_risky_correlation_includes_evidence_and_merge_precondition(self):
+        trace = next(
+            item["trace"]
+            for item in self.fixture["scenarios"]
+            if item["id"] == "single-risky-success"
+        )
+        for event in ("evidence_captured", "merge_precondition"):
+            with self.subTest(event=event, phase="literal"):
+                occurrence = next(item for item in trace if item["event"] == event)
+                self.assertEqual(occurrence.get("task_id"), "task-a")
+
+            mutation = copy.deepcopy(trace)
+            next(item for item in mutation if item["event"] == event)["task_id"] = "task-b"
+            with self.subTest(event=event, phase="mismatch"):
+                result = validate_semantics(self.contract, mutation)
+                self.assertEqual(result["contract_id"], "RUN-ROUTE-TOPOLOGY")
+                self.assertEqual(
+                    result["reason"],
+                    "single-risky per-task events must correlate by task_id",
+                )
+
+    def test_final_full_diff_review_rejects_verdict_only_clear_outcome(self):
+        trace = [
+            {"event": "final_full_diff_review", "outcome": "clear", "owner": "reviewer"},
+            {"event": "review_verdict", "outcome": "clear", "owner": "reviewer"},
+        ]
+        result = validate_semantics(self.contract, trace)
+        self.assertEqual(result["contract_id"], "RUN-REVIEW-TOPOLOGY")
+        self.assertEqual(result["reason"], "final full-diff review requires an actual result")
+
+    def test_all_known_opposites_have_independent_repair_oracles(self):
+        mutants = {item["id"]: item for item in self.fixture["mutants"]}
+        self.assertEqual(len(EXPECTED_MUTANT_IDS), 53)
+        self.assertEqual(set(mutants), EXPECTED_MUTANT_IDS)
+
+        for mutant_id in sorted(EXPECTED_MUTANT_IDS):
+            mutant = mutants[mutant_id]
+            with self.subTest(mutant=mutant_id, phase="fixture-literal"):
+                self.assertEqual(
+                    evaluate_assertions(mutant["trace"], mutant["assertions"]),
+                    [],
+                )
+                result = validate_semantics(self.contract, mutant["trace"])
+                self.assertEqual(result["contract_id"], mutant["expected_contract_id"])
+                self.assertEqual(result["reason"], mutant["expected_reason"])
+
+            repaired = repair_known_opposite(mutant_id, mutant["trace"])
+            with self.subTest(mutant=mutant_id, phase="independent-repair"):
+                self.assertNotEqual(
+                    evaluate_assertions(repaired, mutant["assertions"]),
+                    [],
+                )
+                self.assertTrue(
+                    validate_semantics(self.contract, repaired)["valid"],
+                    mutant_id,
+                )
 
 
 if __name__ == "__main__":

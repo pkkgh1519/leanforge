@@ -78,7 +78,8 @@
         },
         {
           "event": "evidence_captured",
-          "owner": "implementer"
+          "owner": "implementer",
+          "task_id": "task-a"
         },
         {
           "event": "task_verification",
@@ -89,7 +90,8 @@
         {
           "event": "merge_precondition",
           "outcome": "green",
-          "owner": "orchestrator"
+          "owner": "orchestrator",
+          "task_id": "task-a"
         },
         {
           "event": "merge_gate",
@@ -467,7 +469,8 @@
         },
         {
           "event": "evidence_captured",
-          "owner": "implementer"
+          "owner": "implementer",
+          "task_id": "task-a"
         },
         {
           "event": "task_verification",
@@ -542,7 +545,8 @@
         },
         {
           "event": "evidence_captured",
-          "owner": "implementer"
+          "owner": "implementer",
+          "task_id": "task-a"
         },
         {
           "event": "task_verification",
@@ -617,7 +621,8 @@
         },
         {
           "event": "evidence_captured",
-          "owner": "implementer"
+          "owner": "implementer",
+          "task_id": "task-a"
         },
         {
           "event": "task_verification",
@@ -628,7 +633,8 @@
         {
           "event": "merge_precondition",
           "outcome": "green",
-          "owner": "orchestrator"
+          "owner": "orchestrator",
+          "task_id": "task-a"
         },
         {
           "event": "merge_gate",
@@ -703,7 +709,8 @@
         },
         {
           "event": "evidence_captured",
-          "owner": "implementer"
+          "owner": "implementer",
+          "task_id": "task-a"
         },
         {
           "event": "task_verification",
@@ -714,7 +721,8 @@
         {
           "event": "merge_precondition",
           "outcome": "green",
-          "owner": "orchestrator"
+          "owner": "orchestrator",
+          "task_id": "task-a"
         },
         {
           "event": "merge_gate",
@@ -1250,11 +1258,11 @@
       }
     },
     {
-      "id": "failure-review-non-green",
+      "id": "failure-final-review-blocking-retry",
       "trace": [
         {
           "event": "final_full_diff_review",
-          "outcome": "non_green",
+          "outcome": "blocking",
           "owner": "reviewer"
         },
         {
@@ -1292,7 +1300,7 @@
           "op": "count",
           "event": "final_full_diff_review",
           "filter": {
-            "outcome": "non_green"
+            "outcome": "blocking"
           },
           "expected": 1
         },
@@ -1304,17 +1312,17 @@
       ],
       "failure_case": {
         "event": "final_full_diff_review",
-        "outcome": "non_green",
+        "outcome": "blocking",
         "expected_contract_id": "RUN-FAIL-CLOSED",
-        "expected_reason": "non_green final review result must enter failure overlay"
+        "expected_reason": "blocking final review result must enter failure overlay"
       }
     },
     {
-      "id": "failure-review-unevaluable",
+      "id": "failure-review-verdict-blocking-cleanup",
       "trace": [
         {
           "event": "final_full_diff_review",
-          "outcome": "unevaluable",
+          "outcome": "blocking",
           "owner": "reviewer"
         },
         {
@@ -1323,19 +1331,17 @@
           "owner": "runtime_failure_overlay"
         },
         {
-          "event": "retry",
-          "owner": "orchestrator"
+          "event": "review_verdict",
+          "outcome": "blocking",
+          "owner": "reviewer"
+        },
+        {
+          "event": "failure_overlay_entered",
+          "overlay": "failure",
+          "owner": "runtime_failure_overlay"
         },
         {
           "event": "cleanup",
-          "owner": "orchestrator"
-        },
-        {
-          "event": "downstream_dispatch",
-          "owner": "orchestrator"
-        },
-        {
-          "event": "progress",
           "owner": "orchestrator"
         }
       ],
@@ -1345,14 +1351,16 @@
         {
           "op": "count",
           "event": "final_full_diff_review",
-          "filter": {},
+          "filter": {
+            "outcome": "blocking"
+          },
           "expected": 1
         },
         {
           "op": "count",
-          "event": "final_full_diff_review",
+          "event": "review_verdict",
           "filter": {
-            "outcome": "unevaluable"
+            "outcome": "blocking"
           },
           "expected": 1
         },
@@ -1363,10 +1371,10 @@
         }
       ],
       "failure_case": {
-        "event": "final_full_diff_review",
-        "outcome": "unevaluable",
+        "event": "review_verdict",
+        "outcome": "blocking",
         "expected_contract_id": "RUN-FAIL-CLOSED",
-        "expected_reason": "unevaluable final review result must enter failure overlay"
+        "expected_reason": "blocking review verdict must enter failure overlay"
       }
     },
     {
@@ -2213,7 +2221,8 @@
         },
         {
           "event": "evidence_captured",
-          "owner": "implementer"
+          "owner": "implementer",
+          "task_id": "task-a"
         },
         {
           "event": "task_verification",
@@ -2224,7 +2233,8 @@
         {
           "event": "merge_precondition",
           "outcome": "non_green",
-          "owner": "orchestrator"
+          "owner": "orchestrator",
+          "task_id": "task-a"
         },
         {
           "event": "failure_overlay_entered",
@@ -3129,7 +3139,7 @@
         },
         {
           "event": "final_full_diff_review",
-          "outcome": "clear",
+          "outcome": "green",
           "owner": "reviewer"
         }
       ],
@@ -3164,7 +3174,7 @@
         },
         {
           "event": "final_full_diff_review",
-          "outcome": "clear",
+          "outcome": "green",
           "owner": "reviewer"
         }
       ],
@@ -3277,7 +3287,8 @@
         },
         {
           "event": "evidence_captured",
-          "owner": "implementer"
+          "owner": "implementer",
+          "task_id": "task-a"
         },
         {
           "event": "task_verification",
@@ -3322,7 +3333,8 @@
         },
         {
           "event": "evidence_captured",
-          "owner": "implementer"
+          "owner": "implementer",
+          "task_id": "task-a"
         },
         {
           "event": "task_verification",
@@ -3333,7 +3345,8 @@
         {
           "event": "merge_precondition",
           "outcome": "unevaluable",
-          "owner": "orchestrator"
+          "owner": "orchestrator",
+          "task_id": "task-a"
         },
         {
           "event": "failure_overlay_entered",
@@ -3421,7 +3434,8 @@
         },
         {
           "event": "evidence_captured",
-          "owner": "implementer"
+          "owner": "implementer",
+          "task_id": "task-a"
         },
         {
           "event": "task_verification",
@@ -4066,7 +4080,8 @@
         },
         {
           "event": "evidence_captured",
-          "owner": "implementer"
+          "owner": "implementer",
+          "task_id": "task-a"
         },
         {
           "event": "task_merged",
@@ -4082,7 +4097,8 @@
         {
           "event": "merge_precondition",
           "outcome": "green",
-          "owner": "orchestrator"
+          "owner": "orchestrator",
+          "task_id": "task-a"
         },
         {
           "event": "merge_gate",
@@ -4314,7 +4330,8 @@
         },
         {
           "event": "evidence_captured",
-          "owner": "implementer"
+          "owner": "implementer",
+          "task_id": "task-a"
         },
         {
           "event": "task_verification",
@@ -4610,7 +4627,8 @@
         },
         {
           "event": "evidence_captured",
-          "owner": "implementer"
+          "owner": "implementer",
+          "task_id": "task-a"
         },
         {
           "event": "task_verification",
@@ -4621,7 +4639,8 @@
         {
           "event": "merge_precondition",
           "outcome": "unevaluable",
-          "owner": "orchestrator"
+          "owner": "orchestrator",
+          "task_id": "task-a"
         },
         {
           "event": "progress",
@@ -4968,7 +4987,7 @@
       ]
     },
     {
-      "id": "failure-final-review-clear-verdict-no-overlay",
+      "id": "failure-final-review-blocking-verdict-no-overlay",
       "trace": [
         {
           "event": "final_full_diff_review",
@@ -4977,7 +4996,7 @@
         },
         {
           "event": "review_verdict",
-          "outcome": "clear",
+          "outcome": "blocking",
           "owner": "reviewer"
         }
       ],
@@ -4998,7 +5017,7 @@
           "op": "count",
           "event": "review_verdict",
           "filter": {
-            "outcome": "clear"
+            "outcome": "blocking"
           },
           "expected": 1
         },
@@ -5013,7 +5032,28 @@
       "id": "failure-overlay-wrong-owner",
       "trace": [
         {
+          "event": "route_selected",
+          "route": "single_risky",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "worktree_created",
+          "task_id": "task-a",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "task_implementation",
+          "task_id": "task-a",
+          "owner": "implementer"
+        },
+        {
+          "event": "evidence_captured",
+          "task_id": "task-a",
+          "owner": "implementer"
+        },
+        {
           "event": "task_verification",
+          "task_id": "task-a",
           "outcome": "non_green",
           "owner": "implementer"
         },
@@ -5143,7 +5183,7 @@
         },
         {
           "event": "final_full_diff_review",
-          "outcome": "clear",
+          "outcome": "green",
           "owner": "reviewer"
         }
       ],
@@ -5233,7 +5273,8 @@
         },
         {
           "event": "evidence_captured",
-          "owner": "implementer"
+          "owner": "implementer",
+          "task_id": "task-a"
         },
         {
           "event": "task_verification",
@@ -5254,8 +5295,8 @@
       ],
       "expected_valid": false,
       "expected_outcome": "rejected",
-      "expected_contract_id": "RUN-FAIL-CLOSED",
-      "expected_reason": "failure overlay must precede any present continuation",
+      "expected_contract_id": "RUN-ROUTE-TOPOLOGY",
+      "expected_reason": "single-risky route cannot advance after a failed result",
       "assertions": [
         {
           "op": "count",
@@ -5515,8 +5556,46 @@
       "id": "task-verification-missing-outcome",
       "trace": [
         {
-          "event": "task_verification",
+          "event": "route_selected",
+          "route": "single_risky",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "worktree_created",
+          "task_id": "task-a",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "task_implementation",
+          "task_id": "task-a",
           "owner": "implementer"
+        },
+        {
+          "event": "evidence_captured",
+          "task_id": "task-a",
+          "owner": "implementer"
+        },
+        {
+          "event": "task_verification",
+          "task_id": "task-a",
+          "owner": "implementer"
+        },
+        {
+          "event": "merge_precondition",
+          "task_id": "task-a",
+          "outcome": "green",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "merge_gate",
+          "task_id": "task-a",
+          "outcome": "green",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "task_merged",
+          "task_id": "task-a",
+          "owner": "orchestrator"
         }
       ],
       "expected_valid": false,
@@ -5557,9 +5636,9 @@
       "id": "failure-overlay-missing-overlay",
       "trace": [
         {
-          "event": "task_verification",
+          "event": "completion_gate",
           "outcome": "non_green",
-          "owner": "implementer"
+          "owner": "orchestrator"
         },
         {
           "event": "failure_overlay_entered",
@@ -5590,9 +5669,9 @@
       "id": "failure-overlay-missing-owner",
       "trace": [
         {
-          "event": "task_verification",
+          "event": "completion_gate",
           "outcome": "non_green",
-          "owner": "implementer"
+          "owner": "orchestrator"
         },
         {
           "event": "failure_overlay_entered",
@@ -6040,7 +6119,7 @@
       "expected_valid": false,
       "expected_outcome": "rejected",
       "expected_contract_id": "RUN-REVIEW-TOPOLOGY",
-      "expected_reason": "clear review verdict requires one green final full-diff review",
+      "expected_reason": "final full-diff review requires an actual result",
       "assertions": [
         {
           "op": "count",
@@ -6071,8 +6150,13 @@
       "trace": [
         {
           "event": "final_full_diff_review",
-          "outcome": "green",
+          "outcome": "blocking",
           "owner": "reviewer"
+        },
+        {
+          "event": "failure_overlay_entered",
+          "overlay": "failure",
+          "owner": "runtime_failure_overlay"
         },
         {
           "event": "review_verdict",
@@ -6087,6 +6171,14 @@
       "assertions": [
         {
           "op": "count",
+          "event": "final_full_diff_review",
+          "filter": {
+            "outcome": "blocking"
+          },
+          "expected": 1
+        },
+        {
+          "op": "count",
           "event": "review_verdict",
           "filter": {
             "outcome": "blocking"
@@ -6094,9 +6186,12 @@
           "expected": 1
         },
         {
-          "op": "forbid",
+          "op": "count",
           "event": "failure_overlay_entered",
-          "filter": {}
+          "filter": {
+            "overlay": "failure"
+          },
+          "expected": 1
         }
       ]
     },
@@ -6388,7 +6483,8 @@
         },
         {
           "event": "evidence_captured",
-          "owner": "implementer"
+          "owner": "implementer",
+          "task_id": "task-a"
         },
         {
           "event": "task_verification",
@@ -6410,7 +6506,8 @@
         {
           "event": "merge_precondition",
           "outcome": "green",
-          "owner": "orchestrator"
+          "owner": "orchestrator",
+          "task_id": "task-a"
         }
       ],
       "expected_valid": false,
