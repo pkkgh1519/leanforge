@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.8.2 (2026-08-18)
+
+- align the README release titles, changelog, canonical plugin manifests, and generated plugin manifests on v1.8.2
+- require explicit `Run TDD` invocation in canonical and generated Codex metadata
+- rebuild the generated Claude and Codex packages in CI and reject generated parity drift
+
 ## v1.8.1 (2026-08-13)
 
 - require `Run TDD` to fix the seams under test before the first test of a task: an Acceptance & Evidence Matrix fixes the seam from the AC's observable behavior, and without one the orchestrator confirms the intended seams with the user before dispatch
