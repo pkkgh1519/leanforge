@@ -105,6 +105,14 @@ DOWNSTREAM_RESULT_EVENTS = {
     "final_full_diff_review",
     "review_verdict",
 }
+DOWNSTREAM_PHASE_EVENTS = DOWNSTREAM_RESULT_EVENTS.union(
+    {
+        "downstream_dispatch",
+        "completion_reused",
+        "completion",
+        "user_gate",
+    }
+)
 DOWNSTREAM_SUCCESS_PREREQUISITES = {
     "completion_gate": {
         "guards": {
@@ -355,6 +363,10 @@ EXPECTED_SCENARIO_IDS = {
     "concern-user-compatibility-accepted",
     "concern-user-safety-accepted",
     "concern-promoted-failure-recovered",
+    "concern-promoted-recovery-direct",
+    "concern-promoted-recovery-single-risky",
+    "concern-promoted-recovery-parallel",
+    "concern-promoted-recovery-external",
     "concern-pending-blocks",
     "lifecycle-ownership-matrix",
     "review-conditional-and-final-clear",
@@ -1052,6 +1064,12 @@ ROUTE_STAGE_ORDER = {
         "independent_commit_proof",
     ],
 }
+ROUTE_CLOSURE_EVENT = {
+    "direct": "base_commit",
+    "single_risky": "task_merged",
+    "parallel": "integration_gate",
+    "external": "independent_commit_proof",
+}
 
 
 def first_route_failure_boundary_index(trace):
@@ -1070,31 +1088,165 @@ def first_route_failure_boundary_index(trace):
     )
 
 
+COMPLETION_RESTART_EVENTS = {
+    "retry",
+    "remedial_implementer_continuation",
+}
+
+
+def owned_restart_between(trace, failure_index, later_index):
+    return any(
+        failure_index < overlay_index < restart_index < later_index
+        and trace[overlay_index].get("owner") == "runtime_failure_overlay"
+        and (
+            (
+                trace[restart_index].get("event") == "retry"
+                and trace[restart_index].get("owner") == "orchestrator"
+            )
+            or (
+                trace[restart_index].get("event")
+                == "remedial_implementer_continuation"
+                and trace[restart_index].get("owner") == "implementer"
+            )
+        )
+        for overlay_index in matching_indexes(
+            trace,
+            "failure_overlay_entered",
+            overlay="failure",
+        )
+        for restart_index, occurrence in enumerate(trace)
+        if occurrence.get("event") in COMPLETION_RESTART_EVENTS
+    )
+
+
+def owned_route_retry_between(trace, failure_index, later_index):
+    return any(
+        failure_index < overlay_index < retry_index < later_index
+        and trace[overlay_index].get("owner") == "runtime_failure_overlay"
+        and trace[retry_index].get("owner") == "orchestrator"
+        for overlay_index in matching_indexes(
+            trace,
+            "failure_overlay_entered",
+            overlay="failure",
+        )
+        for retry_index in matching_indexes(trace, "retry")
+    )
+
+
+def has_completion_restart_between(trace, earlier_index, later_index):
+    return any(
+        earlier_index <= failure_index < later_index
+        and is_failure_boundary(trace[failure_index])
+        and owned_restart_between(trace, failure_index, later_index)
+        for failure_index in range(earlier_index, later_index)
+    )
+
+
+def validated_route_recovery_trace(trace, route):
+    result_events = set(ROUTE_STAGE_ORDER[route]).intersection(RESULT_EVENTS)
+    failures = [
+        index
+        for index, occurrence in enumerate(trace)
+        if occurrence.get("event") in result_events
+        and is_failure_boundary(occurrence)
+    ]
+    downstream = [
+        index
+        for index, occurrence in enumerate(trace)
+        if failures
+        and index > failures[0]
+        and occurrence.get("event") in DOWNSTREAM_PHASE_EVENTS
+    ]
+    if not downstream:
+        return trace, None
+
+    first_downstream = downstream[0]
+    superseded_failures = set()
+    used_recoveries = set()
+    recovery_indexes = []
+    for failure_index in failures:
+        failure = trace[failure_index]
+        candidates = [
+            index
+            for index, occurrence in enumerate(trace)
+            if failure_index < index < first_downstream
+            and index not in used_recoveries
+            and occurrence.get("event") == failure.get("event")
+            and occurrence.get("task_id") == failure.get("task_id")
+            and occurrence.get("outcome") == "green"
+            and owned_route_retry_between(trace, failure_index, index)
+        ]
+        if not candidates:
+            return trace, "downstream phases require full successful route closure"
+        recovery_index = candidates[0]
+        used_recoveries.add(recovery_index)
+        recovery_indexes.append(recovery_index)
+        superseded_failures.add(failure_index)
+
+    closure_indexes = matching_indexes(trace, ROUTE_CLOSURE_EVENT[route])
+    if not any(
+        max(recovery_indexes) <= index < first_downstream
+        for index in closure_indexes
+    ):
+        return trace, "downstream phases require full successful route closure"
+
+    closure_trace = [
+        occurrence
+        for index, occurrence in enumerate(trace)
+        if index not in superseded_failures
+    ]
+    return closure_trace, None
+
+
 REMEDIAL_EVENTS = {
     "remedial_worktree_created",
     "remedial_implementer_continuation",
 }
 
 
-def validate_direct_remedial_topology(trace, route_index):
+def validate_remedial_topology(trace, route_index):
     if not any(occurrence.get("event") in REMEDIAL_EVENTS for occurrence in trace):
         return None
-    if trace[route_index].get("route") != "direct":
-        return "post-failure remedial topology requires the selected direct route"
     worktrees = matching_indexes(trace, "remedial_worktree_created")
     continuations = matching_indexes(trace, "remedial_implementer_continuation")
     if len(worktrees) != 1 or len(continuations) != 1:
-        return "direct remediation requires one remedial worktree and implementer continuation"
+        return "remediation requires one remedial worktree and implementer continuation"
     if trace[worktrees[0]].get("owner") != "orchestrator":
-        return "direct remedial worktree must be orchestrator-owned"
+        return "remedial worktree must be orchestrator-owned"
     if trace[continuations[0]].get("owner") != "implementer":
-        return "direct remedial continuation must be implementer-owned"
+        return "remedial continuation must be implementer-owned"
+    promoted = [
+        index
+        for index in matching_indexes(
+            trace,
+            "concern_disposition",
+            disposition="promoted_to_failure",
+        )
+        if index > route_index
+    ]
+    overlays = matching_indexes(trace, "failure_overlay_entered", overlay="failure")
+    if promoted:
+        if not any(
+            disposition < overlay < worktrees[0] < continuations[0]
+            and trace[overlay].get("owner") == "runtime_failure_overlay"
+            for disposition in promoted
+            for overlay in overlays
+        ):
+            return (
+                "promoted concern recovery requires overlay, remedial worktree, "
+                "and implementer continuation in order"
+            )
+        return None
+    if trace[route_index].get("route") != "direct":
+        return (
+            "post-failure remedial topology requires a promoted concern or "
+            "selected direct route"
+        )
     failures = [
         index
         for index, occurrence in enumerate(trace)
         if is_failure_boundary(occurrence)
     ]
-    overlays = matching_indexes(trace, "failure_overlay_entered", overlay="failure")
     if not any(
         route_index < failure < overlay < worktrees[0] < continuations[0]
         and trace[overlay].get("owner") == "runtime_failure_overlay"
@@ -1365,6 +1517,14 @@ def validate_route_topology(trace):
     route = trace[selected[0]].get("route")
     if route not in ROUTE_ALLOWED_EVENTS:
         return "selected route is outside the closed route vocabulary"
+    remedial_reason = validate_remedial_topology(trace, selected[0])
+    if remedial_reason is not None:
+        return remedial_reason
+    recovered_trace, recovery_reason = validated_route_recovery_trace(trace, route)
+    if recovery_reason is not None:
+        return recovery_reason
+    if recovered_trace is not trace:
+        return validate_route_topology(recovered_trace)
     route_stop_index = first_route_failure_boundary_index(trace)
     if route_stop_index is not None and any(
         index > route_stop_index
@@ -1372,9 +1532,6 @@ def validate_route_topology(trace):
         for index, occurrence in enumerate(trace)
     ):
         return f"{route.replace('_', '-')} route cannot advance after a failed result"
-    remedial_reason = validate_direct_remedial_topology(trace, selected[0])
-    if remedial_reason is not None:
-        return remedial_reason
     if route == "direct":
         direct_owner_reasons = {
             "task_implementation": "direct implementation must be orchestrator-owned",
@@ -1719,6 +1876,11 @@ def validate_external_proof(trace):
         return None
     if len(selected_external) != 1:
         return "external proof applies only to one selected external route"
+    recovered_trace, recovery_reason = validated_route_recovery_trace(trace, "external")
+    if recovery_reason is not None:
+        return recovery_reason
+    if recovered_trace is not trace:
+        return validate_external_proof(recovered_trace)
     failure_index = first_route_failure_boundary_index(trace)
     if (
         failure_index is not None
@@ -1925,11 +2087,32 @@ def validate_completion_reuse(trace):
                 "completion reuse facts and decision must precede final review "
                 "and endpoint"
             )
-    if review_indexes and any(
-        index > min(review_indexes)
-        for index in matching_indexes(trace, "completion_full_verify")
-    ):
-        return "completion full verify must precede final review and endpoint"
+    for verify_index in matching_indexes(trace, "completion_full_verify"):
+        if any(
+            index < verify_index
+            for index in (
+                matching_indexes(trace, "final_full_diff_review", outcome="green")
+                + matching_indexes(trace, "completion")
+                + matching_indexes(trace, "user_gate")
+            )
+        ):
+            return (
+                "completion full verify cannot follow a successful final review "
+                "or endpoint"
+            )
+        prior_green_smokes = [
+            index
+            for index in matching_indexes(trace, "runtime_smoke", outcome="green")
+            if index < verify_index
+        ]
+        if any(
+            not has_completion_restart_between(trace, smoke_index, verify_index)
+            for smoke_index in prior_green_smokes
+        ):
+            return (
+                "completion full verify must precede green runtime smoke in the "
+                "same completion attempt"
+            )
     if len(reuse_indexes) > 1:
         return "completion reuse decision must occur exactly once"
     unique_fact_reasons = {
@@ -1943,6 +2126,16 @@ def validate_completion_reuse(trace):
         if len(matching_indexes(trace, event)) > 1:
             return reason
     if reuse:
+        verify_indexes = matching_indexes(trace, "completion_full_verify")
+        reuse_compatible_full_verify = all(
+            verify_index > reuse_indexes[0]
+            and has_completion_restart_between(
+                trace,
+                reuse_indexes[0],
+                verify_index,
+            )
+            for verify_index in verify_indexes
+        )
         checks = (
             (len(matching_indexes(trace, "prior_integration", outcome="green")) == 1, "completion reuse requires prior green integration"),
             (non_empty_single_value(trace, "prior_verify_set"), "completion reuse requires the prior verify set"),
@@ -1951,7 +2144,10 @@ def validate_completion_reuse(trace):
             (non_empty_single_value(trace, "prior_gate_base_tip"), "completion reuse requires the prior gate base-tip SHA"),
             (non_empty_single_value(trace, "current_base_tip"), "completion reuse requires the current base-tip SHA"),
             (same_single_value(trace, "prior_gate_base_tip", "current_base_tip"), "completion reuse requires the same gate and current base-tip SHA"),
-            (not full_verify, "matching completion evidence avoids a redundant full verify"),
+            (
+                not full_verify or reuse_compatible_full_verify,
+                "matching completion evidence avoids a redundant full verify",
+            ),
         )
         for passed, reason in checks:
             if not passed:
@@ -2310,6 +2506,23 @@ def validate_review_topology(trace):
         and all(outcome in FAILURE_OUTCOMES for outcome in final_outcomes[:-1])
     ):
         return "final full-diff review must occur exactly once"
+    review_recovery_events = {
+        "completion_gate",
+        "completion_full_verify",
+        "runtime_smoke",
+        "final_full_diff_review",
+    }
+    for failed_index, next_index in zip(final_indexes, final_indexes[1:]):
+        if trace[failed_index].get("outcome") not in FAILURE_OUTCOMES:
+            continue
+        first_recovery_event = min(
+            index
+            for index, occurrence in enumerate(trace)
+            if failed_index < index <= next_index
+            and occurrence.get("event") in review_recovery_events
+        )
+        if not owned_restart_between(trace, failed_index, first_recovery_event):
+            return "failed final review recovery requires retry or remedial continuation"
     if verdict_indexes and not final_indexes:
         return "review verdict requires one applicable final full-diff review"
     applicable_final_index = final_indexes[-1] if final_indexes else None
@@ -2874,6 +3087,50 @@ class RunSemanticContractTests(unittest.TestCase):
         self.assertTrue(validate_semantics(self.contract, reuse)["valid"])
         self.assertTrue(validate_semantics(self.contract, forced_rerun)["valid"])
 
+        reuse_then_restarted_verify = copy.deepcopy(reuse) + [
+            {
+                "event": "final_full_diff_review",
+                "outcome": "non_green",
+                "owner": "reviewer",
+            },
+            {
+                "event": "failure_overlay_entered",
+                "overlay": "failure",
+                "owner": "runtime_failure_overlay",
+            },
+            {"event": "retry", "owner": "orchestrator"},
+            {
+                "event": "completion_full_verify",
+                "outcome": "green",
+                "owner": "orchestrator",
+            },
+            {"event": "runtime_smoke", "outcome": "green", "owner": "orchestrator"},
+            {
+                "event": "final_full_diff_review",
+                "outcome": "green",
+                "owner": "reviewer",
+            },
+            {"event": "review_verdict", "outcome": "clear", "owner": "reviewer"},
+            {"event": "completion", "owner": "orchestrator"},
+        ]
+        self.assertTrue(
+            validate_semantics(self.contract, reuse_then_restarted_verify)["valid"]
+        )
+
+        redundant_verify = copy.deepcopy(reuse) + [
+            {
+                "event": "completion_full_verify",
+                "outcome": "green",
+                "owner": "orchestrator",
+            }
+        ]
+        result = validate_semantics(self.contract, redundant_verify)
+        self.assertEqual(result["contract_id"], "RUN-COMPLETION-REUSE")
+        self.assertEqual(
+            result["reason"],
+            "matching completion evidence avoids a redundant full verify",
+        )
+
         invalid_without_full_verify = (
             reuse[1:-1],
             [
@@ -2913,7 +3170,7 @@ class RunSemanticContractTests(unittest.TestCase):
             "completion reuse decision must precede final review, verdict, and endpoint"
         )
         full_verify_reason = (
-            "completion full verify must precede final review and endpoint"
+            "completion full verify cannot follow a successful final review or endpoint"
         )
         for endpoint in ("completion", "user_gate"):
             reuse_after_endpoint = [
@@ -3902,7 +4159,7 @@ class RunSemanticContractTests(unittest.TestCase):
                     },
                 ]
             ),
-            reason,
+            "completion full verify cannot follow a successful final review or endpoint",
         )
 
     def test_direct_route_owns_implementation_evidence_and_base_commit(self):
@@ -5319,6 +5576,399 @@ class RunSemanticContractTests(unittest.TestCase):
                     [{"event": event, "owner": "orchestrator"}],
                 )
 
+    def test_route_phase_failure_recovers_and_closes_before_downstream(self):
+        successes = {
+            route: copy.deepcopy(
+                next(
+                    item["trace"]
+                    for item in self.fixture["scenarios"]
+                    if item["id"] == scenario_id
+                )
+            )
+            for route, scenario_id in {
+                "single_risky": "single-risky-success",
+                "parallel": "parallel-success",
+                "external": "external-success",
+            }.items()
+        }
+        overlay = {
+            "event": "failure_overlay_entered",
+            "overlay": "failure",
+            "owner": "runtime_failure_overlay",
+        }
+        downstream = [
+            {
+                "event": "completion_full_verify",
+                "outcome": "green",
+                "owner": "orchestrator",
+            },
+            {"event": "runtime_smoke", "outcome": "green", "owner": "orchestrator"},
+            {
+                "event": "final_full_diff_review",
+                "outcome": "green",
+                "owner": "reviewer",
+            },
+            {"event": "review_verdict", "outcome": "clear", "owner": "reviewer"},
+            {"event": "completion", "owner": "orchestrator"},
+        ]
+
+        for route, success_trace in successes.items():
+            for failure_index, occurrence in enumerate(success_trace):
+                if occurrence["event"] not in RESULT_EVENTS:
+                    continue
+                case = (route, occurrence["event"], occurrence.get("task_id"))
+                failed = copy.deepcopy(occurrence)
+                failed["outcome"] = "non_green"
+                recovered = copy.deepcopy(success_trace)
+                recovered[failure_index] = failed
+                recovered[failure_index + 1 : failure_index + 1] = [
+                    copy.deepcopy(overlay),
+                    {"event": "retry", "owner": "orchestrator"},
+                    copy.deepcopy(occurrence),
+                ]
+                recovered.extend(copy.deepcopy(downstream))
+                with self.subTest(case=case, recovery="closed"):
+                    self.assertTrue(
+                        validate_semantics(self.contract, recovered)["valid"],
+                        case,
+                    )
+
+                omitted_closure = copy.deepcopy(success_trace[:failure_index]) + [
+                    failed,
+                    copy.deepcopy(overlay),
+                    {"event": "retry", "owner": "orchestrator"},
+                    *copy.deepcopy(downstream),
+                ]
+                with self.subTest(case=case, recovery="omitted-closure"):
+                    result = validate_semantics(self.contract, omitted_closure)
+                    self.assertFalse(result["valid"], case)
+                    self.assertEqual(result["contract_id"], "RUN-ROUTE-TOPOLOGY")
+
+                downstream_before_closure = copy.deepcopy(recovered)
+                verify = next(
+                    item
+                    for item in downstream_before_closure
+                    if item["event"] == "completion_full_verify"
+                )
+                downstream_before_closure.remove(verify)
+                retry_index = next(
+                    index
+                    for index, item in enumerate(downstream_before_closure)
+                    if item["event"] == "retry"
+                )
+                downstream_before_closure.insert(retry_index + 1, verify)
+                with self.subTest(case=case, recovery="downstream-before-closure"):
+                    result = validate_semantics(self.contract, downstream_before_closure)
+                    self.assertFalse(result["valid"], case)
+                    self.assertEqual(result["contract_id"], "RUN-ROUTE-TOPOLOGY")
+
+        for scenario_id in (
+            "single-risky-terminal-failure",
+            "failure-external-evidence-non-green",
+        ):
+            terminal_trace = next(
+                copy.deepcopy(item["trace"])
+                for item in self.fixture["scenarios"]
+                if item["id"] == scenario_id
+            )
+            for event in ("downstream_dispatch",):
+                with self.subTest(scenario=scenario_id, downstream_event=event):
+                    result = validate_semantics(
+                        self.contract,
+                        terminal_trace
+                        + [{"event": event, "owner": "orchestrator"}],
+                    )
+                    self.assertFalse(result["valid"])
+                    self.assertEqual(result["contract_id"], "RUN-ROUTE-TOPOLOGY")
+                    self.assertEqual(
+                        result["reason"],
+                        "downstream phases require full successful route closure",
+                    )
+
+        piggyback = copy.deepcopy(successes["single_risky"])
+        verification_index = next(
+            index
+            for index, item in enumerate(piggyback)
+            if item["event"] == "task_verification"
+        )
+        green_verification = copy.deepcopy(piggyback[verification_index])
+        piggyback[verification_index]["outcome"] = "non_green"
+        concern_value = "C-route-recovery-cannot-piggyback"
+        piggyback[verification_index + 1 : verification_index + 1] = [
+            copy.deepcopy(overlay),
+            {
+                "event": "concern_recorded",
+                "value": concern_value,
+                "owner": "orchestrator",
+            },
+            {
+                "event": "concern_disposition",
+                "value": concern_value,
+                "disposition": "promoted_to_failure",
+                "owner": "orchestrator",
+            },
+            copy.deepcopy(overlay),
+            {"event": "remedial_worktree_created", "owner": "orchestrator"},
+            {
+                "event": "remedial_implementer_continuation",
+                "owner": "implementer",
+            },
+            green_verification,
+        ]
+        piggyback.extend(copy.deepcopy(downstream))
+        result = validate_semantics(self.contract, piggyback)
+        self.assertEqual(result["contract_id"], "RUN-ROUTE-TOPOLOGY")
+        self.assertEqual(
+            result["reason"],
+            "downstream phases require full successful route closure",
+        )
+
+    def test_downstream_order_is_attempt_aware_and_never_reverses_green_smoke(self):
+        reverse_same_attempt = [
+            {"event": "runtime_smoke", "outcome": "green", "owner": "orchestrator"},
+            {
+                "event": "completion_full_verify",
+                "outcome": "green",
+                "owner": "orchestrator",
+            },
+            {
+                "event": "final_full_diff_review",
+                "outcome": "green",
+                "owner": "reviewer",
+            },
+            {"event": "review_verdict", "outcome": "clear", "owner": "reviewer"},
+            {"event": "completion", "owner": "orchestrator"},
+        ]
+        result = validate_semantics(self.contract, reverse_same_attempt)
+        self.assertEqual(result["contract_id"], "RUN-COMPLETION-REUSE")
+        self.assertEqual(
+            result["reason"],
+            "completion full verify must precede green runtime smoke in the same completion attempt",
+        )
+
+        overlay = {
+            "event": "failure_overlay_entered",
+            "overlay": "failure",
+            "owner": "runtime_failure_overlay",
+        }
+        restarted = [
+            {
+                "event": "completion_full_verify",
+                "outcome": "green",
+                "owner": "orchestrator",
+            },
+            {"event": "runtime_smoke", "outcome": "green", "owner": "orchestrator"},
+            {
+                "event": "final_full_diff_review",
+                "outcome": "non_green",
+                "owner": "reviewer",
+            },
+            overlay,
+            {"event": "retry", "owner": "orchestrator"},
+            {
+                "event": "completion_full_verify",
+                "outcome": "green",
+                "owner": "orchestrator",
+            },
+            {"event": "runtime_smoke", "outcome": "green", "owner": "orchestrator"},
+            {
+                "event": "final_full_diff_review",
+                "outcome": "green",
+                "owner": "reviewer",
+            },
+            {"event": "review_verdict", "outcome": "clear", "owner": "reviewer"},
+            {"event": "completion", "owner": "orchestrator"},
+        ]
+        self.assertTrue(validate_semantics(self.contract, restarted)["valid"])
+
+    def test_failed_final_review_can_reverify_after_retry_or_remediation(self):
+        overlay = {
+            "event": "failure_overlay_entered",
+            "overlay": "failure",
+            "owner": "runtime_failure_overlay",
+        }
+        review_attempt = [
+            {
+                "event": "completion_full_verify",
+                "outcome": "green",
+                "owner": "orchestrator",
+            },
+            {
+                "event": "final_full_diff_review",
+                "outcome": "non_green",
+                "owner": "reviewer",
+            },
+            copy.deepcopy(overlay),
+        ]
+        recovered_tail = [
+            {
+                "event": "completion_full_verify",
+                "outcome": "green",
+                "owner": "orchestrator",
+            },
+            {"event": "runtime_smoke", "outcome": "green", "owner": "orchestrator"},
+            {
+                "event": "final_full_diff_review",
+                "outcome": "green",
+                "owner": "reviewer",
+            },
+            {"event": "review_verdict", "outcome": "clear", "owner": "reviewer"},
+            {"event": "completion", "owner": "orchestrator"},
+        ]
+        retry = copy.deepcopy(review_attempt) + [
+            {"event": "retry", "owner": "orchestrator"},
+            *copy.deepcopy(recovered_tail),
+        ]
+        self.assertTrue(validate_semantics(self.contract, retry)["valid"])
+
+        restart_after_verify = copy.deepcopy(review_attempt) + [
+            copy.deepcopy(recovered_tail[0]),
+            {"event": "retry", "owner": "orchestrator"},
+            *copy.deepcopy(recovered_tail[1:]),
+        ]
+        result = validate_semantics(self.contract, restart_after_verify)
+        self.assertEqual(result["contract_id"], "RUN-REVIEW-TOPOLOGY")
+        self.assertEqual(
+            result["reason"],
+            "failed final review recovery requires retry or remedial continuation",
+        )
+
+        direct = copy.deepcopy(
+            next(
+                item["trace"]
+                for item in self.fixture["scenarios"]
+                if item["id"] == "direct-success"
+            )
+        )
+        remedial = direct + copy.deepcopy(review_attempt) + [
+            {"event": "remedial_worktree_created", "owner": "orchestrator"},
+            {"event": "remedial_implementer_continuation", "owner": "implementer"},
+            *copy.deepcopy(recovered_tail),
+        ]
+        self.assertTrue(validate_semantics(self.contract, remedial)["valid"])
+
+        after_green_review = [
+            recovered_tail[0],
+            recovered_tail[2],
+            copy.deepcopy(recovered_tail[0]),
+            recovered_tail[3],
+            recovered_tail[4],
+        ]
+        result = validate_semantics(self.contract, after_green_review)
+        self.assertEqual(result["contract_id"], "RUN-COMPLETION-REUSE")
+        self.assertEqual(
+            result["reason"],
+            "completion full verify cannot follow a successful final review or endpoint",
+        )
+
+        after_endpoint = copy.deepcopy(recovered_tail) + [
+            copy.deepcopy(recovered_tail[0])
+        ]
+        result = validate_semantics(self.contract, after_endpoint)
+        self.assertEqual(result["contract_id"], "RUN-COMPLETION-REUSE")
+        self.assertEqual(
+            result["reason"],
+            "completion full verify cannot follow a successful final review or endpoint",
+        )
+
+    def test_promoted_concern_recovery_overlay_is_route_neutral(self):
+        successes = {
+            route: copy.deepcopy(
+                next(
+                    item["trace"]
+                    for item in self.fixture["scenarios"]
+                    if item["id"] == scenario_id
+                )
+            )
+            for route, scenario_id in {
+                "direct": "direct-success",
+                "single_risky": "single-risky-success",
+                "parallel": "parallel-success",
+                "external": "external-success",
+            }.items()
+        }
+        for route, success_trace in successes.items():
+            concern_value = f"C-promoted-recovery-{route}"
+            trace = success_trace + [
+                {
+                    "event": "concern_recorded",
+                    "value": concern_value,
+                    "owner": "orchestrator",
+                },
+                {
+                    "event": "concern_disposition",
+                    "value": concern_value,
+                    "disposition": "promoted_to_failure",
+                    "owner": "orchestrator",
+                },
+                {
+                    "event": "failure_overlay_entered",
+                    "overlay": "failure",
+                    "owner": "runtime_failure_overlay",
+                },
+                {"event": "remedial_worktree_created", "owner": "orchestrator"},
+                {"event": "remedial_implementer_continuation", "owner": "implementer"},
+                {
+                    "event": "completion_full_verify",
+                    "outcome": "green",
+                    "owner": "orchestrator",
+                },
+                {"event": "runtime_smoke", "outcome": "green", "owner": "orchestrator"},
+                {
+                    "event": "final_full_diff_review",
+                    "outcome": "green",
+                    "owner": "reviewer",
+                },
+                {"event": "review_verdict", "outcome": "clear", "owner": "reviewer"},
+                {"event": "completion", "owner": "orchestrator"},
+            ]
+            with self.subTest(route=route, topology="valid"):
+                self.assertTrue(validate_semantics(self.contract, trace)["valid"], route)
+
+            wrong_owner = copy.deepcopy(trace)
+            next(
+                item
+                for item in wrong_owner
+                if item["event"] == "remedial_worktree_created"
+            )["owner"] = "implementer"
+            with self.subTest(route=route, topology="owner"):
+                result = validate_semantics(self.contract, wrong_owner)
+                self.assertEqual(result["contract_id"], "RUN-ROUTE-TOPOLOGY")
+                self.assertEqual(result["reason"], "remedial worktree must be orchestrator-owned")
+
+            wrong_order = copy.deepcopy(trace)
+            worktree_index = next(
+                index
+                for index, item in enumerate(wrong_order)
+                if item["event"] == "remedial_worktree_created"
+            )
+            continuation_index = next(
+                index
+                for index, item in enumerate(wrong_order)
+                if item["event"] == "remedial_implementer_continuation"
+            )
+            wrong_order[worktree_index], wrong_order[continuation_index] = (
+                wrong_order[continuation_index],
+                wrong_order[worktree_index],
+            )
+            with self.subTest(route=route, topology="order"):
+                result = validate_semantics(self.contract, wrong_order)
+                self.assertEqual(result["contract_id"], "RUN-ROUTE-TOPOLOGY")
+                self.assertEqual(
+                    result["reason"],
+                    "promoted concern recovery requires overlay, remedial worktree, and implementer continuation in order",
+                )
+
+        initial_route_mixing = successes["single_risky"] + [
+            {"event": "remedial_worktree_created", "owner": "orchestrator"},
+            {"event": "remedial_implementer_continuation", "owner": "implementer"},
+        ]
+        result = validate_semantics(self.contract, initial_route_mixing)
+        self.assertEqual(result["contract_id"], "RUN-ROUTE-TOPOLOGY")
+        self.assertEqual(
+            result["reason"],
+            "post-failure remedial topology requires a promoted concern or selected direct route",
+        )
     def test_all_known_opposites_have_independent_repair_oracles(self):
         mutants = {item["id"]: item for item in self.fixture["mutants"]}
         self.assertEqual(len(EXPECTED_MUTANT_IDS), 58)
