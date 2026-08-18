@@ -94,8 +94,17 @@ RESULT_OUTCOMES["conditional_spec_review"] = {
 RESULT_OUTCOMES["final_full_diff_review"] = {
     "green",
     "blocking",
+    "non_green",
+    "unevaluable",
 }
 RESULT_OUTCOMES["review_verdict"] = {"clear", "blocking"}
+DOWNSTREAM_RESULT_EVENTS = {
+    "completion_gate",
+    "completion_full_verify",
+    "runtime_smoke",
+    "final_full_diff_review",
+    "review_verdict",
+}
 EXPECTED_VOCABULARY = {
     "route": ["direct", "single_risky", "parallel", "external"],
     "overlay": ["failure"],
@@ -324,6 +333,8 @@ EXPECTED_SCENARIO_IDS = {
     "failure-completion-full-verify-non-green",
     "failure-conditional-review-non-green",
     "failure-final-review-blocking",
+    "failure-final-review-non-green",
+    "failure-final-review-unevaluable",
     "completion-forced-rerun",
     "completion-without-reuse-runs-full-verify",
     "concern-user-requirement-pending",
@@ -1008,7 +1019,12 @@ ROUTE_STAGE_ORDER = {
 }
 
 
-def first_failure_boundary_index(trace):
+def first_route_failure_boundary_index(trace):
+    if any(
+        occurrence.get("event") in DOWNSTREAM_RESULT_EVENTS
+        for occurrence in trace
+    ):
+        return None
     return next(
         (
             index
@@ -1314,7 +1330,7 @@ def validate_route_topology(trace):
     route = trace[selected[0]].get("route")
     if route not in ROUTE_ALLOWED_EVENTS:
         return "selected route is outside the closed route vocabulary"
-    route_stop_index = first_failure_boundary_index(trace)
+    route_stop_index = first_route_failure_boundary_index(trace)
     if route_stop_index is not None and any(
         index > route_stop_index
         and occurrence.get("event") in ROUTE_SPECIFIC_EVENTS.union({"route_selected"})
@@ -1338,7 +1354,7 @@ def validate_route_topology(trace):
         event = occurrence.get("event")
         if event in ROUTE_SPECIFIC_EVENTS and event not in ROUTE_ALLOWED_EVENTS[route]:
             return f"{route.replace('_', '-')} route forbids route-specific event {event}"
-    failure_index = first_failure_boundary_index(trace)
+    failure_index = first_route_failure_boundary_index(trace)
     route_contract_reason = validate_route_event_contract(
         trace,
         route,
@@ -1668,7 +1684,7 @@ def validate_external_proof(trace):
         return None
     if len(selected_external) != 1:
         return "external proof applies only to one selected external route"
-    failure_index = first_failure_boundary_index(trace)
+    failure_index = first_route_failure_boundary_index(trace)
     if (
         failure_index is not None
         and trace[failure_index].get("event") != "external_evidence"
@@ -2150,45 +2166,60 @@ def validate_review_topology(trace):
     ):
         return "final full-diff review is required"
 
-    if len(final_indexes) > 1:
-        return "final full-diff review must occur exactly once"
     if len(verdict_indexes) > 1:
         return "review verdict must occur exactly once"
-    if verdict_indexes and len(final_indexes) != 1:
+    final_outcomes = [trace[index].get("outcome") for index in final_indexes]
+    if any(
+        outcome not in RESULT_OUTCOMES["final_full_diff_review"]
+        for outcome in final_outcomes
+    ):
+        return "final full-diff review requires an actual result"
+    if len(final_indexes) > 1 and not (
+        final_outcomes[-1] == "green"
+        and all(outcome in FAILURE_OUTCOMES for outcome in final_outcomes[:-1])
+    ):
+        return "final full-diff review must occur exactly once"
+    if verdict_indexes and not final_indexes:
         return "review verdict requires one applicable final full-diff review"
-    if final_review:
-        final_outcome = trace[final_indexes[0]].get("outcome")
-        if final_outcome not in RESULT_OUTCOMES["final_full_diff_review"]:
-            return "final full-diff review requires an actual result"
-        if is_failure_boundary(trace[final_indexes[0]]) and has_event(
-            trace, "review_verdict", outcome="clear"
-        ):
-            return "blocking final review cannot have a clear verdict"
-        if has_event(trace, "review_verdict", outcome="blocking"):
-            if final_outcome == "green":
+    applicable_final_index = final_indexes[-1] if final_indexes else None
+    applicable_final_outcome = (
+        trace[applicable_final_index].get("outcome")
+        if applicable_final_index is not None
+        else None
+    )
+    if verdict_indexes:
+        verdict_index = verdict_indexes[0]
+        if applicable_final_index >= verdict_index:
+            verdict_outcome = trace[verdict_index].get("outcome")
+            return (
+                "successful final full-diff review must precede clear verdict"
+                if verdict_outcome == "clear"
+                else "final full-diff review must precede blocking review verdict"
+            )
+        if trace[verdict_index].get("outcome") == "blocking":
+            if applicable_final_outcome == "green":
                 return "blocking review verdict cannot follow a green final full-diff review"
-            if final_outcome != "blocking":
-                return (
-                    "blocking review verdict requires one blocking final full-diff review"
-                )
-            if not ordered(trace, "final_full_diff_review", "review_verdict"):
-                return "final full-diff review must precede blocking review verdict"
+            if applicable_final_outcome != "blocking":
+                return "blocking review verdict requires one blocking final full-diff review"
     if clear_verdicts:
-        if len(clear_verdicts) != 1 or len(final_indexes) != 1:
+        if len(clear_verdicts) != 1 or not final_indexes:
             return "clear review verdict requires one successful final full-diff review"
-        if trace[final_indexes[0]].get("outcome") != "green":
+        if applicable_final_outcome == "blocking":
+            return "blocking final review cannot have a clear verdict"
+        if applicable_final_outcome != "green":
             return "clear review verdict requires one green final full-diff review"
-        if not ordered(trace, "final_full_diff_review", "review_verdict"):
-            return "successful final full-diff review must precede clear verdict"
 
     if endpoints:
-        if len(final_indexes) != 1:
+        if not final_indexes:
             return "successful completion or user gate requires final full-diff review"
-        if trace[final_indexes[0]].get("outcome") != "green":
+        if applicable_final_outcome != "green":
             return "successful completion or user gate requires green final full-diff review"
         if len(verdict_indexes) != 1 or len(clear_verdicts) != 1:
             return "successful completion or user gate requires a clear review verdict"
-        if any(clear_verdicts[0] >= endpoint for endpoint in endpoints):
+        if any(
+            applicable_final_index >= endpoint or clear_verdicts[0] >= endpoint
+            for endpoint in endpoints
+        ):
             return "clear review verdict must precede completion or user gate"
     return None
 
@@ -2887,12 +2918,20 @@ class RunSemanticContractTests(unittest.TestCase):
             "failure overlay must be runtime-failure-overlay-owned",
         )
 
-    def test_success_route_cannot_start_or_advance_after_any_failed_result(self):
-        failures = (
-            {"event": "completion_gate", "outcome": "non_green", "owner": "orchestrator"},
-            {"event": "completion_gate", "outcome": "unevaluable", "owner": "orchestrator"},
-            {"event": "final_full_diff_review", "outcome": "blocking", "owner": "reviewer"},
+    def test_success_route_cannot_start_or_advance_after_reached_phase_failure(self):
+        failures = tuple(
+            {
+                "event": "conditional_spec_review",
+                "task_id": "task-review",
+                "outcome": outcome,
+                "owner": "reviewer",
+            }
+            for outcome in ("blocking", "non_green", "unevaluable")
         )
+        review_context = [
+            {"event": "risky_task", "task_id": "task-review", "owner": "orchestrator"},
+            {"event": "downstream_cascade_risk", "task_id": "task-review", "owner": "orchestrator"},
+        ]
         overlay = {
             "event": "failure_overlay_entered",
             "overlay": "failure",
@@ -2908,6 +2947,7 @@ class RunSemanticContractTests(unittest.TestCase):
             for failure in failures:
                 terminal = [
                     selection,
+                    *copy.deepcopy(review_context),
                     copy.deepcopy(failure),
                     copy.deepcopy(overlay),
                 ]
@@ -2930,6 +2970,7 @@ class RunSemanticContractTests(unittest.TestCase):
                         occurrence["outcome"] = "green"
                     trace = [
                         selection,
+                        *copy.deepcopy(review_context),
                         copy.deepcopy(failure),
                         copy.deepcopy(overlay),
                         occurrence,
@@ -2955,26 +2996,151 @@ class RunSemanticContractTests(unittest.TestCase):
         traces = (
             [
                 {"event": "route_selected", "route": "direct", "owner": "orchestrator"},
-                {"event": "completion_gate", "outcome": "non_green", "owner": "orchestrator"},
+                {"event": "task_implementation", "owner": "orchestrator"},
+                {"event": "risky_task", "task_id": "task-review", "owner": "orchestrator"},
+                {"event": "downstream_cascade_risk", "task_id": "task-review", "owner": "orchestrator"},
+                {"event": "conditional_spec_review", "task_id": "task-review", "outcome": "blocking", "owner": "reviewer"},
                 {"event": "failure_overlay_entered", "overlay": "failure", "owner": "runtime_failure_overlay"},
             ],
             [
                 {"event": "route_selected", "route": "single_risky", "owner": "orchestrator"},
                 {"event": "worktree_created", "task_id": "task-a", "owner": "orchestrator"},
                 {"event": "task_implementation", "task_id": "task-a", "owner": "implementer"},
-                {"event": "completion_gate", "outcome": "unevaluable", "owner": "orchestrator"},
+                {"event": "evidence_captured", "task_id": "task-a", "owner": "implementer"},
+                {"event": "task_verification", "task_id": "task-a", "outcome": "unevaluable", "owner": "implementer"},
+                {"event": "failure_overlay_entered", "overlay": "failure", "owner": "runtime_failure_overlay"},
+            ],
+            [
+                {"event": "route_selected", "route": "parallel", "owner": "orchestrator"},
+                {"event": "isolated_task_worktrees", "owner": "orchestrator"},
+                {"event": "worktree_created", "task_id": "task-a", "owner": "orchestrator"},
+                {"event": "worktree_created", "task_id": "task-b", "owner": "orchestrator"},
+                {"event": "task_implementation", "task_id": "task-a", "owner": "implementer"},
+                {"event": "task_implementation", "task_id": "task-b", "owner": "implementer"},
+                {"event": "task_verification", "task_id": "task-a", "outcome": "non_green", "owner": "implementer"},
                 {"event": "failure_overlay_entered", "overlay": "failure", "owner": "runtime_failure_overlay"},
             ],
             [
                 {"event": "route_selected", "route": "external", "owner": "orchestrator"},
                 {"event": "selected_base", "value": "sha-A", "owner": "orchestrator"},
-                {"event": "completion_gate", "outcome": "non_green", "owner": "orchestrator"},
+                {"event": "external_base_pin", "value": "sha-A", "owner": "implementer"},
+                {"event": "external_action", "owner": "implementer"},
+                {"event": "external_evidence", "outcome": "non_green", "owner": "implementer"},
                 {"event": "failure_overlay_entered", "overlay": "failure", "owner": "runtime_failure_overlay"},
             ],
         )
         for trace in traces:
             with self.subTest(route=trace[0]["route"]):
                 self.assertTrue(validate_semantics(self.contract, trace)["valid"])
+
+    def test_downstream_results_require_full_selected_route_closure(self):
+        downstream_results = {
+            "completion_gate",
+            "completion_full_verify",
+            "runtime_smoke",
+            "final_full_diff_review",
+            "review_verdict",
+        }
+        self.assertEqual(DOWNSTREAM_RESULT_EVENTS, downstream_results)
+        route_scenarios = {
+            route: next(
+                scenario["trace"]
+                for scenario in self.fixture["scenarios"]
+                if scenario["id"] == scenario_id
+            )
+            for route, scenario_id in {
+                "direct": "direct-success",
+                "single_risky": "single-risky-success",
+                "parallel": "parallel-success",
+                "external": "external-success",
+            }.items()
+        }
+        expected_reasons = {
+            "direct": "direct route requires one base commit",
+            "single_risky": "single-risky route requires exactly one task_merged",
+            "parallel": "parallel route requires one green integration gate",
+            "external": "external route requires independent commit proof",
+        }
+        expected_contract_ids = {
+            "direct": "RUN-ROUTE-TOPOLOGY",
+            "single_risky": "RUN-ROUTE-TOPOLOGY",
+            "parallel": "RUN-ROUTE-TOPOLOGY",
+            "external": "RUN-EXTERNAL-PROOF",
+        }
+        overlay = {
+            "event": "failure_overlay_entered",
+            "overlay": "failure",
+            "owner": "runtime_failure_overlay",
+        }
+
+        def downstream_suffix(event, outcome):
+            if event == "review_verdict":
+                final_outcome = "green" if outcome == "clear" else "blocking"
+                suffix = [
+                    {
+                        "event": "final_full_diff_review",
+                        "outcome": final_outcome,
+                        "owner": "reviewer",
+                    }
+                ]
+                if final_outcome in FAILURE_OUTCOMES:
+                    suffix.append(copy.deepcopy(overlay))
+                suffix.append(
+                    {"event": event, "outcome": outcome, "owner": "reviewer"}
+                )
+                if outcome in FAILURE_OUTCOMES:
+                    suffix.append(copy.deepcopy(overlay))
+                return suffix
+            suffix = [
+                {
+                    "event": event,
+                    "outcome": outcome,
+                    "owner": "reviewer"
+                    if event == "final_full_diff_review"
+                    else "orchestrator",
+                }
+            ]
+            if outcome in FAILURE_OUTCOMES:
+                suffix.append(copy.deepcopy(overlay))
+            return suffix
+
+        reached_phase_failure = [
+            {"event": "concern_recorded", "value": "C-route-phase", "owner": "orchestrator"},
+            {
+                "event": "concern_disposition",
+                "value": "C-route-phase",
+                "disposition": "promoted_to_failure",
+                "owner": "orchestrator",
+            },
+            copy.deepcopy(overlay),
+        ]
+
+        for route, success_trace in route_scenarios.items():
+            incomplete_route = copy.deepcopy(success_trace[:-1])
+            for event in sorted(downstream_results):
+                for outcome in sorted(RESULT_OUTCOMES[event]):
+                    suffix = downstream_suffix(event, outcome)
+                    with self.subTest(route=route, event=event, outcome=outcome, phase="direct"):
+                        trace = incomplete_route + copy.deepcopy(suffix)
+                        result = validate_semantics(self.contract, trace)
+                        self.assertEqual(result["contract_id"], expected_contract_ids[route])
+                        self.assertEqual(result["reason"], expected_reasons[route])
+                        closed_trace = copy.deepcopy(success_trace) + suffix
+                        self.assertTrue(validate_semantics(self.contract, closed_trace)["valid"])
+                    with self.subTest(
+                        route=route,
+                        event=event,
+                        outcome=outcome,
+                        phase="after-reached-route-failure",
+                    ):
+                        trace = (
+                            incomplete_route
+                            + copy.deepcopy(reached_phase_failure)
+                            + copy.deepcopy(suffix)
+                        )
+                        result = validate_semantics(self.contract, trace)
+                        self.assertEqual(result["contract_id"], expected_contract_ids[route])
+                        self.assertEqual(result["reason"], expected_reasons[route])
 
     def test_concern_dispositions_are_correlated_and_closed(self):
         cases = (
@@ -3641,13 +3807,42 @@ class RunSemanticContractTests(unittest.TestCase):
 
     def test_review_outcome_and_verdict_pairs_are_exact_and_cardinal(self):
         reason = "final full-diff review requires an actual result"
-        for final_outcome in ("clear", "non_green", "unevaluable"):
-            trace = [
-                {"event": "final_full_diff_review", "outcome": final_outcome, "owner": "reviewer"},
-                {"event": "review_verdict", "outcome": "blocking", "owner": "reviewer"},
-            ]
-            with self.subTest(final_outcome=final_outcome):
-                self.assertEqual(validate_review_topology(trace), reason)
+        self.assertEqual(
+            validate_review_topology(
+                [
+                    {"event": "final_full_diff_review", "outcome": "clear", "owner": "reviewer"},
+                    {"event": "review_verdict", "outcome": "blocking", "owner": "reviewer"},
+                ]
+            ),
+            reason,
+        )
+        for final_outcome in ("non_green", "unevaluable"):
+            with self.subTest(final_outcome=final_outcome, phase="terminal"):
+                self.assertIsNone(
+                    validate_review_topology(
+                        [
+                            {
+                                "event": "final_full_diff_review",
+                                "outcome": final_outcome,
+                                "owner": "reviewer",
+                            }
+                        ]
+                    )
+                )
+            with self.subTest(final_outcome=final_outcome, phase="blocking-verdict"):
+                self.assertEqual(
+                    validate_review_topology(
+                        [
+                            {
+                                "event": "final_full_diff_review",
+                                "outcome": final_outcome,
+                                "owner": "reviewer",
+                            },
+                            {"event": "review_verdict", "outcome": "blocking", "owner": "reviewer"},
+                        ]
+                    ),
+                    "blocking review verdict requires one blocking final full-diff review",
+                )
 
         self.assertIsNone(
             validate_review_topology(
@@ -4085,7 +4280,13 @@ class RunSemanticContractTests(unittest.TestCase):
             trace = copy.deepcopy(success[: stage_end + 1])
             trace.extend(
                 [
-                    {"event": "completion_gate", "outcome": "non_green", "owner": "orchestrator"},
+                    {"event": "concern_recorded", "value": "C-prefix", "owner": "orchestrator"},
+                    {
+                        "event": "concern_disposition",
+                        "value": "C-prefix",
+                        "disposition": "promoted_to_failure",
+                        "owner": "orchestrator",
+                    },
                     {"event": "failure_overlay_entered", "overlay": "failure", "owner": "runtime_failure_overlay"},
                 ]
             )
@@ -4499,6 +4700,73 @@ class RunSemanticContractTests(unittest.TestCase):
         result = validate_semantics(self.contract, trace)
         self.assertEqual(result["contract_id"], "RUN-REVIEW-TOPOLOGY")
         self.assertEqual(result["reason"], "final full-diff review requires an actual result")
+
+    def test_final_full_diff_review_failure_domain_requires_green_recovery(self):
+        self.assertEqual(
+            RESULT_OUTCOMES["final_full_diff_review"],
+            {"green", "blocking", "non_green", "unevaluable"},
+        )
+        overlay = {
+            "event": "failure_overlay_entered",
+            "overlay": "failure",
+            "owner": "runtime_failure_overlay",
+        }
+        for outcome in sorted(FAILURE_OUTCOMES):
+            failed_review = {
+                "event": "final_full_diff_review",
+                "outcome": outcome,
+                "owner": "reviewer",
+            }
+            with self.subTest(outcome=outcome, phase="terminal"):
+                self.assertTrue(
+                    validate_semantics(
+                        self.contract,
+                        [failed_review, copy.deepcopy(overlay)],
+                    )["valid"]
+                )
+
+            clear_without_recovery = [
+                failed_review,
+                copy.deepcopy(overlay),
+                {"event": "review_verdict", "outcome": "clear", "owner": "reviewer"},
+            ]
+            with self.subTest(outcome=outcome, phase="clear-without-recovery"):
+                result = validate_semantics(self.contract, clear_without_recovery)
+                self.assertEqual(result["contract_id"], "RUN-REVIEW-TOPOLOGY")
+                self.assertEqual(
+                    result["reason"],
+                    (
+                        "blocking final review cannot have a clear verdict"
+                        if outcome == "blocking"
+                        else "clear review verdict requires one green final full-diff review"
+                    ),
+                )
+
+            endpoint_without_recovery = [
+                {"event": "completion_full_verify", "outcome": "green", "owner": "orchestrator"},
+                failed_review,
+                copy.deepcopy(overlay),
+                {"event": "completion", "owner": "orchestrator"},
+            ]
+            with self.subTest(outcome=outcome, phase="endpoint-without-recovery"):
+                result = validate_semantics(self.contract, endpoint_without_recovery)
+                self.assertEqual(result["contract_id"], "RUN-REVIEW-TOPOLOGY")
+                self.assertEqual(
+                    result["reason"],
+                    "successful completion or user gate requires green final full-diff review",
+                )
+
+            recovered = [
+                {"event": "completion_full_verify", "outcome": "green", "owner": "orchestrator"},
+                failed_review,
+                copy.deepcopy(overlay),
+                {"event": "retry", "owner": "orchestrator"},
+                {"event": "final_full_diff_review", "outcome": "green", "owner": "reviewer"},
+                {"event": "review_verdict", "outcome": "clear", "owner": "reviewer"},
+                {"event": "completion", "owner": "orchestrator"},
+            ]
+            with self.subTest(outcome=outcome, phase="recovered"):
+                self.assertTrue(validate_semantics(self.contract, recovered)["valid"])
 
     def test_promoted_failure_is_the_closed_boundary_for_routes_and_review(self):
         overlay = {

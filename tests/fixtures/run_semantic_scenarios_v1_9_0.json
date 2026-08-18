@@ -3693,6 +3693,90 @@
       }
     },
     {
+      "id": "failure-final-review-non-green",
+      "trace": [
+        {
+          "event": "final_full_diff_review",
+          "outcome": "non_green",
+          "owner": "reviewer"
+        },
+        {
+          "event": "failure_overlay_entered",
+          "overlay": "failure",
+          "owner": "runtime_failure_overlay"
+        },
+        {
+          "event": "routine_read",
+          "owner": "orchestrator"
+        }
+      ],
+      "expected_valid": true,
+      "expected_outcome": "accepted",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "final_full_diff_review",
+          "filter": {
+            "outcome": "non_green"
+          },
+          "expected": 1
+        },
+        {
+          "op": "owner",
+          "event": "final_full_diff_review",
+          "expected_owner": "reviewer"
+        }
+      ],
+      "failure_case": {
+        "event": "final_full_diff_review",
+        "outcome": "non_green",
+        "expected_contract_id": "RUN-FAIL-CLOSED",
+        "expected_reason": "non_green final review result must enter failure overlay"
+      }
+    },
+    {
+      "id": "failure-final-review-unevaluable",
+      "trace": [
+        {
+          "event": "final_full_diff_review",
+          "outcome": "unevaluable",
+          "owner": "reviewer"
+        },
+        {
+          "event": "failure_overlay_entered",
+          "overlay": "failure",
+          "owner": "runtime_failure_overlay"
+        },
+        {
+          "event": "routine_read",
+          "owner": "orchestrator"
+        }
+      ],
+      "expected_valid": true,
+      "expected_outcome": "accepted",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "final_full_diff_review",
+          "filter": {
+            "outcome": "unevaluable"
+          },
+          "expected": 1
+        },
+        {
+          "op": "owner",
+          "event": "final_full_diff_review",
+          "expected_owner": "reviewer"
+        }
+      ],
+      "failure_case": {
+        "event": "final_full_diff_review",
+        "outcome": "unevaluable",
+        "expected_contract_id": "RUN-FAIL-CLOSED",
+        "expected_reason": "unevaluable final review result must enter failure overlay"
+      }
+    },
+    {
       "id": "completion-forced-rerun",
       "trace": [
         {
