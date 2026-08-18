@@ -2965,23 +2965,67 @@
       ]
     },
     {
-      "id": "concern-promoted-failure-wins",
+      "id": "concern-promoted-failure-recovered",
       "trace": [
+        {
+          "event": "route_selected",
+          "route": "direct",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "task_implementation",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "evidence_captured",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "base_commit",
+          "owner": "orchestrator"
+        },
         {
           "event": "concern_recorded",
           "owner": "orchestrator",
-          "value": "concern-concern-promoted-failure-wins"
+          "value": "concern-promoted-recovered"
         },
         {
           "event": "concern_disposition",
           "disposition": "promoted_to_failure",
           "owner": "orchestrator",
-          "value": "concern-concern-promoted-failure-wins"
+          "value": "concern-promoted-recovered"
         },
         {
           "event": "failure_overlay_entered",
           "overlay": "failure",
           "owner": "runtime_failure_overlay"
+        },
+        {
+          "event": "remedial_worktree_created",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "remedial_implementer_continuation",
+          "owner": "implementer"
+        },
+        {
+          "event": "completion_full_verify",
+          "outcome": "green",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "final_full_diff_review",
+          "outcome": "green",
+          "owner": "reviewer"
+        },
+        {
+          "event": "review_verdict",
+          "outcome": "clear",
+          "owner": "reviewer"
+        },
+        {
+          "event": "completion",
+          "owner": "orchestrator"
         }
       ],
       "expected_valid": true,
@@ -2997,6 +3041,41 @@
           "op": "before",
           "event_a": "concern_recorded",
           "event_b": "concern_disposition"
+        },
+        {
+          "op": "before",
+          "event_a": "concern_disposition",
+          "event_b": "failure_overlay_entered"
+        },
+        {
+          "op": "before",
+          "event_a": "failure_overlay_entered",
+          "event_b": "remedial_worktree_created"
+        },
+        {
+          "op": "before",
+          "event_a": "remedial_implementer_continuation",
+          "event_b": "completion_full_verify"
+        },
+        {
+          "op": "before",
+          "event_a": "completion_full_verify",
+          "event_b": "final_full_diff_review"
+        },
+        {
+          "op": "before",
+          "event_a": "final_full_diff_review",
+          "event_b": "review_verdict"
+        },
+        {
+          "op": "before",
+          "event_a": "review_verdict",
+          "event_b": "completion"
+        },
+        {
+          "op": "owner",
+          "event": "completion",
+          "expected_owner": "orchestrator"
         }
       ]
     },

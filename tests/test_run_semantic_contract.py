@@ -105,6 +105,41 @@ DOWNSTREAM_RESULT_EVENTS = {
     "final_full_diff_review",
     "review_verdict",
 }
+DOWNSTREAM_SUCCESS_PREREQUISITES = {
+    "completion_gate": {
+        "guards": {
+            "completion_full_verify",
+            "runtime_smoke",
+            "final_full_diff_review",
+            "review_verdict",
+            "completion",
+            "user_gate",
+        },
+        "reason": "latest completion gate must be green before final review or endpoint",
+        "owner_reason": "completion gate recovery must be orchestrator-owned",
+    },
+    "completion_full_verify": {
+        "guards": {
+            "runtime_smoke",
+            "final_full_diff_review",
+            "review_verdict",
+            "completion",
+            "user_gate",
+        },
+        "reason": "latest completion full verify must be green before final review or endpoint",
+        "owner_reason": "completion full verify recovery must be orchestrator-owned",
+    },
+    "runtime_smoke": {
+        "guards": {
+            "final_full_diff_review",
+            "review_verdict",
+            "completion",
+            "user_gate",
+        },
+        "reason": "latest runtime smoke must be green before final review or endpoint",
+        "owner_reason": "runtime smoke recovery must be orchestrator-owned",
+    },
+}
 EXPECTED_VOCABULARY = {
     "route": ["direct", "single_risky", "parallel", "external"],
     "overlay": ["failure"],
@@ -319,7 +354,7 @@ EXPECTED_SCENARIO_IDS = {
     "concern-user-requirement-accepted",
     "concern-user-compatibility-accepted",
     "concern-user-safety-accepted",
-    "concern-promoted-failure-wins",
+    "concern-promoted-failure-recovered",
     "concern-pending-blocks",
     "lifecycle-ownership-matrix",
     "review-conditional-and-final-clear",
@@ -1745,6 +1780,31 @@ def validate_external_proof(trace):
     return None
 
 
+def validate_latest_downstream_success(trace, prerequisite_events):
+    for event in prerequisite_events:
+        contract = DOWNSTREAM_SUCCESS_PREREQUISITES[event]
+        attempts = matching_indexes(trace, event)
+        if not attempts:
+            continue
+
+        guard_indexes = sorted(
+            index
+            for guard_event in contract["guards"]
+            for index in matching_indexes(trace, guard_event)
+        )
+        for guard_index in guard_indexes:
+            preceding = [index for index in attempts if index < guard_index]
+            if not preceding:
+                continue
+
+            latest = trace[preceding[-1]]
+            if latest.get("outcome") != "green":
+                return contract["reason"]
+            if latest.get("owner") != "orchestrator":
+                return contract["owner_reason"]
+    return None
+
+
 def validate_failure_overlay(trace):
     phases = {
         "task_verification": "verification result",
@@ -1791,7 +1851,10 @@ def validate_failure_overlay(trace):
                 continue
             if not any(result_index < overlay_index < continuation_index for overlay_index in owned_overlays):
                 return "failure overlay must precede any present continuation"
-    return None
+    return validate_latest_downstream_success(
+        trace,
+        ("completion_gate", "runtime_smoke"),
+    )
 
 
 def non_empty_single_value(trace, event):
@@ -1800,6 +1863,13 @@ def non_empty_single_value(trace, event):
 
 
 def validate_completion_reuse(trace):
+    recovery_reason = validate_latest_downstream_success(
+        trace,
+        ("completion_full_verify",),
+    )
+    if recovery_reason is not None:
+        return recovery_reason
+
     reuse_indexes = matching_indexes(trace, "completion_reused")
     reuse = bool(reuse_indexes)
     full_verify = has_event(trace, "completion_full_verify")
@@ -1902,8 +1972,8 @@ def validate_completion_reuse(trace):
                 or trace[applicable_verifies[-1]].get("outcome") != "green"
             ):
                 return (
-                    "completion or user gate requires the latest preceding full verify "
-                    "to be green"
+                    "latest completion full verify must be green before final review "
+                    "or endpoint"
                 )
         return None
     if endpoints:
@@ -2004,16 +2074,77 @@ def validate_concern_disposition(trace):
             ]
             if not later_owned_overlays:
                 return "promoted concern requires failure overlay"
-            if any(
-                endpoint_index > index
-                for endpoint_index in matching_indexes(trace, "completion")
-            ):
-                return "failure overlay blocks completion"
-            if any(
-                endpoint_index > index
-                for endpoint_index in matching_indexes(trace, "user_gate")
-            ):
-                return "failure overlay blocks user gate"
+            later_endpoints = sorted(
+                endpoint_index
+                for endpoint_index in (
+                    matching_indexes(trace, "completion")
+                    + matching_indexes(trace, "user_gate")
+                )
+                if endpoint_index > index
+            )
+            for endpoint_index in later_endpoints:
+                recovery_pairs = [
+                    (worktree_index, continuation_index)
+                    for overlay_index in later_owned_overlays
+                    for worktree_index in matching_indexes(
+                        trace,
+                        "remedial_worktree_created",
+                    )
+                    for continuation_index in matching_indexes(
+                        trace,
+                        "remedial_implementer_continuation",
+                    )
+                    if index
+                    < overlay_index
+                    < worktree_index
+                    < continuation_index
+                    < endpoint_index
+                ]
+                if not recovery_pairs:
+                    return (
+                        "promoted concern requires remedial continuation before "
+                        "completion or user gate"
+                    )
+
+                continuation_index = recovery_pairs[-1][1]
+                green_verifies = [
+                    verify_index
+                    for verify_index in matching_indexes(
+                        trace,
+                        "completion_full_verify",
+                        outcome="green",
+                    )
+                    if continuation_index < verify_index < endpoint_index
+                ]
+                reuse_decisions = [
+                    reuse_index
+                    for reuse_index in matching_indexes(trace, "completion_reused")
+                    if continuation_index < reuse_index < endpoint_index
+                ]
+
+                valid_reuse = False
+                if reuse_decisions:
+                    reuse_index = reuse_decisions[-1]
+                    reuse_fact_events = {
+                        "prior_integration",
+                        "prior_verify_set",
+                        "completion_verify_set",
+                        "prior_gate_base_tip",
+                        "current_base_tip",
+                    }
+                    valid_reuse = all(
+                        any(
+                            continuation_index < fact_index < reuse_index
+                            for fact_index in matching_indexes(trace, fact_event)
+                        )
+                        for fact_event in reuse_fact_events
+                    )
+
+                if not green_verifies and not valid_reuse:
+                    return (
+                        "promoted concern requires post-remediation green full verify "
+                        "or reusable completion facts before completion or user gate"
+                    )
 
     user_concerns = {
         "user_owned_requirement_concern": "requirement",
@@ -3727,7 +3858,7 @@ class RunSemanticContractTests(unittest.TestCase):
         )
 
     def test_completion_endpoint_requires_latest_preceding_full_verify_green(self):
-        reason = "completion or user gate requires the latest preceding full verify to be green"
+        reason = "latest completion full verify must be green before final review or endpoint"
         for outcome, endpoint in (
             ("non_green", "completion"),
             ("unevaluable", "user_gate"),
@@ -4604,6 +4735,7 @@ class RunSemanticContractTests(unittest.TestCase):
         )
 
         recovered = continued + [
+            {"event": "completion_gate", "outcome": "green", "owner": "orchestrator"},
             {"event": "completion_full_verify", "outcome": "green", "owner": "orchestrator"},
             {"event": "final_full_diff_review", "outcome": "green", "owner": "reviewer"},
             {"event": "review_verdict", "outcome": "clear", "owner": "reviewer"},
@@ -4768,6 +4900,134 @@ class RunSemanticContractTests(unittest.TestCase):
             with self.subTest(outcome=outcome, phase="recovered"):
                 self.assertTrue(validate_semantics(self.contract, recovered)["valid"])
 
+    def test_downstream_prerequisite_failures_require_latest_green_recovery(self):
+        overlay = {
+            "event": "failure_overlay_entered",
+            "overlay": "failure",
+            "owner": "runtime_failure_overlay",
+        }
+        cases = {
+            "completion_gate": (
+                [
+                    {
+                        "event": "completion_full_verify",
+                        "outcome": "green",
+                        "owner": "orchestrator",
+                    }
+                ],
+                "latest completion gate must be green before final review or endpoint",
+            ),
+            "completion_full_verify": (
+                [],
+                "latest completion full verify must be green before final review or endpoint",
+            ),
+            "runtime_smoke": (
+                [
+                    {
+                        "event": "completion_full_verify",
+                        "outcome": "green",
+                        "owner": "orchestrator",
+                    }
+                ],
+                "latest runtime smoke must be green before final review or endpoint",
+            ),
+        }
+        for event, (prefix, reason) in cases.items():
+            failed = {
+                "event": event,
+                "outcome": "non_green",
+                "owner": "orchestrator",
+            }
+            final_review = {
+                "event": "final_full_diff_review",
+                "outcome": "green",
+                "owner": "reviewer",
+            }
+            no_recovery = copy.deepcopy(prefix) + [
+                failed,
+                copy.deepcopy(overlay),
+                {"event": "retry", "owner": "orchestrator"},
+                final_review,
+            ]
+            with self.subTest(event=event, recovery="missing"):
+                result = validate_semantics(self.contract, no_recovery)
+                self.assertFalse(result["valid"])
+                self.assertEqual(
+                    result["contract_id"],
+                    "RUN-COMPLETION-REUSE"
+                    if event == "completion_full_verify"
+                    else "RUN-FAIL-CLOSED",
+                )
+                self.assertEqual(result["reason"], reason)
+
+            recovered = no_recovery[:-1] + [
+                {
+                    "event": event,
+                    "outcome": "green",
+                    "owner": "orchestrator",
+                },
+                final_review,
+            ]
+            with self.subTest(event=event, recovery="green"):
+                self.assertTrue(validate_semantics(self.contract, recovered)["valid"])
+
+    def test_runtime_smoke_recovery_is_orchestrator_owned_and_precedes_review_chain(self):
+        prefix = [
+            {
+                "event": "completion_full_verify",
+                "outcome": "green",
+                "owner": "orchestrator",
+            },
+            {"event": "runtime_smoke", "outcome": "unevaluable", "owner": "orchestrator"},
+            {
+                "event": "failure_overlay_entered",
+                "overlay": "failure",
+                "owner": "runtime_failure_overlay",
+            },
+            {"event": "retry", "owner": "orchestrator"},
+        ]
+        review_chain = [
+            {"event": "final_full_diff_review", "outcome": "green", "owner": "reviewer"},
+            {"event": "review_verdict", "outcome": "clear", "owner": "reviewer"},
+            {"event": "completion", "owner": "orchestrator"},
+        ]
+        no_recovery = copy.deepcopy(prefix) + copy.deepcopy(review_chain)
+        result = validate_semantics(self.contract, no_recovery)
+        self.assertEqual(result["contract_id"], "RUN-FAIL-CLOSED")
+        self.assertEqual(
+            result["reason"],
+            "latest runtime smoke must be green before final review or endpoint",
+        )
+
+        recovery = {
+            "event": "runtime_smoke",
+            "outcome": "green",
+            "owner": "orchestrator",
+        }
+        recovered = copy.deepcopy(prefix) + [copy.deepcopy(recovery)] + copy.deepcopy(review_chain)
+        self.assertTrue(validate_semantics(self.contract, recovered)["valid"])
+
+        wrong_owner = copy.deepcopy(recovered)
+        next(
+            item
+            for item in wrong_owner
+            if item["event"] == "runtime_smoke" and item["outcome"] == "green"
+        )["owner"] = "reviewer"
+        result = validate_semantics(self.contract, wrong_owner)
+        self.assertEqual(result["contract_id"], "RUN-FAIL-CLOSED")
+        self.assertEqual(result["reason"], "runtime smoke recovery must be orchestrator-owned")
+
+        after_review = copy.deepcopy(prefix) + [
+            copy.deepcopy(review_chain[0]),
+            copy.deepcopy(recovery),
+            *copy.deepcopy(review_chain[1:]),
+        ]
+        result = validate_semantics(self.contract, after_review)
+        self.assertEqual(result["contract_id"], "RUN-FAIL-CLOSED")
+        self.assertEqual(
+            result["reason"],
+            "latest runtime smoke must be green before final review or endpoint",
+        )
     def test_promoted_failure_is_the_closed_boundary_for_routes_and_review(self):
         overlay = {
             "event": "failure_overlay_entered",
@@ -4905,6 +5165,60 @@ class RunSemanticContractTests(unittest.TestCase):
         ]
         self.assertTrue(has_terminal_failure_after_clear(actual_blocker))
         self.assertTrue(validate_semantics(self.contract, actual_blocker)["valid"])
+
+    def test_promoted_failure_recovery_requires_remediation_and_reverification(self):
+        trace = copy.deepcopy(
+            next(
+                item["trace"]
+                for item in self.fixture["scenarios"]
+                if item["id"] == "concern-promoted-failure-recovered"
+            )
+        )
+        self.assertTrue(validate_semantics(self.contract, trace)["valid"])
+
+        overlay_index = next(
+            index
+            for index, item in enumerate(trace)
+            if item["event"] == "failure_overlay_entered"
+        )
+        self.assertTrue(
+            validate_semantics(self.contract, trace[: overlay_index + 1])["valid"]
+        )
+
+        no_remediation = [
+            item
+            for item in copy.deepcopy(trace)
+            if item["event"]
+            not in {
+                "remedial_worktree_created",
+                "remedial_implementer_continuation",
+            }
+        ]
+        result = validate_semantics(self.contract, no_remediation)
+        self.assertEqual(result["contract_id"], "RUN-CONCERN-DISPOSITION")
+        self.assertEqual(
+            result["reason"],
+            "promoted concern requires remedial continuation before completion or user gate",
+        )
+
+        stale_verify = copy.deepcopy(trace)
+        verify = next(
+            item for item in stale_verify if item["event"] == "completion_full_verify"
+        )
+        stale_verify.remove(verify)
+        concern_index = next(
+            index
+            for index, item in enumerate(stale_verify)
+            if item["event"] == "concern_recorded"
+        )
+        stale_verify.insert(concern_index, verify)
+        result = validate_semantics(self.contract, stale_verify)
+        self.assertEqual(result["contract_id"], "RUN-CONCERN-DISPOSITION")
+        self.assertEqual(
+            result["reason"],
+            "promoted concern requires post-remediation green full verify "
+            "or reusable completion facts before completion or user gate",
+        )
 
     def test_allowed_user_outputs_require_orchestrator_ownership(self):
         output_events = (
