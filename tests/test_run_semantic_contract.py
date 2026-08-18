@@ -41,6 +41,14 @@ RESULT_EVENTS = [
     "final_full_diff_review",
 ]
 CONTINUATION_EVENTS = RESULT_EVENTS + [
+    "route_selected",
+    "worktree_created",
+    "isolated_task_worktrees",
+    "task_implementation",
+    "evidence_captured",
+    "selected_base",
+    "external_base_pin",
+    "external_action",
     "retry",
     "task_merged",
     "serial_merge",
@@ -67,6 +75,7 @@ RESULT_OUTCOMES["conditional_spec_review"] = {
     "unevaluable",
 }
 RESULT_OUTCOMES["final_full_diff_review"] = {
+    "green",
     "clear",
     "blocking",
     "non_green",
@@ -165,6 +174,50 @@ EXPECTED_VOCABULARY = {
     "continuation_event": CONTINUATION_EVENTS,
     "invariant_kind": list(EXPECTED_INVARIANT_KINDS.values()),
 }
+
+
+def event_metadata_schema():
+    schema = {
+        event: {
+            "allowed": {"event", "owner"},
+            "required": {"event"},
+            "types": {"event": str, "owner": str},
+        }
+        for event in EXPECTED_VOCABULARY["event"]
+    }
+
+    def add(event, key, *, required=False):
+        schema[event]["allowed"].add(key)
+        schema[event]["types"][key] = str
+        if required:
+            schema[event]["required"].add(key)
+
+    add("route_selected", "route", required=True)
+    add("failure_overlay_entered", "overlay", required=True)
+    schema["failure_overlay_entered"]["required"].add("owner")
+    for event in RESULT_EVENTS:
+        add(event, "outcome", required=True)
+    add("prior_integration", "outcome", required=True)
+    add("review_verdict", "outcome", required=True)
+    for event in (
+        "selected_base",
+        "external_base_pin",
+        "prior_verify_set",
+        "completion_verify_set",
+        "prior_gate_base_tip",
+        "current_base_tip",
+        "concern_recorded",
+        "user_owned_requirement_concern",
+        "user_owned_compatibility_concern",
+        "user_owned_safety_concern",
+    ):
+        add(event, "value", required=True)
+    add("concern_disposition", "value", required=True)
+    add("concern_disposition", "disposition", required=True)
+    return schema
+
+
+EVENT_METADATA_SCHEMA = event_metadata_schema()
 EXPECTED_SCENARIO_IDS = {
     "direct-success",
     "single-risky-success",
@@ -239,6 +292,16 @@ EXPECTED_MUTANT_IDS = {
     "concern-missing-disposition-value",
     "concern-unknown-disposition-value",
     "conditional-review-without-cascade",
+    "direct-parallel-action-mixing",
+    "single-risky-work-after-failed-verification-before-overlay",
+    "completion-reuse-conflicting-prior-integration",
+    "direct-completion-without-final-review",
+    "direct-user-gate-without-final-review",
+    "blocking-conditional-review-clear-verdict",
+    "clear-verdict-without-green-final-review",
+    "task-verification-missing-outcome",
+    "failure-overlay-missing-overlay",
+    "failure-overlay-missing-owner",
 }
 
 
@@ -350,8 +413,15 @@ def validate_trace(trace, vocabulary, label):
             allowed.add("value")
         if event == "concern_disposition":
             allowed.update({"value", "disposition"})
+        schema = EVENT_METADATA_SCHEMA[event]
+        if allowed != schema["allowed"]:
+            raise ValueError(f"{occurrence_label} metadata schema is inconsistent")
         if not set(occurrence).issubset(allowed):
             raise ValueError(f"{occurrence_label} has keys not allowed for {event}")
+
+        for key, value in occurrence.items():
+            if type(value) is not schema["types"][key]:
+                raise ValueError(f"{occurrence_label}.{key} has the wrong type")
 
         if "owner" in occurrence and occurrence["owner"] not in vocabulary["owner"]:
             raise ValueError(f"{occurrence_label} has unknown owner")
@@ -371,6 +441,80 @@ def validate_trace(trace, vocabulary, label):
         if event == "review_verdict" and "outcome" in occurrence:
             if occurrence["outcome"] not in {"clear", "blocking"}:
                 raise ValueError(f"{occurrence_label} has an invalid review verdict")
+
+
+def validate_trace_shape(trace, vocabulary, label):
+    if not isinstance(trace, list):
+        raise ValueError(f"{label} must be an array")
+    for index, occurrence in enumerate(trace):
+        occurrence_label = f"{label}[{index}]"
+        if not isinstance(occurrence, dict):
+            raise ValueError(f"{occurrence_label} must be an object")
+        event = occurrence.get("event")
+        if event not in vocabulary["event"]:
+            raise ValueError(f"{occurrence_label} has unknown event or lacks event")
+        schema = EVENT_METADATA_SCHEMA[event]
+        if not set(occurrence).issubset(schema["allowed"]):
+            raise ValueError(f"{occurrence_label} has keys not allowed for {event}")
+        for key, value in occurrence.items():
+            if type(value) is not schema["types"][key]:
+                raise ValueError(f"{occurrence_label}.{key} has the wrong type")
+
+
+def validate_required_metadata(trace, vocabulary):
+    result_reasons = {
+        "task_verification": "task verification requires a non-empty closed outcome",
+        "task_verifications_complete": "task verifications complete requires a non-empty closed outcome",
+        "merge_precondition": "merge precondition requires a non-empty closed outcome",
+        "merge_gate": "merge gate requires a non-empty closed outcome",
+        "merge_gates_complete": "merge gates complete requires a non-empty closed outcome",
+        "regeneration": "regeneration requires a non-empty closed outcome",
+        "wiring": "wiring requires a non-empty closed outcome",
+        "integration_gate": "integration gate requires a non-empty closed outcome",
+        "external_evidence": "external evidence requires a non-empty closed outcome",
+        "completion_gate": "completion gate requires a non-empty closed outcome",
+        "completion_full_verify": "completion full verify requires a non-empty closed outcome",
+        "runtime_smoke": "runtime smoke requires a non-empty closed outcome",
+        "conditional_spec_review": "conditional spec review requires an actual result",
+        "final_full_diff_review": "final full-diff review requires an actual result",
+    }
+    completion_value_reasons = {
+        "prior_verify_set": "completion reuse requires the prior verify set",
+        "completion_verify_set": "completion reuse requires the completion verify set",
+        "prior_gate_base_tip": "completion reuse requires the prior gate base-tip SHA",
+        "current_base_tip": "completion reuse requires the current base-tip SHA",
+    }
+    for occurrence in trace:
+        event = occurrence["event"]
+        if event == "route_selected" and occurrence.get("route") not in vocabulary["route"]:
+            return "RUN-ROUTE-TOPOLOGY", "selected route is outside the closed route vocabulary"
+        if event in RESULT_OUTCOMES and occurrence.get("outcome") not in RESULT_OUTCOMES[event]:
+            invariant_id = (
+                "RUN-REVIEW-TOPOLOGY"
+                if event in {"conditional_spec_review", "final_full_diff_review"}
+                else "RUN-FAIL-CLOSED"
+            )
+            return invariant_id, result_reasons[event]
+        if event == "prior_integration" and occurrence.get("outcome") not in {
+            "green",
+            "non_green",
+            "unevaluable",
+        }:
+            return "RUN-COMPLETION-REUSE", "prior integration requires a non-empty closed outcome"
+        if event == "review_verdict" and occurrence.get("outcome") not in {"clear", "blocking"}:
+            return "RUN-REVIEW-TOPOLOGY", "review verdict requires a non-empty closed outcome"
+        if event == "failure_overlay_entered":
+            if occurrence.get("overlay") != "failure":
+                return "RUN-FAIL-CLOSED", "failure overlay requires explicit failure identity"
+            if occurrence.get("owner") != "runtime_failure_overlay":
+                return "RUN-FAIL-CLOSED", "failure overlay must be runtime-failure-overlay-owned"
+        if event == "selected_base" and not occurrence.get("value"):
+            return "RUN-EXTERNAL-PROOF", "external selected base requires a non-empty scalar value"
+        if event == "external_base_pin" and not occurrence.get("value"):
+            return "RUN-EXTERNAL-PROOF", "external base pin requires a non-empty scalar value"
+        if event in completion_value_reasons and not occurrence.get("value"):
+            return "RUN-COMPLETION-REUSE", completion_value_reasons[event]
+    return None
 
 
 def validate_fixture(fixture, vocabulary):
@@ -470,6 +614,142 @@ def result_failed(occurrence):
     return occurrence.get("outcome") in FAILURE_OUTCOMES
 
 
+ROUTE_SPECIFIC_EVENTS = {
+    "worktree_created",
+    "isolated_task_worktrees",
+    "task_implementation",
+    "task_verification",
+    "task_verifications_complete",
+    "evidence_captured",
+    "merge_precondition",
+    "merge_gate",
+    "merge_gates_complete",
+    "serial_merge",
+    "task_merged",
+    "regeneration",
+    "wiring",
+    "integration_gate",
+    "selected_base",
+    "external_base_pin",
+    "external_action",
+    "external_evidence",
+    "base_commit",
+    "conditional_base_commit",
+    "independent_commit_proof",
+}
+ROUTE_ALLOWED_EVENTS = {
+    "direct": {"task_implementation", "evidence_captured", "base_commit"},
+    "single_risky": {
+        "worktree_created",
+        "task_implementation",
+        "task_verification",
+        "merge_precondition",
+        "merge_gate",
+        "task_merged",
+    },
+    "parallel": {
+        "isolated_task_worktrees",
+        "task_implementation",
+        "task_verifications_complete",
+        "merge_gates_complete",
+        "serial_merge",
+        "regeneration",
+        "wiring",
+        "integration_gate",
+    },
+    "external": {
+        "selected_base",
+        "external_base_pin",
+        "external_action",
+        "external_evidence",
+        "base_commit",
+        "conditional_base_commit",
+        "independent_commit_proof",
+    },
+}
+ROUTE_STAGE_ORDER = {
+    "direct": ["task_implementation", "evidence_captured", "base_commit"],
+    "single_risky": [
+        "worktree_created",
+        "task_implementation",
+        "task_verification",
+        "merge_precondition",
+        "merge_gate",
+        "task_merged",
+    ],
+    "parallel": [
+        "isolated_task_worktrees",
+        "task_implementation",
+        "task_verifications_complete",
+        "merge_gates_complete",
+        "serial_merge",
+        "regeneration",
+        "wiring",
+        "integration_gate",
+    ],
+    "external": [
+        "selected_base",
+        "external_base_pin",
+        "external_action",
+        "external_evidence",
+        "base_commit",
+        "independent_commit_proof",
+    ],
+}
+
+
+def first_failed_result_index(trace):
+    return next(
+        (
+            index
+            for index, occurrence in enumerate(trace)
+            if occurrence.get("event") in RESULT_EVENTS and result_failed(occurrence)
+        ),
+        None,
+    )
+
+
+def validate_reached_route_prefix(trace, route, route_index, failure_index):
+    stages = ROUTE_STAGE_ORDER[route]
+    if any(
+        index > failure_index and occurrence.get("event") in ROUTE_ALLOWED_EVENTS[route]
+        for index, occurrence in enumerate(trace)
+    ):
+        return f"{route.replace('_', '-')} route cannot advance after a failed result"
+    prefix = trace[: failure_index + 1]
+    positions = []
+    for position, event in enumerate(stages):
+        indexes = matching_indexes(prefix, event)
+        if len(indexes) > 1:
+            return f"{route.replace('_', '-')} route prefix contains duplicate {event}"
+        if indexes:
+            positions.append((position, indexes[0]))
+    if positions:
+        highest_position = positions[-1][0]
+        if [position for position, _ in positions] != list(range(highest_position + 1)):
+            return f"{route.replace('_', '-')} route prefix skips a required stage"
+        indexes = [index for _, index in positions]
+        if indexes != sorted(indexes) or route_index >= indexes[0]:
+            return f"{route.replace('_', '-')} route prefix is out of order"
+    owner_requirements = {
+        "task_implementation": "orchestrator" if route == "direct" else "implementer",
+        "external_base_pin": "implementer",
+        "external_action": "implementer",
+        "independent_commit_proof": "orchestrator",
+    }
+    for event, owner in owner_requirements.items():
+        for index in matching_indexes(prefix, event):
+            if trace[index].get("owner") != owner:
+                return f"{route.replace('_', '-')} route prefix has wrong {event} owner"
+    for occurrence in prefix:
+        if occurrence.get("event") in RESULT_EVENTS and occurrence.get("event") in stages:
+            if occurrence.get("outcome") not in {"green", "clear"}:
+                return f"{route.replace('_', '-')} route prefix contains a failed result"
+    if route == "external" and has_event(prefix, "conditional_base_commit"):
+        return "external base commit must not be conditional"
+    return None
+
+
 def validate_route_topology(trace):
     selected = matching_indexes(trace, "route_selected")
     if not selected:
@@ -477,6 +757,19 @@ def validate_route_topology(trace):
     if len(selected) != 1:
         return "a success route must be selected exactly once"
     route = trace[selected[0]].get("route")
+    if route not in ROUTE_ALLOWED_EVENTS:
+        return "selected route is outside the closed route vocabulary"
+    for occurrence in trace:
+        event = occurrence.get("event")
+        if event in ROUTE_SPECIFIC_EVENTS and event not in ROUTE_ALLOWED_EVENTS[route]:
+            return f"{route.replace('_', '-')} route forbids route-specific event {event}"
+    failure_index = first_failed_result_index(trace)
+    route_result_events = ROUTE_ALLOWED_EVENTS[route].intersection(RESULT_EVENTS)
+    if (
+        failure_index is not None
+        and trace[failure_index].get("event") not in route_result_events
+    ):
+        return validate_reached_route_prefix(trace, route, selected[0], failure_index)
     if route == "direct":
         checks = (
             (owner_is(trace, "task_implementation", "orchestrator"), "direct implementation must be orchestrator-owned"),
@@ -488,6 +781,12 @@ def validate_route_topology(trace):
         for passed, reason in checks:
             if not passed:
                 return reason
+        if not ordered(trace, "route_selected", "task_implementation"):
+            return "direct implementation must follow route selection"
+        if not ordered(trace, "task_implementation", "evidence_captured"):
+            return "direct implementation must precede captured evidence"
+        if not ordered(trace, "evidence_captured", "base_commit"):
+            return "direct evidence must precede base commit"
         return None
     if route == "single_risky":
         checks = (
@@ -500,9 +799,25 @@ def validate_route_topology(trace):
         verification = matching_indexes(trace, "task_verification")
         if len(verification) != 1:
             return "single-risky route requires green task verification"
+        if not ordered(trace, "route_selected", "worktree_created"):
+            return "single-risky worktree must follow route selection"
+        if not ordered(trace, "worktree_created", "task_implementation"):
+            return "single-risky worktree must precede implementation"
+        implementation_prefix = [
+            index
+            for index in matching_indexes(trace, "task_implementation")
+            if index < verification[0]
+        ]
+        if len(implementation_prefix) != 1:
+            return "single-risky implementation must precede verification"
         if has_event(trace, "task_merged") and not ordered(trace, "task_verification", "task_merged"):
             return "single-risky verification must precede merge"
         if result_failed(trace[verification[0]]):
+            if any(
+                has_event(trace, event)
+                for event in ("merge_precondition", "merge_gate", "task_merged")
+            ):
+                return "single-risky route cannot advance after a failed result"
             return None
         if trace[verification[0]].get("outcome") != "green":
             return "single-risky route requires green task verification"
@@ -513,6 +828,8 @@ def validate_route_topology(trace):
         if not ordered(trace, "task_verification", "merge_precondition"):
             return "single-risky verification must precede merge precondition"
         if result_failed(trace[preconditions[0]]):
+            if any(has_event(trace, event) for event in ("merge_gate", "task_merged")):
+                return "single-risky route cannot advance after a failed result"
             return None
         if trace[preconditions[0]].get("outcome") != "green":
             return "single-risky route requires a green merge precondition"
@@ -523,6 +840,8 @@ def validate_route_topology(trace):
         if not ordered(trace, "merge_precondition", "merge_gate"):
             return "single-risky merge precondition must precede merge gate"
         if result_failed(trace[gates[0]]):
+            if has_event(trace, "task_merged"):
+                return "single-risky route cannot advance after a failed result"
             return None
         if trace[gates[0]].get("outcome") != "green":
             return "single-risky route requires a green merge gate"
@@ -540,7 +859,24 @@ def validate_route_topology(trace):
         results = matching_indexes(trace, "task_verifications_complete")
         if len(results) != 1:
             return "parallel route requires green task verification"
+        if not ordered(trace, "route_selected", "isolated_task_worktrees"):
+            return "parallel isolation must follow route selection"
+        if not ordered(trace, "isolated_task_worktrees", "task_implementation"):
+            return "parallel isolation must precede implementation"
+        if not ordered(trace, "task_implementation", "task_verifications_complete"):
+            return "parallel implementation must precede task verification"
         if result_failed(trace[results[0]]):
+            if any(
+                has_event(trace, event)
+                for event in (
+                    "merge_gates_complete",
+                    "serial_merge",
+                    "regeneration",
+                    "wiring",
+                    "integration_gate",
+                )
+            ):
+                return "parallel route cannot advance after a failed result"
             return None
         if trace[results[0]].get("outcome") != "green":
             return "parallel route requires green task verification"
@@ -551,6 +887,11 @@ def validate_route_topology(trace):
         if not ordered(trace, "task_verifications_complete", "merge_gates_complete"):
             return "parallel task verification must precede merge gates"
         if result_failed(trace[merge_results[0]]):
+            if any(
+                has_event(trace, event)
+                for event in ("serial_merge", "regeneration", "wiring", "integration_gate")
+            ):
+                return "parallel route cannot advance after a failed result"
             return None
         if trace[merge_results[0]].get("outcome") != "green":
             return "parallel route requires green merge gates"
@@ -565,6 +906,8 @@ def validate_route_topology(trace):
         if not ordered(trace, "serial_merge", "regeneration"):
             return "parallel serial merge must precede regeneration"
         if result_failed(trace[regeneration[0]]):
+            if any(has_event(trace, event) for event in ("wiring", "integration_gate")):
+                return "parallel route cannot advance after a failed result"
             return None
         if trace[regeneration[0]].get("outcome") != "green":
             return "parallel route requires green regeneration"
@@ -575,6 +918,8 @@ def validate_route_topology(trace):
         if not ordered(trace, "regeneration", "wiring"):
             return "parallel regeneration must precede wiring"
         if result_failed(trace[wiring[0]]):
+            if has_event(trace, "integration_gate"):
+                return "parallel route cannot advance after a failed result"
             return None
         if trace[wiring[0]].get("outcome") != "green":
             return "parallel route requires green wiring"
@@ -618,6 +963,16 @@ def validate_external_proof(trace):
         return None
     if len(selected_external) != 1:
         return "external proof applies only to one selected external route"
+    failure_index = first_failed_result_index(trace)
+    if (
+        failure_index is not None
+        and trace[failure_index].get("event") != "external_evidence"
+    ):
+        prefix = trace[: failure_index + 1]
+        if has_event(prefix, "selected_base") and has_event(prefix, "external_base_pin"):
+            if not same_single_value(prefix, "selected_base", "external_base_pin"):
+                return "external base pin must match the selected base"
+        return None
     selected_bases = matching_indexes(trace, "selected_base")
     if len(selected_bases) != 1:
         return "external route requires one selected base"
@@ -630,6 +985,8 @@ def validate_external_proof(trace):
         return "external base pin requires a non-empty scalar value"
     if not same_single_value(trace, "selected_base", "external_base_pin"):
         return "external base pin must match the selected base"
+    if not ordered(trace, "route_selected", "selected_base"):
+        return "external selected base must follow route selection"
     if not owner_is(trace, "external_base_pin", "implementer") or not ordered(
         trace, "selected_base", "external_base_pin"
     ) or not ordered(trace, "external_base_pin", "external_action"):
@@ -643,6 +1000,11 @@ def validate_external_proof(trace):
     if not ordered(trace, "external_action", "external_evidence"):
         return "external action must precede captured evidence"
     if result_failed(trace[evidence[0]]):
+        if any(
+            has_event(trace, event)
+            for event in ("conditional_base_commit", "base_commit", "independent_commit_proof")
+        ):
+            return "external route cannot advance after a failed result"
         return None
     if trace[evidence[0]].get("outcome") != "green":
         return "external route requires captured green external evidence"
@@ -712,7 +1074,8 @@ def non_empty_single_value(trace, event):
 
 
 def validate_completion_reuse(trace):
-    reuse = has_event(trace, "completion_reused")
+    reuse_indexes = matching_indexes(trace, "completion_reused")
+    reuse = bool(reuse_indexes)
     full_verify = has_event(trace, "completion_full_verify")
     fact_events = {
         "prior_integration",
@@ -723,6 +1086,18 @@ def validate_completion_reuse(trace):
         "completion_reused",
     }
     has_fact_context = any(item.get("event") in fact_events for item in trace)
+    if len(reuse_indexes) > 1:
+        return "completion reuse decision must occur exactly once"
+    unique_fact_reasons = {
+        "prior_integration": "completion reuse requires exactly one prior integration result",
+        "prior_verify_set": "completion reuse requires exactly one prior verify set",
+        "completion_verify_set": "completion reuse requires exactly one completion verify set",
+        "prior_gate_base_tip": "completion reuse requires exactly one prior gate base-tip SHA",
+        "current_base_tip": "completion reuse requires exactly one current base-tip SHA",
+    }
+    for event, reason in unique_fact_reasons.items():
+        if len(matching_indexes(trace, event)) > 1:
+            return reason
     if reuse:
         checks = (
             (len(matching_indexes(trace, "prior_integration", outcome="green")) == 1, "completion reuse requires prior green integration"),
@@ -852,6 +1227,7 @@ def validate_review_topology(trace):
     review_facts = has_risky or has_non_risky or has_cascade or no_cascade
     conditional_indexes = matching_indexes(trace, "conditional_spec_review")
     final_indexes = matching_indexes(trace, "final_full_diff_review")
+    clear_verdicts = matching_indexes(trace, "review_verdict", outcome="clear")
     conditional = bool(conditional_indexes)
     final_review = bool(final_indexes)
 
@@ -865,6 +1241,8 @@ def validate_review_topology(trace):
         return "risky downstream cascade requires conditional spec review"
 
     conditional_failed = conditional and result_failed(trace[conditional_indexes[0]])
+    if conditional_failed and clear_verdicts:
+        return "failed conditional review cannot have a clear verdict"
     if has_risky and has_cascade and not conditional_failed:
         if not final_review:
             return "conditional review never replaces final full-diff review"
@@ -887,6 +1265,25 @@ def validate_review_topology(trace):
             trace, "review_verdict", outcome="clear"
         ):
             return "blocking final review cannot have a clear verdict"
+    if clear_verdicts:
+        if len(clear_verdicts) != 1 or len(final_indexes) != 1:
+            return "clear review verdict requires one successful final full-diff review"
+        if trace[final_indexes[0]].get("outcome") not in {"green", "clear"}:
+            return "clear review verdict requires one successful final full-diff review"
+        if not ordered(trace, "final_full_diff_review", "review_verdict"):
+            return "successful final full-diff review must precede clear verdict"
+
+    endpoints = matching_indexes(trace, "completion") + matching_indexes(trace, "user_gate")
+    if endpoints:
+        if len(final_indexes) != 1 or trace[final_indexes[0]].get("outcome") not in {
+            "green",
+            "clear",
+        }:
+            return "successful completion or user gate requires final full-diff review"
+        if len(clear_verdicts) != 1:
+            return "successful completion or user gate requires a clear review verdict"
+        if any(clear_verdicts[0] >= endpoint for endpoint in endpoints):
+            return "clear review verdict must precede completion or user gate"
     return None
 
 
@@ -911,6 +1308,16 @@ INVARIANT_VALIDATORS = {
 def validate_semantics(contract, trace):
     """Derive and apply every applicable invariant from the trace itself."""
     validate_contract(contract)
+    validate_trace_shape(trace, contract["vocabulary"], "trace")
+    metadata_failure = validate_required_metadata(trace, contract["vocabulary"])
+    if metadata_failure is not None:
+        invariant_id, reason = metadata_failure
+        return {
+            "valid": False,
+            "outcome": "rejected",
+            "contract_id": invariant_id,
+            "reason": reason,
+        }
     validate_trace(trace, contract["vocabulary"], "trace")
     for invariant in contract["invariants"]:
         invariant_id = invariant["id"]
@@ -1156,6 +1563,31 @@ class RunSemanticContractTests(unittest.TestCase):
             "failure overlay must be runtime-failure-overlay-owned",
         )
 
+    def test_route_prefix_stops_at_first_failure_without_requiring_later_success(self):
+        traces = (
+            [
+                {"event": "route_selected", "route": "direct", "owner": "orchestrator"},
+                {"event": "completion_gate", "outcome": "non_green", "owner": "orchestrator"},
+                {"event": "failure_overlay_entered", "overlay": "failure", "owner": "runtime_failure_overlay"},
+            ],
+            [
+                {"event": "route_selected", "route": "single_risky", "owner": "orchestrator"},
+                {"event": "worktree_created", "owner": "orchestrator"},
+                {"event": "task_implementation", "owner": "implementer"},
+                {"event": "completion_gate", "outcome": "unevaluable", "owner": "orchestrator"},
+                {"event": "failure_overlay_entered", "overlay": "failure", "owner": "runtime_failure_overlay"},
+            ],
+            [
+                {"event": "route_selected", "route": "external", "owner": "orchestrator"},
+                {"event": "selected_base", "value": "sha-A", "owner": "orchestrator"},
+                {"event": "completion_gate", "outcome": "non_green", "owner": "orchestrator"},
+                {"event": "failure_overlay_entered", "overlay": "failure", "owner": "runtime_failure_overlay"},
+            ],
+        )
+        for trace in traces:
+            with self.subTest(route=trace[0]["route"]):
+                self.assertTrue(validate_semantics(self.contract, trace)["valid"])
+
     def test_concern_dispositions_are_correlated_and_closed(self):
         cases = (
             (
@@ -1217,12 +1649,70 @@ class RunSemanticContractTests(unittest.TestCase):
             "blocking final review cannot have a clear verdict",
         )
 
+        successful_completion = [
+            {"event": "route_selected", "route": "direct", "owner": "orchestrator"},
+            {"event": "task_implementation", "owner": "orchestrator"},
+            {"event": "evidence_captured", "owner": "orchestrator"},
+            {"event": "base_commit", "owner": "orchestrator"},
+            {"event": "final_full_diff_review", "outcome": "green", "owner": "orchestrator"},
+            {"event": "review_verdict", "outcome": "clear", "owner": "orchestrator"},
+            {"event": "completion", "owner": "orchestrator"},
+            {"event": "user_gate", "owner": "orchestrator"},
+        ]
+        self.assertTrue(validate_semantics(self.contract, successful_completion)["valid"])
+
     def test_trace_metadata_is_event_specific(self):
         with self.assertRaises(ValueError):
             validate_semantics(
                 self.contract,
                 [{"event": "route_selected", "route": "direct", "outcome": "green"}],
             )
+
+    def test_event_metadata_schema_is_closed_required_and_typed(self):
+        self.assertEqual(set(EVENT_METADATA_SCHEMA), set(EXPECTED_VOCABULARY["event"]))
+        for event, schema in EVENT_METADATA_SCHEMA.items():
+            with self.subTest(event=event):
+                self.assertEqual(set(schema), {"allowed", "required", "types"})
+                self.assertIn("event", schema["required"])
+                self.assertTrue(schema["required"].issubset(schema["allowed"]))
+                self.assertEqual(set(schema["types"]), schema["allowed"])
+        for event in RESULT_EVENTS:
+            with self.subTest(result_event=event):
+                self.assertIn("outcome", EVENT_METADATA_SCHEMA[event]["required"])
+        self.assertEqual(
+            EVENT_METADATA_SCHEMA["failure_overlay_entered"]["required"],
+            {"event", "overlay", "owner"},
+        )
+
+    def test_required_metadata_empty_values_fail_closed_with_exact_reasons(self):
+        cases = (
+            (
+                [{"event": "task_verification", "outcome": "", "owner": "implementer"}],
+                "RUN-FAIL-CLOSED",
+                "task verification requires a non-empty closed outcome",
+            ),
+            (
+                [
+                    {"event": "task_verification", "outcome": "non_green", "owner": "implementer"},
+                    {"event": "failure_overlay_entered", "overlay": "", "owner": "runtime_failure_overlay"},
+                ],
+                "RUN-FAIL-CLOSED",
+                "failure overlay requires explicit failure identity",
+            ),
+            (
+                [
+                    {"event": "task_verification", "outcome": "non_green", "owner": "implementer"},
+                    {"event": "failure_overlay_entered", "overlay": "failure", "owner": ""},
+                ],
+                "RUN-FAIL-CLOSED",
+                "failure overlay must be runtime-failure-overlay-owned",
+            ),
+        )
+        for trace, contract_id, reason in cases:
+            with self.subTest(reason=reason):
+                result = validate_semantics(self.contract, trace)
+                self.assertEqual(result["contract_id"], contract_id)
+                self.assertEqual(result["reason"], reason)
 
     def test_routine_operation_may_precede_actual_result_output(self):
         trace = [

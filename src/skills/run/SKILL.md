@@ -118,14 +118,15 @@ merge gates, wiring, verification, context budget, cleanup, and failure handling
 {
   "id": "RUN-ROUTE-TOPOLOGY",
   "kind": "route_topology",
-  "definition": "Run has exactly four success routes: direct is orchestrator-owned on the base with captured evidence, single_risky uses one isolated implementer worktree with verification and merge gates, parallel uses isolated task worktrees with serial merge, regeneration, wiring, and a green wave integration gate, and external is a base-pinned implementer route without a file diff. After a failed result, topology validates only the prefix already reached and does not require downstream success events. Failure is an overlay, not a success route.",
+  "definition": "Run has exactly four closed success routes with mutually exclusive route-specific topology: direct is orchestrator-owned on the base with captured evidence, single_risky uses one isolated implementer worktree with verification and merge gates, parallel uses isolated task worktrees with serial merge, regeneration, wiring, and a green wave integration gate, and external is a base-pinned implementer route without a file diff. Topology validates the ordered prefix reached before the first failed result, forbids later route advancement, and does not require unreached success-only stages. Failure is an overlay, not a success route.",
   "constraints": [
     "The closed success-route set is direct, single_risky, parallel, and external.",
+    "Route-specific work and action events belong to exactly their selected route and cannot mix topologies.",
     "Direct work remains on the base under orchestrator ownership and captures evidence.",
     "Single-risky work uses one isolated implementer worktree and verifies before merge gates and merge.",
     "Parallel work uses isolated task worktrees, serial merge, regeneration, wiring, and a green integration gate in that order.",
     "External work is performed by a base-pinned implementer without a task worktree or file diff.",
-    "A failed or unevaluable result ends the required success prefix; downstream success events are not required.",
+    "The reached route prefix is ordered; a failed or unevaluable result ends it, forbids downstream route advancement, and leaves unreached success events optional.",
     "Failure is an overlay and never a fifth success route."
   ]
 }
@@ -158,11 +159,12 @@ merge gates, wiring, verification, context budget, cleanup, and failure handling
 {
   "id": "RUN-REVIEW-TOPOLOGY",
   "kind": "review_topology",
-  "definition": "Conditional spec review occurs if and only if both risky-task and downstream-cascade-risk facts are present, and it never replaces final full-diff review after a clear conditional result. Conditional and final review results are carried on their review events. A blocking, non-green, or unevaluable final review enters the failure overlay and cannot yield a clear verdict.",
+  "definition": "Conditional spec review occurs if and only if both risky-task and downstream-cascade-risk facts are present, and it never replaces final full-diff review after a clear conditional result. Every successful completion or user gate follows one successful final full-diff review and its correlated clear verdict. A clear verdict requires and follows an actual green or clear final review and cannot coexist with a blocking, non-green, or unevaluable conditional or final review result.",
   "constraints": [
     "Risky downstream cascade requires conditional spec review before dispatch and final review, and either missing prerequisite forbids it.",
     "Conditional and final review events carry their actual closed result values.",
-    "A blocking, non-green, or unevaluable final review enters the failure overlay and cannot have a clear verdict."
+    "Successful completion and the user gate require successful final review, then a correlated clear verdict, in that order.",
+    "A clear verdict cannot coexist with a blocking, non-green, or unevaluable conditional or final review result."
   ]
 }
 ```
@@ -218,9 +220,10 @@ Done only when all hold on evidence:
 {
   "id": "RUN-COMPLETION-REUSE",
   "kind": "completion_reuse",
-  "definition": "Completion reuses prior integration only from actual facts: one prior green integration result, identical non-empty prior and completion verify sets, and identical non-empty prior-gate and current base-tip SHAs. Any missing, non-green, unevaluable, or unequal fact requires the completion full verify set.",
+  "definition": "Completion reuses prior integration only from unique actual facts: exactly one prior green integration result, one identical non-empty prior and completion verify set, and one identical non-empty prior-gate and current base-tip SHA. Duplicate or conflicting facts are invalid; any missing, non-green, unevaluable, or unequal fact requires the completion full verify set.",
   "constraints": [
-    "Reuse requires one prior green integration result, identical non-empty verify-set facts, and identical non-empty prior-gate and current base-tip facts.",
+    "Reuse requires each of the five actual fact kinds exactly once: prior green integration, identical non-empty verify sets, and identical non-empty prior-gate and current base-tip SHAs.",
+    "Duplicate or conflicting completion facts are rejected rather than selected or collapsed.",
     "Missing, non-green, unevaluable, or unequal facts require full verification and forbid reuse.",
     "A full verify may be run even when all reuse facts match."
   ]

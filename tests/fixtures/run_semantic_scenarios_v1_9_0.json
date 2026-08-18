@@ -845,6 +845,16 @@
           "value": "concern-concern-resolved"
         },
         {
+          "event": "final_full_diff_review",
+          "outcome": "clear",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "review_verdict",
+          "outcome": "clear",
+          "owner": "orchestrator"
+        },
+        {
           "event": "completion",
           "owner": "orchestrator"
         }
@@ -867,6 +877,16 @@
           "value": "concern-concern-explicitly-accepted"
         },
         {
+          "event": "final_full_diff_review",
+          "outcome": "clear",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "review_verdict",
+          "outcome": "clear",
+          "owner": "orchestrator"
+        },
+        {
           "event": "completion",
           "owner": "orchestrator"
         }
@@ -887,6 +907,16 @@
           "disposition": "user_accepted",
           "owner": "user",
           "value": "concern-concern-user-requirement-accepted"
+        },
+        {
+          "event": "final_full_diff_review",
+          "outcome": "clear",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "review_verdict",
+          "outcome": "clear",
+          "owner": "orchestrator"
         },
         {
           "event": "completion",
@@ -2035,6 +2065,264 @@
       "expected_outcome": "rejected",
       "expected_contract_id": "RUN-REVIEW-TOPOLOGY",
       "expected_reason": "conditional review applies only to risky downstream cascade"
+    },
+    {
+      "id": "direct-parallel-action-mixing",
+      "trace": [
+        {
+          "event": "route_selected",
+          "route": "direct",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "task_implementation",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "evidence_captured",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "base_commit",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "serial_merge",
+          "owner": "orchestrator"
+        }
+      ],
+      "expected_valid": false,
+      "expected_outcome": "rejected",
+      "expected_contract_id": "RUN-ROUTE-TOPOLOGY",
+      "expected_reason": "direct route forbids route-specific event serial_merge"
+    },
+    {
+      "id": "single-risky-work-after-failed-verification-before-overlay",
+      "trace": [
+        {
+          "event": "route_selected",
+          "route": "single_risky",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "worktree_created",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "task_implementation",
+          "owner": "implementer"
+        },
+        {
+          "event": "task_verification",
+          "outcome": "non_green",
+          "owner": "implementer"
+        },
+        {
+          "event": "task_implementation",
+          "owner": "implementer"
+        },
+        {
+          "event": "failure_overlay_entered",
+          "overlay": "failure",
+          "owner": "runtime_failure_overlay"
+        }
+      ],
+      "expected_valid": false,
+      "expected_outcome": "rejected",
+      "expected_contract_id": "RUN-FAIL-CLOSED",
+      "expected_reason": "failure overlay must precede any present continuation"
+    },
+    {
+      "id": "completion-reuse-conflicting-prior-integration",
+      "trace": [
+        {
+          "event": "prior_integration",
+          "outcome": "green"
+        },
+        {
+          "event": "prior_integration",
+          "outcome": "non_green"
+        },
+        {
+          "event": "prior_verify_set",
+          "value": "build,test,lint"
+        },
+        {
+          "event": "completion_verify_set",
+          "value": "build,test,lint"
+        },
+        {
+          "event": "prior_gate_base_tip",
+          "value": "sha-A"
+        },
+        {
+          "event": "current_base_tip",
+          "value": "sha-A"
+        },
+        {
+          "event": "completion_reused",
+          "owner": "orchestrator"
+        }
+      ],
+      "expected_valid": false,
+      "expected_outcome": "rejected",
+      "expected_contract_id": "RUN-COMPLETION-REUSE",
+      "expected_reason": "completion reuse requires exactly one prior integration result"
+    },
+    {
+      "id": "direct-completion-without-final-review",
+      "trace": [
+        {
+          "event": "route_selected",
+          "route": "direct",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "task_implementation",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "evidence_captured",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "base_commit",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "completion",
+          "owner": "orchestrator"
+        }
+      ],
+      "expected_valid": false,
+      "expected_outcome": "rejected",
+      "expected_contract_id": "RUN-REVIEW-TOPOLOGY",
+      "expected_reason": "successful completion or user gate requires final full-diff review"
+    },
+    {
+      "id": "direct-user-gate-without-final-review",
+      "trace": [
+        {
+          "event": "route_selected",
+          "route": "direct",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "task_implementation",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "evidence_captured",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "base_commit",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "user_gate",
+          "owner": "orchestrator"
+        }
+      ],
+      "expected_valid": false,
+      "expected_outcome": "rejected",
+      "expected_contract_id": "RUN-REVIEW-TOPOLOGY",
+      "expected_reason": "successful completion or user gate requires final full-diff review"
+    },
+    {
+      "id": "blocking-conditional-review-clear-verdict",
+      "trace": [
+        {
+          "event": "risky_task",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "downstream_cascade_risk",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "conditional_spec_review",
+          "outcome": "blocking",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "failure_overlay_entered",
+          "overlay": "failure",
+          "owner": "runtime_failure_overlay"
+        },
+        {
+          "event": "review_verdict",
+          "outcome": "clear",
+          "owner": "orchestrator"
+        }
+      ],
+      "expected_valid": false,
+      "expected_outcome": "rejected",
+      "expected_contract_id": "RUN-REVIEW-TOPOLOGY",
+      "expected_reason": "failed conditional review cannot have a clear verdict"
+    },
+    {
+      "id": "clear-verdict-without-green-final-review",
+      "trace": [
+        {
+          "event": "review_verdict",
+          "outcome": "clear",
+          "owner": "orchestrator"
+        }
+      ],
+      "expected_valid": false,
+      "expected_outcome": "rejected",
+      "expected_contract_id": "RUN-REVIEW-TOPOLOGY",
+      "expected_reason": "clear review verdict requires one successful final full-diff review"
+    },
+    {
+      "id": "task-verification-missing-outcome",
+      "trace": [
+        {
+          "event": "task_verification",
+          "owner": "implementer"
+        }
+      ],
+      "expected_valid": false,
+      "expected_outcome": "rejected",
+      "expected_contract_id": "RUN-FAIL-CLOSED",
+      "expected_reason": "task verification requires a non-empty closed outcome"
+    },
+    {
+      "id": "failure-overlay-missing-overlay",
+      "trace": [
+        {
+          "event": "task_verification",
+          "outcome": "non_green",
+          "owner": "implementer"
+        },
+        {
+          "event": "failure_overlay_entered",
+          "owner": "runtime_failure_overlay"
+        }
+      ],
+      "expected_valid": false,
+      "expected_outcome": "rejected",
+      "expected_contract_id": "RUN-FAIL-CLOSED",
+      "expected_reason": "failure overlay requires explicit failure identity"
+    },
+    {
+      "id": "failure-overlay-missing-owner",
+      "trace": [
+        {
+          "event": "task_verification",
+          "outcome": "non_green",
+          "owner": "implementer"
+        },
+        {
+          "event": "failure_overlay_entered",
+          "overlay": "failure"
+        }
+      ],
+      "expected_valid": false,
+      "expected_outcome": "rejected",
+      "expected_contract_id": "RUN-FAIL-CLOSED",
+      "expected_reason": "failure overlay must be runtime-failure-overlay-owned"
     }
   ]
 }
