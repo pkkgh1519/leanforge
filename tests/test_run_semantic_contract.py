@@ -24,6 +24,54 @@ EXPECTED_INVARIANT_KINDS = {
     "RUN-REVIEW-TOPOLOGY": "review_topology",
     "RUN-OUTPUT-SEMANTICS": "output_semantics",
 }
+RESULT_EVENTS = [
+    "task_verification",
+    "task_verifications_complete",
+    "merge_precondition",
+    "merge_gate",
+    "merge_gates_complete",
+    "regeneration",
+    "wiring",
+    "integration_gate",
+    "external_evidence",
+    "completion_gate",
+    "completion_full_verify",
+    "runtime_smoke",
+    "conditional_spec_review",
+    "final_full_diff_review",
+]
+CONTINUATION_EVENTS = RESULT_EVENTS + [
+    "retry",
+    "task_merged",
+    "serial_merge",
+    "conditional_base_commit",
+    "base_commit",
+    "independent_commit_proof",
+    "cleanup",
+    "downstream_dispatch",
+    "progress",
+    "completion_reused",
+    "completion",
+    "user_gate",
+    "review_verdict",
+]
+FAILURE_OUTCOMES = {"non_green", "unevaluable", "blocking"}
+RESULT_OUTCOMES = {
+    event: {"green", "non_green", "unevaluable"}
+    for event in RESULT_EVENTS
+}
+RESULT_OUTCOMES["conditional_spec_review"] = {
+    "clear",
+    "blocking",
+    "non_green",
+    "unevaluable",
+}
+RESULT_OUTCOMES["final_full_diff_review"] = {
+    "clear",
+    "blocking",
+    "non_green",
+    "unevaluable",
+}
 EXPECTED_VOCABULARY = {
     "route": ["direct", "single_risky", "parallel", "external"],
     "overlay": ["failure"],
@@ -71,15 +119,12 @@ EXPECTED_VOCABULARY = {
         "downstream_dispatch",
         "progress",
         "completion_gate",
-        "runtime_result",
-        "review_result",
+        "runtime_smoke",
         "prior_integration",
         "prior_verify_set",
-        "current_verify_set",
+        "completion_verify_set",
         "prior_gate_base_tip",
         "current_base_tip",
-        "verify_set_changed",
-        "base_tip_changed",
         "completion_reused",
         "completion_full_verify",
         "concern_recorded",
@@ -103,7 +148,6 @@ EXPECTED_VOCABULARY = {
         "conditional_spec_review",
         "final_full_diff_review",
         "review_verdict",
-        "blocking_finding",
         "routine_read",
         "routine_write",
         "routine_dispatch",
@@ -117,6 +161,8 @@ EXPECTED_VOCABULARY = {
         "user_output_approval_request",
         "user_output_routine_progress",
     ],
+    "result_event": RESULT_EVENTS,
+    "continuation_event": CONTINUATION_EVENTS,
     "invariant_kind": list(EXPECTED_INVARIANT_KINDS.values()),
 }
 EXPECTED_SCENARIO_IDS = {
@@ -159,6 +205,12 @@ EXPECTED_SCENARIO_IDS = {
     "output-allowed-events",
     "output-routine-silence",
     "output-allowed-after-routine-operation",
+    "single-risky-terminal-failure",
+    "failure-external-evidence-non-green",
+    "failure-completion-full-verify-non-green",
+    "failure-conditional-review-non-green",
+    "failure-final-review-blocking",
+    "completion-forced-rerun",
 }
 EXPECTED_MUTANT_IDS = {
     "external-conditional-base-commit",
@@ -175,6 +227,18 @@ EXPECTED_MUTANT_IDS = {
     "user-safety-non-user-acceptance",
     "conditional-review-replaces-final",
     "routine-progress-narration",
+    "external-missing-base-pin-value",
+    "completion-skip-full-verify-missing-green",
+    "completion-skip-full-verify-mismatched-set",
+    "completion-skip-full-verify-mismatched-sha",
+    "failure-external-evidence-no-overlay",
+    "failure-completion-full-verify-no-overlay",
+    "failure-conditional-review-no-overlay",
+    "failure-final-review-clear-verdict-no-overlay",
+    "failure-overlay-wrong-owner",
+    "concern-missing-disposition-value",
+    "concern-unknown-disposition-value",
+    "conditional-review-without-cascade",
 }
 
 
@@ -252,22 +316,61 @@ def validate_contract(contract):
 def validate_trace(trace, vocabulary, label):
     if not isinstance(trace, list):
         raise ValueError(f"{label} must be an array")
-    allowed = {"event", "owner", "route", "overlay", "outcome", "disposition", "value"}
+    value_events = {
+        "selected_base",
+        "external_base_pin",
+        "prior_verify_set",
+        "completion_verify_set",
+        "prior_gate_base_tip",
+        "current_base_tip",
+        "concern_recorded",
+        "user_owned_requirement_concern",
+        "user_owned_compatibility_concern",
+        "user_owned_safety_concern",
+    }
     for index, occurrence in enumerate(trace):
         occurrence_label = f"{label}[{index}]"
         if not isinstance(occurrence, dict):
             raise ValueError(f"{occurrence_label} must be an object")
-        if "event" not in occurrence or not set(occurrence).issubset(allowed):
-            raise ValueError(f"{occurrence_label} has unknown keys or lacks event")
-        if occurrence["event"] not in vocabulary["event"]:
-            raise ValueError(f"{occurrence_label} has unknown event")
+        event = occurrence.get("event")
+        if event not in vocabulary["event"]:
+            raise ValueError(f"{occurrence_label} has unknown event or lacks event")
+
+        allowed = {"event", "owner"}
+        if event == "route_selected":
+            allowed.add("route")
+        if event == "failure_overlay_entered":
+            allowed.add("overlay")
+        if event in vocabulary["result_event"] or event in {
+            "prior_integration",
+            "review_verdict",
+        }:
+            allowed.add("outcome")
+        if event in value_events:
+            allowed.add("value")
+        if event == "concern_disposition":
+            allowed.update({"value", "disposition"})
+        if not set(occurrence).issubset(allowed):
+            raise ValueError(f"{occurrence_label} has keys not allowed for {event}")
+
         if "owner" in occurrence and occurrence["owner"] not in vocabulary["owner"]:
             raise ValueError(f"{occurrence_label} has unknown owner")
-        for enum_name in ("route", "overlay", "outcome", "disposition"):
+        for enum_name in ("route", "overlay", "outcome"):
             if enum_name in occurrence and occurrence[enum_name] not in vocabulary[enum_name]:
                 raise ValueError(f"{occurrence_label} has unknown {enum_name}")
+        if "disposition" in occurrence and not isinstance(occurrence["disposition"], str):
+            raise ValueError(f"{occurrence_label}.disposition must be a string")
         if "value" in occurrence and not isinstance(occurrence["value"], str):
             raise ValueError(f"{occurrence_label}.value must be a string")
+        if event in RESULT_OUTCOMES and "outcome" in occurrence:
+            if occurrence["outcome"] not in RESULT_OUTCOMES[event]:
+                raise ValueError(f"{occurrence_label} has an invalid result outcome")
+        if event == "prior_integration" and "outcome" in occurrence:
+            if occurrence["outcome"] not in {"green", "non_green", "unevaluable"}:
+                raise ValueError(f"{occurrence_label} has an invalid prior integration result")
+        if event == "review_verdict" and "outcome" in occurrence:
+            if occurrence["outcome"] not in {"clear", "blocking"}:
+                raise ValueError(f"{occurrence_label} has an invalid review verdict")
 
 
 def validate_fixture(fixture, vocabulary):
@@ -363,6 +466,10 @@ def same_single_value(trace, first, second):
     )
 
 
+def result_failed(occurrence):
+    return occurrence.get("outcome") in FAILURE_OUTCOMES
+
+
 def validate_route_topology(trace):
     selected = matching_indexes(trace, "route_selected")
     if not selected:
@@ -378,47 +485,123 @@ def validate_route_topology(trace):
             (not has_event(trace, "worktree_created"), "direct route forbids a task worktree"),
             (not has_event(trace, "integration_gate"), "direct route has no wave integration gate"),
         )
-    elif route == "single_risky":
+        for passed, reason in checks:
+            if not passed:
+                return reason
+        return None
+    if route == "single_risky":
         checks = (
             (len(matching_indexes(trace, "worktree_created")) == 1, "single-risky route requires one task worktree"),
             (owner_is(trace, "task_implementation", "implementer"), "single-risky implementation must be implementer-owned"),
-            (len(matching_indexes(trace, "task_verification", outcome="green")) == 1, "single-risky route requires green task verification"),
-            (len(matching_indexes(trace, "merge_precondition", outcome="green")) == 1, "single-risky route requires a green merge precondition"),
-            (len(matching_indexes(trace, "merge_gate", outcome="green")) == 1, "single-risky route requires a green merge gate"),
-            (ordered(trace, "task_verification", "task_merged"), "single-risky verification must precede merge"),
-            (ordered(trace, "task_verification", "merge_precondition"), "single-risky verification must precede merge precondition"),
-            (ordered(trace, "merge_precondition", "merge_gate"), "single-risky merge precondition must precede merge gate"),
-            (ordered(trace, "merge_gate", "task_merged"), "single-risky merge gate must precede merge"),
         )
-    elif route == "parallel":
+        for passed, reason in checks:
+            if not passed:
+                return reason
+        verification = matching_indexes(trace, "task_verification")
+        if len(verification) != 1:
+            return "single-risky route requires green task verification"
+        if has_event(trace, "task_merged") and not ordered(trace, "task_verification", "task_merged"):
+            return "single-risky verification must precede merge"
+        if result_failed(trace[verification[0]]):
+            return None
+        if trace[verification[0]].get("outcome") != "green":
+            return "single-risky route requires green task verification"
+
+        preconditions = matching_indexes(trace, "merge_precondition")
+        if len(preconditions) != 1:
+            return "single-risky route requires a green merge precondition"
+        if not ordered(trace, "task_verification", "merge_precondition"):
+            return "single-risky verification must precede merge precondition"
+        if result_failed(trace[preconditions[0]]):
+            return None
+        if trace[preconditions[0]].get("outcome") != "green":
+            return "single-risky route requires a green merge precondition"
+
+        gates = matching_indexes(trace, "merge_gate")
+        if len(gates) != 1:
+            return "single-risky route requires a green merge gate"
+        if not ordered(trace, "merge_precondition", "merge_gate"):
+            return "single-risky merge precondition must precede merge gate"
+        if result_failed(trace[gates[0]]):
+            return None
+        if trace[gates[0]].get("outcome") != "green":
+            return "single-risky route requires a green merge gate"
+        if not ordered(trace, "merge_gate", "task_merged"):
+            return "single-risky merge gate must precede merge"
+        return None
+    if route == "parallel":
         checks = (
             (len(matching_indexes(trace, "isolated_task_worktrees")) == 1, "parallel route requires isolated task worktrees"),
             (owner_is(trace, "task_implementation", "implementer"), "parallel implementation must be implementer-owned"),
-            (len(matching_indexes(trace, "task_verifications_complete", outcome="green")) == 1, "parallel route requires green task verification"),
-            (len(matching_indexes(trace, "merge_gates_complete", outcome="green")) == 1, "parallel route requires green merge gates"),
-            (len(matching_indexes(trace, "serial_merge")) == 1, "parallel route requires serial merge"),
-            (len(matching_indexes(trace, "regeneration", outcome="green")) == 1, "parallel route requires green regeneration"),
-            (len(matching_indexes(trace, "wiring", outcome="green")) == 1, "parallel route requires green wiring"),
-            (len(matching_indexes(trace, "integration_gate", outcome="green")) == 1, "parallel route requires one green integration gate"),
-            (ordered(trace, "isolated_task_worktrees", "task_verifications_complete"), "parallel isolation must precede task verification"),
-            (ordered(trace, "task_verifications_complete", "merge_gates_complete"), "parallel task verification must precede merge gates"),
-            (ordered(trace, "merge_gates_complete", "serial_merge"), "parallel merge gates must precede serial merge"),
-            (ordered(trace, "serial_merge", "regeneration"), "parallel serial merge must precede regeneration"),
-            (ordered(trace, "regeneration", "wiring"), "parallel regeneration must precede wiring"),
-            (ordered(trace, "wiring", "integration_gate"), "parallel wiring must precede integration gate"),
         )
-    elif route == "external":
+        for passed, reason in checks:
+            if not passed:
+                return reason
+        results = matching_indexes(trace, "task_verifications_complete")
+        if len(results) != 1:
+            return "parallel route requires green task verification"
+        if result_failed(trace[results[0]]):
+            return None
+        if trace[results[0]].get("outcome") != "green":
+            return "parallel route requires green task verification"
+
+        merge_results = matching_indexes(trace, "merge_gates_complete")
+        if len(merge_results) != 1:
+            return "parallel route requires green merge gates"
+        if not ordered(trace, "task_verifications_complete", "merge_gates_complete"):
+            return "parallel task verification must precede merge gates"
+        if result_failed(trace[merge_results[0]]):
+            return None
+        if trace[merge_results[0]].get("outcome") != "green":
+            return "parallel route requires green merge gates"
+        if len(matching_indexes(trace, "serial_merge")) != 1:
+            return "parallel route requires serial merge"
+        if not ordered(trace, "merge_gates_complete", "serial_merge"):
+            return "parallel merge gates must precede serial merge"
+
+        regeneration = matching_indexes(trace, "regeneration")
+        if len(regeneration) != 1:
+            return "parallel route requires green regeneration"
+        if not ordered(trace, "serial_merge", "regeneration"):
+            return "parallel serial merge must precede regeneration"
+        if result_failed(trace[regeneration[0]]):
+            return None
+        if trace[regeneration[0]].get("outcome") != "green":
+            return "parallel route requires green regeneration"
+
+        wiring = matching_indexes(trace, "wiring")
+        if len(wiring) != 1:
+            return "parallel route requires green wiring"
+        if not ordered(trace, "regeneration", "wiring"):
+            return "parallel regeneration must precede wiring"
+        if result_failed(trace[wiring[0]]):
+            return None
+        if trace[wiring[0]].get("outcome") != "green":
+            return "parallel route requires green wiring"
+
+        integration = matching_indexes(trace, "integration_gate")
+        if len(integration) != 1:
+            return "parallel route requires one green integration gate"
+        if not ordered(trace, "wiring", "integration_gate"):
+            return "parallel wiring must precede integration gate"
+        if result_failed(trace[integration[0]]):
+            return None
+        if trace[integration[0]].get("outcome") != "green":
+            return "parallel route requires one green integration gate"
+        if not ordered(trace, "isolated_task_worktrees", "task_verifications_complete"):
+            return "parallel isolation must precede task verification"
+        return None
+    if route == "external":
         checks = (
             (owner_is(trace, "external_action", "implementer"), "external action must be implementer-owned"),
             (not has_event(trace, "worktree_created"), "external route forbids a task worktree"),
             (not has_event(trace, "isolated_task_worktrees"), "external route forbids isolated task worktrees"),
         )
-    else:
-        return "selected route is outside the closed route vocabulary"
-    for passed, reason in checks:
-        if not passed:
-            return reason
-    return None
+        for passed, reason in checks:
+            if not passed:
+                return reason
+        return None
+    return "selected route is outside the closed route vocabulary"
 
 
 def validate_external_proof(trace):
@@ -435,24 +618,40 @@ def validate_external_proof(trace):
         return None
     if len(selected_external) != 1:
         return "external proof applies only to one selected external route"
-    if len(matching_indexes(trace, "selected_base")) != 1:
+    selected_bases = matching_indexes(trace, "selected_base")
+    if len(selected_bases) != 1:
         return "external route requires one selected base"
-    if len(matching_indexes(trace, "external_base_pin")) != 1:
+    if not trace[selected_bases[0]].get("value"):
+        return "external selected base requires a non-empty scalar value"
+    pins = matching_indexes(trace, "external_base_pin")
+    if len(pins) != 1:
         return "external implementer must be pinned to the selected base before action"
+    if not trace[pins[0]].get("value"):
+        return "external base pin requires a non-empty scalar value"
     if not same_single_value(trace, "selected_base", "external_base_pin"):
         return "external base pin must match the selected base"
     if not owner_is(trace, "external_base_pin", "implementer") or not ordered(
         trace, "selected_base", "external_base_pin"
     ) or not ordered(trace, "external_base_pin", "external_action"):
         return "external implementer must be pinned to the selected base before action"
+    if not owner_is(trace, "external_action", "implementer"):
+        return "external action must be implementer-owned"
+
+    evidence = matching_indexes(trace, "external_evidence")
+    if len(evidence) != 1:
+        return "external route requires captured green external evidence"
+    if not ordered(trace, "external_action", "external_evidence"):
+        return "external action must precede captured evidence"
+    if result_failed(trace[evidence[0]]):
+        return None
+    if trace[evidence[0]].get("outcome") != "green":
+        return "external route requires captured green external evidence"
+
     checks = (
-        (owner_is(trace, "external_action", "implementer"), "external action must be implementer-owned"),
-        (len(matching_indexes(trace, "external_evidence", outcome="green")) == 1, "external route requires captured green external evidence"),
         (len(matching_indexes(trace, "base_commit")) == 1, "external route requires an unconditional base commit"),
         (not has_event(trace, "conditional_base_commit"), "external base commit must not be conditional"),
         (len(matching_indexes(trace, "independent_commit_proof")) == 1, "external route requires independent commit proof"),
         (owner_is(trace, "independent_commit_proof", "orchestrator"), "external commit proof must be independently owned"),
-        (ordered(trace, "external_action", "external_evidence"), "external action must precede captured evidence"),
         (ordered(trace, "external_evidence", "base_commit"), "external evidence must precede base commit"),
         (ordered(trace, "base_commit", "independent_commit_proof"), "external base commit must precede independent proof"),
     )
@@ -469,70 +668,80 @@ def validate_failure_overlay(trace):
         "merge_precondition": "merge precondition",
         "merge_gate": "merge result",
         "merge_gates_complete": "merge result",
-        "integration_gate": "integration result",
-        "completion_gate": "completion result",
-        "runtime_result": "runtime result",
-        "review_result": "review result",
         "regeneration": "regeneration result",
+        "wiring": "wiring result",
+        "integration_gate": "integration result",
+        "external_evidence": "external evidence",
+        "completion_gate": "completion result",
+        "completion_full_verify": "completion full verify result",
+        "runtime_smoke": "runtime smoke result",
+        "conditional_spec_review": "conditional spec review result",
+        "final_full_diff_review": "final review result",
     }
-    continuations = {
-        "retry",
-        "task_merged",
-        "serial_merge",
-        "cleanup",
-        "downstream_dispatch",
-        "progress",
-    }
+    continuations = set(CONTINUATION_EVENTS)
     for result_index, occurrence in enumerate(trace):
         event = occurrence.get("event")
         outcome = occurrence.get("outcome")
-        if event not in phases or outcome not in {"non_green", "unevaluable"}:
+        if event not in phases or outcome not in FAILURE_OUTCOMES:
             continue
         overlays = [
             index
             for index in matching_indexes(trace, "failure_overlay_entered", overlay="failure")
             if index > result_index
         ]
-        if not overlays:
+        owned_overlays = [
+            index
+            for index in overlays
+            if trace[index].get("owner") == "runtime_failure_overlay"
+        ]
+        if not owned_overlays:
+            if overlays:
+                return "failure overlay must be runtime-failure-overlay-owned"
             return f"{outcome} {phases[event]} must enter failure overlay"
-        overlay_index = min(overlays)
-        if any(
-            result_index < index < overlay_index
-            and later.get("event") in continuations
-            for index, later in enumerate(trace)
-        ):
-            return "failure overlay must precede any present continuation"
+        for continuation_index, later in enumerate(trace):
+            if continuation_index <= result_index or later.get("event") not in continuations:
+                continue
+            if not any(result_index < overlay_index < continuation_index for overlay_index in owned_overlays):
+                return "failure overlay must precede any present continuation"
     return None
+
+
+def non_empty_single_value(trace, event):
+    indexes = matching_indexes(trace, event)
+    return len(indexes) == 1 and bool(trace[indexes[0]].get("value"))
 
 
 def validate_completion_reuse(trace):
     reuse = has_event(trace, "completion_reused")
     full_verify = has_event(trace, "completion_full_verify")
+    fact_events = {
+        "prior_integration",
+        "prior_verify_set",
+        "completion_verify_set",
+        "prior_gate_base_tip",
+        "current_base_tip",
+        "completion_reused",
+    }
+    has_fact_context = any(item.get("event") in fact_events for item in trace)
     if reuse:
         checks = (
             (len(matching_indexes(trace, "prior_integration", outcome="green")) == 1, "completion reuse requires prior green integration"),
-            (len(matching_indexes(trace, "prior_verify_set")) == 1, "completion reuse requires the prior verify set"),
-            (len(matching_indexes(trace, "current_verify_set")) == 1, "completion reuse requires the current verify set"),
-            (same_single_value(trace, "prior_verify_set", "current_verify_set"), "completion reuse requires an identical verify set"),
-            (len(matching_indexes(trace, "prior_gate_base_tip")) == 1, "completion reuse requires the prior gate base-tip SHA"),
-            (len(matching_indexes(trace, "current_base_tip")) == 1, "completion reuse requires the current base-tip SHA"),
+            (non_empty_single_value(trace, "prior_verify_set"), "completion reuse requires the prior verify set"),
+            (non_empty_single_value(trace, "completion_verify_set"), "completion reuse requires the completion verify set"),
+            (same_single_value(trace, "prior_verify_set", "completion_verify_set"), "completion reuse requires an identical verify set"),
+            (non_empty_single_value(trace, "prior_gate_base_tip"), "completion reuse requires the prior gate base-tip SHA"),
+            (non_empty_single_value(trace, "current_base_tip"), "completion reuse requires the current base-tip SHA"),
             (same_single_value(trace, "prior_gate_base_tip", "current_base_tip"), "completion reuse requires the same gate and current base-tip SHA"),
             (not full_verify, "matching completion evidence avoids a redundant full verify"),
         )
         for passed, reason in checks:
             if not passed:
                 return reason
-
-    requires_full = (
-        bool(matching_indexes(trace, "prior_integration", outcome="non_green"))
-        or bool(matching_indexes(trace, "prior_integration", outcome="unevaluable"))
-        or has_event(trace, "verify_set_changed")
-        or has_event(trace, "base_tip_changed")
-    )
-    if requires_full and not full_verify:
-        return "changed or non-green completion evidence requires full verify"
-    if requires_full and reuse:
-        return "changed or non-green completion evidence forbids completion reuse"
+        return None
+    if full_verify:
+        return None
+    if has_fact_context:
+        return "incomplete or changed completion facts require full verify"
     return None
 
 
@@ -542,24 +751,56 @@ def validate_concern_disposition(trace):
         "user_owned_requirement_concern",
         "user_owned_compatibility_concern",
         "user_owned_safety_concern",
-        "concern_disposition",
     }
-    if not any(item.get("event") in concern_events for item in trace):
-        return None
+    concern_indexes = [
+        index for index, item in enumerate(trace) if item.get("event") in concern_events
+    ]
     dispositions = matching_indexes(trace, "concern_disposition")
+    if not concern_indexes and not dispositions:
+        return None
     if not dispositions:
         return "concern must have a closed disposition"
     for index in dispositions:
         disposition = trace[index].get("disposition")
+        if not disposition:
+            return "concern disposition requires a non-empty closed value"
+        if disposition not in EXPECTED_VOCABULARY["disposition"]:
+            return "concern disposition is outside the closed vocabulary"
+        if not trace[index].get("value"):
+            return "concern disposition must correlate to exactly one recorded concern"
         if disposition == "user_accepted" and trace[index].get("owner") != "user":
             return "user acceptance must be user-owned"
+
+    concern_values = []
+    for index in concern_indexes:
+        concern_value = trace[index].get("value")
+        if not concern_value or concern_value in concern_values:
+            return "concern record requires a unique non-empty correlation value"
+        concern_values.append(concern_value)
+        matches = [
+            disposition_index
+            for disposition_index in dispositions
+            if trace[disposition_index].get("value") == concern_value
+        ]
+        if len(matches) != 1:
+            return "concern must have exactly one correlated disposition"
+    if any(trace[index].get("value") not in concern_values for index in dispositions):
+        return "concern disposition must correlate to exactly one recorded concern"
+
+    for index in dispositions:
+        disposition = trace[index]["disposition"]
         if disposition == "pending":
             if has_event(trace, "completion"):
                 return "pending concern blocks completion"
             if has_event(trace, "user_gate"):
                 return "pending concern blocks user gate"
         if disposition == "promoted_to_failure":
-            if not has_event(trace, "failure_overlay_entered", overlay="failure"):
+            if not has_event(
+                trace,
+                "failure_overlay_entered",
+                overlay="failure",
+                owner="runtime_failure_overlay",
+            ):
                 return "promoted concern requires failure overlay"
             if has_event(trace, "completion"):
                 return "failure overlay blocks completion"
@@ -574,12 +815,15 @@ def validate_concern_disposition(trace):
         "user_owned_safety_concern": "safety",
     }
     for event, label in user_concerns.items():
-        if has_event(trace, event) and not any(
-            trace[index].get("disposition") == "user_accepted"
-            and trace[index].get("owner") == "user"
-            for index in dispositions
-        ):
-            return f"user-owned {label} concern requires user acceptance"
+        for concern_index in matching_indexes(trace, event):
+            concern_value = trace[concern_index].get("value")
+            if not any(
+                trace[index].get("value") == concern_value
+                and trace[index].get("disposition") == "user_accepted"
+                and trace[index].get("owner") == "user"
+                for index in dispositions
+            ):
+                return f"user-owned {label} concern requires user acceptance"
     return None
 
 
@@ -606,11 +850,22 @@ def validate_review_topology(trace):
     has_cascade = has_event(trace, "downstream_cascade_risk")
     no_cascade = has_event(trace, "no_downstream_cascade_risk")
     review_facts = has_risky or has_non_risky or has_cascade or no_cascade
-    conditional = has_event(trace, "conditional_spec_review")
-    final_review = has_event(trace, "final_full_diff_review")
-    if has_risky and has_cascade:
-        if not conditional:
-            return "risky downstream cascade requires conditional spec review"
+    conditional_indexes = matching_indexes(trace, "conditional_spec_review")
+    final_indexes = matching_indexes(trace, "final_full_diff_review")
+    conditional = bool(conditional_indexes)
+    final_review = bool(final_indexes)
+
+    if conditional and not (has_risky and has_cascade):
+        return "conditional review applies only to risky downstream cascade"
+    if len(conditional_indexes) > 1:
+        return "conditional spec review must occur exactly once"
+    if conditional and trace[conditional_indexes[0]].get("outcome") not in RESULT_OUTCOMES["conditional_spec_review"]:
+        return "conditional spec review requires an actual result"
+    if has_risky and has_cascade and not conditional:
+        return "risky downstream cascade requires conditional spec review"
+
+    conditional_failed = conditional and result_failed(trace[conditional_indexes[0]])
+    if has_risky and has_cascade and not conditional_failed:
         if not final_review:
             return "conditional review never replaces final full-diff review"
         if has_event(trace, "downstream_dispatch") and not ordered(
@@ -619,14 +874,19 @@ def validate_review_topology(trace):
             return "conditional review must precede downstream dispatch"
         if not ordered(trace, "conditional_spec_review", "final_full_diff_review"):
             return "conditional review must precede final full-diff review"
-    if (has_non_risky or no_cascade) and conditional:
-        return "conditional review applies only to risky downstream cascade"
-    if review_facts and not final_review:
+    if review_facts and not final_review and not conditional_failed:
         return "final full-diff review is required"
-    if has_event(trace, "review_verdict", outcome="clear") and has_event(
-        trace, "blocking_finding"
-    ):
-        return "clear final verdict requires zero blocking findings"
+
+    if len(final_indexes) > 1:
+        return "final full-diff review must occur exactly once"
+    if final_review:
+        final_outcome = trace[final_indexes[0]].get("outcome")
+        if final_outcome not in RESULT_OUTCOMES["final_full_diff_review"]:
+            return "final full-diff review requires an actual result"
+        if final_outcome in FAILURE_OUTCOMES and has_event(
+            trace, "review_verdict", outcome="clear"
+        ):
+            return "blocking final review cannot have a clear verdict"
     return None
 
 
@@ -754,6 +1014,215 @@ class RunSemanticContractTests(unittest.TestCase):
             {"event": "failure_overlay_entered", "overlay": "failure", "owner": "runtime_failure_overlay"},
         ]
         self.assertTrue(validate_semantics(self.contract, trace)["valid"])
+
+    def test_external_base_facts_require_non_empty_closed_scalar_values(self):
+        cases = (
+            (
+                [
+                    {"event": "route_selected", "route": "external", "owner": "orchestrator"},
+                    {"event": "selected_base", "owner": "orchestrator"},
+                    {"event": "external_base_pin", "value": "sha-A", "owner": "implementer"},
+                    {"event": "external_action", "owner": "implementer"},
+                ],
+                "external selected base requires a non-empty scalar value",
+            ),
+            (
+                [
+                    {"event": "route_selected", "route": "external", "owner": "orchestrator"},
+                    {"event": "selected_base", "value": "sha-A", "owner": "orchestrator"},
+                    {"event": "external_base_pin", "owner": "implementer"},
+                    {"event": "external_action", "owner": "implementer"},
+                ],
+                "external base pin requires a non-empty scalar value",
+            ),
+            (
+                [
+                    {"event": "route_selected", "route": "external", "owner": "orchestrator"},
+                    {"event": "selected_base", "value": "", "owner": "orchestrator"},
+                    {"event": "external_base_pin", "value": "", "owner": "implementer"},
+                    {"event": "external_action", "owner": "implementer"},
+                ],
+                "external selected base requires a non-empty scalar value",
+            ),
+        )
+        for trace, reason in cases:
+            with self.subTest(reason=reason):
+                result = validate_semantics(self.contract, trace)
+                self.assertEqual(result["contract_id"], "RUN-EXTERNAL-PROOF")
+                self.assertEqual(result["reason"], reason)
+        invalid_scalar = [
+            {"event": "route_selected", "route": "external", "owner": "orchestrator"},
+            {"event": "selected_base", "value": ["sha-A"], "owner": "orchestrator"},
+        ]
+        with self.assertRaises(ValueError):
+            validate_semantics(self.contract, invalid_scalar)
+
+    def test_completion_reuse_is_derived_from_actual_facts(self):
+        reuse = [
+            {"event": "prior_integration", "outcome": "green"},
+            {"event": "prior_verify_set", "value": "build,test,lint"},
+            {"event": "completion_verify_set", "value": "build,test,lint"},
+            {"event": "prior_gate_base_tip", "value": "sha-A"},
+            {"event": "current_base_tip", "value": "sha-A"},
+            {"event": "completion_reused", "owner": "orchestrator"},
+        ]
+        forced_rerun = reuse[:-1] + [
+            {"event": "completion_full_verify", "outcome": "green", "owner": "orchestrator"}
+        ]
+        self.assertTrue(validate_semantics(self.contract, reuse)["valid"])
+        self.assertTrue(validate_semantics(self.contract, forced_rerun)["valid"])
+
+        invalid_without_full_verify = (
+            reuse[1:-1],
+            [
+                {"event": "prior_integration", "outcome": "green"},
+                {"event": "prior_verify_set", "value": "build,test"},
+                {"event": "completion_verify_set", "value": "build,test,lint"},
+                {"event": "prior_gate_base_tip", "value": "sha-A"},
+                {"event": "current_base_tip", "value": "sha-A"},
+            ],
+            [
+                {"event": "prior_integration", "outcome": "green"},
+                {"event": "prior_verify_set", "value": "build,test,lint"},
+                {"event": "completion_verify_set", "value": "build,test,lint"},
+                {"event": "prior_gate_base_tip", "value": "sha-A"},
+                {"event": "current_base_tip", "value": "sha-B"},
+            ],
+        )
+        for trace in invalid_without_full_verify:
+            with self.subTest(trace=trace):
+                result = validate_semantics(self.contract, trace)
+                self.assertEqual(result["contract_id"], "RUN-COMPLETION-REUSE")
+                self.assertEqual(
+                    result["reason"],
+                    "incomplete or changed completion facts require full verify",
+                )
+
+    def test_failure_overlay_composes_with_route_prefix_and_all_results(self):
+        terminal_single_risky = [
+            {"event": "route_selected", "route": "single_risky", "owner": "orchestrator"},
+            {"event": "worktree_created", "owner": "orchestrator"},
+            {"event": "task_implementation", "owner": "implementer"},
+            {"event": "task_verification", "outcome": "non_green", "owner": "implementer"},
+            {"event": "failure_overlay_entered", "overlay": "failure", "owner": "runtime_failure_overlay"},
+        ]
+        self.assertTrue(validate_semantics(self.contract, terminal_single_risky)["valid"])
+
+        failures = (
+            (
+                [
+                    {"event": "route_selected", "route": "external", "owner": "orchestrator"},
+                    {"event": "selected_base", "value": "sha-A", "owner": "orchestrator"},
+                    {"event": "external_base_pin", "value": "sha-A", "owner": "implementer"},
+                    {"event": "external_action", "owner": "implementer"},
+                    {"event": "external_evidence", "outcome": "non_green", "owner": "implementer"},
+                ],
+                "non_green external evidence must enter failure overlay",
+            ),
+            (
+                [{"event": "completion_full_verify", "outcome": "non_green", "owner": "orchestrator"}],
+                "non_green completion full verify result must enter failure overlay",
+            ),
+            (
+                [
+                    {"event": "risky_task", "owner": "orchestrator"},
+                    {"event": "downstream_cascade_risk", "owner": "orchestrator"},
+                    {"event": "conditional_spec_review", "outcome": "non_green", "owner": "orchestrator"},
+                ],
+                "non_green conditional spec review result must enter failure overlay",
+            ),
+            (
+                [
+                    {"event": "final_full_diff_review", "outcome": "blocking", "owner": "orchestrator"},
+                    {"event": "review_verdict", "outcome": "clear", "owner": "orchestrator"},
+                ],
+                "blocking final review result must enter failure overlay",
+            ),
+        )
+        for trace, reason in failures:
+            with self.subTest(reason=reason):
+                result = validate_semantics(self.contract, trace)
+                self.assertEqual(result["contract_id"], "RUN-FAIL-CLOSED")
+                self.assertEqual(result["reason"], reason)
+
+        wrong_owner = [
+            {"event": "task_verification", "outcome": "non_green", "owner": "implementer"},
+            {"event": "failure_overlay_entered", "overlay": "failure", "owner": "orchestrator"},
+        ]
+        result = validate_semantics(self.contract, wrong_owner)
+        self.assertEqual(result["contract_id"], "RUN-FAIL-CLOSED")
+        self.assertEqual(
+            result["reason"],
+            "failure overlay must be runtime-failure-overlay-owned",
+        )
+
+    def test_concern_dispositions_are_correlated_and_closed(self):
+        cases = (
+            (
+                [
+                    {"event": "concern_recorded", "value": "C-1", "owner": "orchestrator"},
+                    {"event": "concern_disposition", "value": "C-1", "owner": "orchestrator"},
+                ],
+                "concern disposition requires a non-empty closed value",
+            ),
+            (
+                [
+                    {"event": "concern_recorded", "value": "C-1", "owner": "orchestrator"},
+                    {"event": "concern_disposition", "value": "C-1", "disposition": "ignored", "owner": "orchestrator"},
+                ],
+                "concern disposition is outside the closed vocabulary",
+            ),
+        )
+        for trace, reason in cases:
+            with self.subTest(reason=reason):
+                result = validate_semantics(self.contract, trace)
+                self.assertEqual(result["contract_id"], "RUN-CONCERN-DISPOSITION")
+                self.assertEqual(result["reason"], reason)
+
+    def test_review_topology_is_bidirectional_and_result_bearing(self):
+        conditional_without_cascade = [
+            {"event": "risky_task", "owner": "orchestrator"},
+            {"event": "conditional_spec_review", "outcome": "clear", "owner": "orchestrator"},
+            {"event": "final_full_diff_review", "outcome": "clear", "owner": "orchestrator"},
+        ]
+        result = validate_semantics(self.contract, conditional_without_cascade)
+        self.assertEqual(result["contract_id"], "RUN-REVIEW-TOPOLOGY")
+        self.assertEqual(
+            result["reason"],
+            "conditional review applies only to risky downstream cascade",
+        )
+
+        missing_result = [
+            {"event": "risky_task", "owner": "orchestrator"},
+            {"event": "downstream_cascade_risk", "owner": "orchestrator"},
+            {"event": "conditional_spec_review", "owner": "orchestrator"},
+            {"event": "final_full_diff_review", "outcome": "clear", "owner": "orchestrator"},
+        ]
+        result = validate_semantics(self.contract, missing_result)
+        self.assertEqual(result["contract_id"], "RUN-REVIEW-TOPOLOGY")
+        self.assertEqual(
+            result["reason"],
+            "conditional spec review requires an actual result",
+        )
+
+        blocking_with_overlay_and_clear_verdict = [
+            {"event": "final_full_diff_review", "outcome": "blocking", "owner": "orchestrator"},
+            {"event": "failure_overlay_entered", "overlay": "failure", "owner": "runtime_failure_overlay"},
+            {"event": "review_verdict", "outcome": "clear", "owner": "orchestrator"},
+        ]
+        result = validate_semantics(self.contract, blocking_with_overlay_and_clear_verdict)
+        self.assertEqual(result["contract_id"], "RUN-REVIEW-TOPOLOGY")
+        self.assertEqual(
+            result["reason"],
+            "blocking final review cannot have a clear verdict",
+        )
+
+    def test_trace_metadata_is_event_specific(self):
+        with self.assertRaises(ValueError):
+            validate_semantics(
+                self.contract,
+                [{"event": "route_selected", "route": "direct", "outcome": "green"}],
+            )
 
     def test_routine_operation_may_precede_actual_result_output(self):
         trace = [

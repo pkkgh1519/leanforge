@@ -120,13 +120,14 @@ merge gates, wiring, verification, context budget, cleanup, and failure handling
 {
   "id": "RUN-ROUTE-TOPOLOGY",
   "kind": "route_topology",
-  "definition": "Run has exactly four success routes: direct is orchestrator-owned on the base with captured evidence, single_risky uses one isolated implementer worktree with verification and merge gates, parallel uses isolated task worktrees with serial merge, regeneration, wiring, and a green wave integration gate, and external is a base-pinned implementer route without a file diff. Failure is an overlay, not a success route.",
+  "definition": "Run has exactly four success routes: direct is orchestrator-owned on the base with captured evidence, single_risky uses one isolated implementer worktree with verification and merge gates, parallel uses isolated task worktrees with serial merge, regeneration, wiring, and a green wave integration gate, and external is a base-pinned implementer route without a file diff. After a failed result, topology validates only the prefix already reached and does not require downstream success events. Failure is an overlay, not a success route.",
   "constraints": [
     "The closed success-route set is direct, single_risky, parallel, and external.",
     "Direct work remains on the base under orchestrator ownership and captures evidence.",
     "Single-risky work uses one isolated implementer worktree and verifies before merge gates and merge.",
     "Parallel work uses isolated task worktrees, serial merge, regeneration, wiring, and a green integration gate in that order.",
     "External work is performed by a base-pinned implementer without a task worktree or file diff.",
+    "A failed or unevaluable result ends the required success prefix; downstream success events are not required.",
     "Failure is an overlay and never a fifth success route."
   ]
 }
@@ -159,11 +160,11 @@ merge gates, wiring, verification, context budget, cleanup, and failure handling
 {
   "id": "RUN-REVIEW-TOPOLOGY",
   "kind": "review_topology",
-  "definition": "Conditional spec review applies only to risky tasks with downstream cascade risk and never replaces final full-diff review. A clear final verdict has zero blocking findings.",
+  "definition": "Conditional spec review occurs if and only if both risky-task and downstream-cascade-risk facts are present, and it never replaces final full-diff review after a clear conditional result. Conditional and final review results are carried on their review events. A blocking, non-green, or unevaluable final review enters the failure overlay and cannot yield a clear verdict.",
   "constraints": [
-    "Risky downstream cascade requires conditional spec review before dispatch and final review.",
-    "Conditional review never replaces final full-diff review.",
-    "A clear final verdict has no blocking findings."
+    "Risky downstream cascade requires conditional spec review before dispatch and final review, and either missing prerequisite forbids it.",
+    "Conditional and final review events carry their actual closed result values.",
+    "A blocking, non-green, or unevaluable final review enters the failure overlay and cannot have a clear verdict."
   ]
 }
 ```
@@ -219,10 +220,11 @@ Done only when all hold on evidence:
 {
   "id": "RUN-COMPLETION-REUSE",
   "kind": "completion_reuse",
-  "definition": "Completion reuses prior integration only when it is green, the verify set is identical, and the prior gate base-tip SHA equals the current base-tip SHA; every missing or changed condition reruns the full verify set.",
+  "definition": "Completion reuses prior integration only from actual facts: one prior green integration result, identical non-empty prior and completion verify sets, and identical non-empty prior-gate and current base-tip SHAs. Any missing, non-green, unevaluable, or unequal fact requires the completion full verify set.",
   "constraints": [
-    "Reuse requires prior green integration, identical verify-set facts, and identical prior-gate and current base-tip facts.",
-    "Missing, non-green, unevaluable, or changed evidence requires full verification and forbids reuse."
+    "Reuse requires one prior green integration result, identical non-empty verify-set facts, and identical non-empty prior-gate and current base-tip facts.",
+    "Missing, non-green, unevaluable, or unequal facts require full verification and forbid reuse.",
+    "A full verify may be run even when all reuse facts match."
   ]
 }
 ```

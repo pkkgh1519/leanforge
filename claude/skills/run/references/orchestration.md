@@ -151,9 +151,9 @@ A single-task wave runs in one of three modes (by `risk` + target type; see Wave
 {
   "id": "RUN-EXTERNAL-PROOF",
   "kind": "external_proof",
-  "definition": "The external implementer is mechanically pinned to the selected base before action; the route then captures green external evidence, makes an unconditional base commit, and receives independent git-log commit proof.",
+  "definition": "The external implementer is mechanically pinned by a non-empty scalar base value exactly equal to the selected base before action; a successful route then captures green external evidence, makes an unconditional base commit, and receives independent git-log commit proof.",
   "constraints": [
-    "The selected-base fact and implementer base-pin fact have the same value, and both precede external action.",
+    "The selected-base fact and implementer base-pin fact each carry one non-empty scalar value, the values are equal, and both facts precede external action.",
     "Green external evidence follows the action and precedes one unconditional base commit.",
     "Independent orchestrator-owned git-log commit proof follows the base commit."
   ]
@@ -349,11 +349,11 @@ marked accepted — never silently dropped.
 {
   "id": "RUN-CONCERN-DISPOSITION",
   "kind": "concern_disposition",
-  "definition": "Concern dispositions are exactly resolved, explicitly_accepted, user_accepted, promoted_to_failure, and pending. Pending blocks completion and the user gate; user-owned requirement, compatibility, and safety concerns require user acceptance; the failure overlay wins every overlap.",
+  "definition": "Every recorded concern has exactly one correlated disposition with a non-empty value from resolved, explicitly_accepted, user_accepted, promoted_to_failure, and pending. Pending blocks completion and the user gate; user-owned requirement, compatibility, and safety concerns require correlated user acceptance; the failure overlay wins every overlap.",
   "constraints": [
-    "Every concern uses one of the five closed dispositions.",
+    "Every recorded concern correlates to exactly one non-empty value from the five closed dispositions.",
     "Pending blocks completion and the user gate, while promoted failure also blocks progress.",
-    "User-owned requirement, compatibility, and safety concerns require user-owned acceptance."
+    "User-owned requirement, compatibility, and safety concerns require correlated user-owned acceptance."
   ]
 }
 ```
@@ -380,10 +380,10 @@ non-behavioral changes only — substantive findings still go to an independent 
 {
   "id": "RUN-FAIL-CLOSED",
   "kind": "failure_overlay",
-  "definition": "Every non-green or unevaluable verification, merge-precondition, merge, integration, completion, runtime, review, or regeneration result enters the failure overlay before any retry, merge, cleanup, downstream dispatch, or progress that is present. A terminal failure may stop after entering the overlay. Unevaluable is never green.",
+  "definition": "Every blocking, non-green, or unevaluable result in the closed result-event vocabulary enters the runtime-owned failure overlay before every continuation that is present. The closed result events cover task and merge checks, regeneration and wiring, integration, external evidence, completion verification, runtime smoke, conditional spec review, and final review. A terminal failure may stop after entering the overlay. Unevaluable is never green.",
   "constraints": [
-    "Non-green and unevaluable results enter the failure overlay.",
-    "The overlay precedes every retry, merge, cleanup, downstream dispatch, or progress action that follows a failed result.",
+    "Every blocking, non-green, and unevaluable closed result event enters the failure overlay.",
+    "The failure overlay is owned by runtime_failure_overlay and precedes every continuation event that follows a failed result.",
     "No continuation event is required after a terminal failure enters the overlay."
   ]
 }
