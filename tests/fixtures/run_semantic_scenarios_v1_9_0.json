@@ -1,6 +1,13 @@
 {
   "schema_version": 1,
   "behavior_origin_commit": "fb252b4236cc607002e131210f6161db72f6841e",
+  "assertion_language": [
+    "count",
+    "forbid",
+    "before",
+    "same",
+    "owner"
+  ],
   "scenarios": [
     {
       "id": "direct-success",
@@ -24,7 +31,32 @@
         }
       ],
       "expected_valid": true,
-      "expected_outcome": "accepted"
+      "expected_outcome": "accepted",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "route_selected",
+          "filter": {
+            "route": "direct"
+          },
+          "expected": 1
+        },
+        {
+          "op": "forbid",
+          "event": "worktree_created",
+          "filter": {}
+        },
+        {
+          "op": "before",
+          "event_a": "route_selected",
+          "event_b": "task_implementation"
+        },
+        {
+          "op": "owner",
+          "event": "task_implementation",
+          "expected_owner": "orchestrator"
+        }
+      ]
     },
     {
       "id": "single-risky-success",
@@ -63,7 +95,15 @@
         }
       ],
       "expected_valid": true,
-      "expected_outcome": "accepted"
+      "expected_outcome": "accepted",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "route_selected",
+          "filter": {},
+          "expected": 1
+        }
+      ]
     },
     {
       "id": "parallel-success",
@@ -112,7 +152,15 @@
         }
       ],
       "expected_valid": true,
-      "expected_outcome": "accepted"
+      "expected_outcome": "accepted",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "route_selected",
+          "filter": {},
+          "expected": 1
+        }
+      ]
     },
     {
       "id": "external-success",
@@ -151,7 +199,37 @@
         }
       ],
       "expected_valid": true,
-      "expected_outcome": "accepted"
+      "expected_outcome": "accepted",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "base_commit",
+          "filter": {},
+          "expected": 1
+        },
+        {
+          "op": "same",
+          "event_a": "selected_base",
+          "field_a": "value",
+          "event_b": "external_base_pin",
+          "field_b": "value"
+        },
+        {
+          "op": "before",
+          "event_a": "base_commit",
+          "event_b": "independent_commit_proof"
+        },
+        {
+          "op": "owner",
+          "event": "base_commit",
+          "expected_owner": "implementer"
+        },
+        {
+          "op": "forbid",
+          "event": "conditional_base_commit",
+          "filter": {}
+        }
+      ]
     },
     {
       "id": "failure-verification-non-green",
@@ -197,7 +275,15 @@
         }
       ],
       "expected_valid": true,
-      "expected_outcome": "accepted"
+      "expected_outcome": "accepted",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "route_selected",
+          "filter": {},
+          "expected": 1
+        }
+      ]
     },
     {
       "id": "failure-verification-unevaluable",
@@ -243,7 +329,15 @@
         }
       ],
       "expected_valid": true,
-      "expected_outcome": "accepted"
+      "expected_outcome": "accepted",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "route_selected",
+          "filter": {},
+          "expected": 1
+        }
+      ]
     },
     {
       "id": "failure-merge-non-green",
@@ -299,7 +393,15 @@
         }
       ],
       "expected_valid": true,
-      "expected_outcome": "accepted"
+      "expected_outcome": "accepted",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "route_selected",
+          "filter": {},
+          "expected": 1
+        }
+      ]
     },
     {
       "id": "failure-merge-unevaluable",
@@ -355,7 +457,15 @@
         }
       ],
       "expected_valid": true,
-      "expected_outcome": "accepted"
+      "expected_outcome": "accepted",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "route_selected",
+          "filter": {},
+          "expected": 1
+        }
+      ]
     },
     {
       "id": "failure-integration-non-green",
@@ -425,7 +535,15 @@
         }
       ],
       "expected_valid": true,
-      "expected_outcome": "accepted"
+      "expected_outcome": "accepted",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "route_selected",
+          "filter": {},
+          "expected": 1
+        }
+      ]
     },
     {
       "id": "failure-integration-unevaluable",
@@ -495,7 +613,15 @@
         }
       ],
       "expected_valid": true,
-      "expected_outcome": "accepted"
+      "expected_outcome": "accepted",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "route_selected",
+          "filter": {},
+          "expected": 1
+        }
+      ]
     },
     {
       "id": "failure-completion-non-green",
@@ -528,7 +654,15 @@
         }
       ],
       "expected_valid": true,
-      "expected_outcome": "accepted"
+      "expected_outcome": "accepted",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "completion_gate",
+          "filter": {},
+          "expected": 1
+        }
+      ]
     },
     {
       "id": "failure-completion-unevaluable",
@@ -561,7 +695,15 @@
         }
       ],
       "expected_valid": true,
-      "expected_outcome": "accepted"
+      "expected_outcome": "accepted",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "completion_gate",
+          "filter": {},
+          "expected": 1
+        }
+      ]
     },
     {
       "id": "failure-runtime-non-green",
@@ -594,7 +736,15 @@
         }
       ],
       "expected_valid": true,
-      "expected_outcome": "accepted"
+      "expected_outcome": "accepted",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "runtime_smoke",
+          "filter": {},
+          "expected": 1
+        }
+      ]
     },
     {
       "id": "failure-runtime-unevaluable",
@@ -627,7 +777,15 @@
         }
       ],
       "expected_valid": true,
-      "expected_outcome": "accepted"
+      "expected_outcome": "accepted",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "runtime_smoke",
+          "filter": {},
+          "expected": 1
+        }
+      ]
     },
     {
       "id": "failure-review-non-green",
@@ -660,7 +818,15 @@
         }
       ],
       "expected_valid": true,
-      "expected_outcome": "accepted"
+      "expected_outcome": "accepted",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "final_full_diff_review",
+          "filter": {},
+          "expected": 1
+        }
+      ]
     },
     {
       "id": "failure-review-unevaluable",
@@ -693,7 +859,15 @@
         }
       ],
       "expected_valid": true,
-      "expected_outcome": "accepted"
+      "expected_outcome": "accepted",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "final_full_diff_review",
+          "filter": {},
+          "expected": 1
+        }
+      ]
     },
     {
       "id": "failure-regeneration-non-green",
@@ -753,7 +927,15 @@
         }
       ],
       "expected_valid": true,
-      "expected_outcome": "accepted"
+      "expected_outcome": "accepted",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "route_selected",
+          "filter": {},
+          "expected": 1
+        }
+      ]
     },
     {
       "id": "failure-regeneration-unevaluable",
@@ -813,7 +995,15 @@
         }
       ],
       "expected_valid": true,
-      "expected_outcome": "accepted"
+      "expected_outcome": "accepted",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "route_selected",
+          "filter": {},
+          "expected": 1
+        }
+      ]
     },
     {
       "id": "completion-reuse",
@@ -844,7 +1034,15 @@
         }
       ],
       "expected_valid": true,
-      "expected_outcome": "accepted"
+      "expected_outcome": "accepted",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "prior_integration",
+          "filter": {},
+          "expected": 1
+        }
+      ]
     },
     {
       "id": "completion-rerun-after-non-green",
@@ -876,7 +1074,15 @@
         }
       ],
       "expected_valid": true,
-      "expected_outcome": "accepted"
+      "expected_outcome": "accepted",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "prior_integration",
+          "filter": {},
+          "expected": 1
+        }
+      ]
     },
     {
       "id": "completion-rerun-after-unevaluable",
@@ -908,7 +1114,15 @@
         }
       ],
       "expected_valid": true,
-      "expected_outcome": "accepted"
+      "expected_outcome": "accepted",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "prior_integration",
+          "filter": {},
+          "expected": 1
+        }
+      ]
     },
     {
       "id": "completion-rerun-after-verify-set-change",
@@ -940,7 +1154,15 @@
         }
       ],
       "expected_valid": true,
-      "expected_outcome": "accepted"
+      "expected_outcome": "accepted",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "prior_integration",
+          "filter": {},
+          "expected": 1
+        }
+      ]
     },
     {
       "id": "completion-rerun-after-base-tip-change",
@@ -972,7 +1194,15 @@
         }
       ],
       "expected_valid": true,
-      "expected_outcome": "accepted"
+      "expected_outcome": "accepted",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "prior_integration",
+          "filter": {},
+          "expected": 1
+        }
+      ]
     },
     {
       "id": "concern-resolved",
@@ -999,12 +1229,25 @@
           "owner": "orchestrator"
         },
         {
+          "event": "completion_full_verify",
+          "outcome": "green",
+          "owner": "orchestrator"
+        },
+        {
           "event": "completion",
           "owner": "orchestrator"
         }
       ],
       "expected_valid": true,
-      "expected_outcome": "accepted"
+      "expected_outcome": "accepted",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "concern_recorded",
+          "filter": {},
+          "expected": 1
+        }
+      ]
     },
     {
       "id": "concern-explicitly-accepted",
@@ -1031,12 +1274,25 @@
           "owner": "orchestrator"
         },
         {
+          "event": "completion_full_verify",
+          "outcome": "green",
+          "owner": "orchestrator"
+        },
+        {
           "event": "completion",
           "owner": "orchestrator"
         }
       ],
       "expected_valid": true,
-      "expected_outcome": "accepted"
+      "expected_outcome": "accepted",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "concern_recorded",
+          "filter": {},
+          "expected": 1
+        }
+      ]
     },
     {
       "id": "concern-user-requirement-accepted",
@@ -1063,12 +1319,25 @@
           "owner": "orchestrator"
         },
         {
+          "event": "completion_full_verify",
+          "outcome": "green",
+          "owner": "orchestrator"
+        },
+        {
           "event": "completion",
           "owner": "orchestrator"
         }
       ],
       "expected_valid": true,
-      "expected_outcome": "accepted"
+      "expected_outcome": "accepted",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "user_owned_requirement_concern",
+          "filter": {},
+          "expected": 1
+        }
+      ]
     },
     {
       "id": "concern-user-compatibility-accepted",
@@ -1086,7 +1355,15 @@
         }
       ],
       "expected_valid": true,
-      "expected_outcome": "accepted"
+      "expected_outcome": "accepted",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "user_owned_compatibility_concern",
+          "filter": {},
+          "expected": 1
+        }
+      ]
     },
     {
       "id": "concern-user-safety-accepted",
@@ -1104,7 +1381,15 @@
         }
       ],
       "expected_valid": true,
-      "expected_outcome": "accepted"
+      "expected_outcome": "accepted",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "user_owned_safety_concern",
+          "filter": {},
+          "expected": 1
+        }
+      ]
     },
     {
       "id": "concern-promoted-failure-wins",
@@ -1127,7 +1412,15 @@
         }
       ],
       "expected_valid": true,
-      "expected_outcome": "accepted"
+      "expected_outcome": "accepted",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "concern_recorded",
+          "filter": {},
+          "expected": 1
+        }
+      ]
     },
     {
       "id": "concern-pending-blocks",
@@ -1145,7 +1438,15 @@
         }
       ],
       "expected_valid": true,
-      "expected_outcome": "accepted"
+      "expected_outcome": "accepted",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "concern_recorded",
+          "filter": {},
+          "expected": 1
+        }
+      ]
     },
     {
       "id": "lifecycle-ownership-matrix",
@@ -1180,7 +1481,15 @@
         }
       ],
       "expected_valid": true,
-      "expected_outcome": "accepted"
+      "expected_outcome": "accepted",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "startup",
+          "filter": {},
+          "expected": 1
+        }
+      ]
     },
     {
       "id": "review-conditional-and-final-clear",
@@ -1214,7 +1523,15 @@
         }
       ],
       "expected_valid": true,
-      "expected_outcome": "accepted"
+      "expected_outcome": "accepted",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "risky_task",
+          "filter": {},
+          "expected": 1
+        }
+      ]
     },
     {
       "id": "review-non-risky-skips-conditional",
@@ -1230,7 +1547,15 @@
         }
       ],
       "expected_valid": true,
-      "expected_outcome": "accepted"
+      "expected_outcome": "accepted",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "non_risky_task",
+          "filter": {},
+          "expected": 1
+        }
+      ]
     },
     {
       "id": "review-no-cascade-skips-conditional",
@@ -1250,7 +1575,15 @@
         }
       ],
       "expected_valid": true,
-      "expected_outcome": "accepted"
+      "expected_outcome": "accepted",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "risky_task",
+          "filter": {},
+          "expected": 1
+        }
+      ]
     },
     {
       "id": "output-allowed-events",
@@ -1277,7 +1610,15 @@
         }
       ],
       "expected_valid": true,
-      "expected_outcome": "accepted"
+      "expected_outcome": "accepted",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "user_output_needed_question",
+          "filter": {},
+          "expected": 1
+        }
+      ]
     },
     {
       "id": "output-routine-silence",
@@ -1308,7 +1649,14 @@
         }
       ],
       "expected_valid": true,
-      "expected_outcome": "accepted"
+      "expected_outcome": "accepted",
+      "assertions": [
+        {
+          "op": "forbid",
+          "event": "user_output_routine_progress",
+          "filter": {}
+        }
+      ]
     },
     {
       "id": "failure-terminal-non-green",
@@ -1338,7 +1686,15 @@
         }
       ],
       "expected_valid": true,
-      "expected_outcome": "accepted"
+      "expected_outcome": "accepted",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "route_selected",
+          "filter": {},
+          "expected": 1
+        }
+      ]
     },
     {
       "id": "failure-merge-precondition-unevaluable",
@@ -1373,7 +1729,15 @@
         }
       ],
       "expected_valid": true,
-      "expected_outcome": "accepted"
+      "expected_outcome": "accepted",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "route_selected",
+          "filter": {},
+          "expected": 1
+        }
+      ]
     },
     {
       "id": "output-allowed-after-routine-operation",
@@ -1396,7 +1760,15 @@
         }
       ],
       "expected_valid": true,
-      "expected_outcome": "accepted"
+      "expected_outcome": "accepted",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "routine_read",
+          "filter": {},
+          "expected": 1
+        }
+      ]
     },
     {
       "id": "single-risky-terminal-failure",
@@ -1426,7 +1798,15 @@
         }
       ],
       "expected_valid": true,
-      "expected_outcome": "accepted"
+      "expected_outcome": "accepted",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "route_selected",
+          "filter": {},
+          "expected": 1
+        }
+      ]
     },
     {
       "id": "failure-external-evidence-non-green",
@@ -1462,7 +1842,15 @@
         }
       ],
       "expected_valid": true,
-      "expected_outcome": "accepted"
+      "expected_outcome": "accepted",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "route_selected",
+          "filter": {},
+          "expected": 1
+        }
+      ]
     },
     {
       "id": "failure-completion-full-verify-non-green",
@@ -1479,7 +1867,15 @@
         }
       ],
       "expected_valid": true,
-      "expected_outcome": "accepted"
+      "expected_outcome": "accepted",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "completion_full_verify",
+          "filter": {},
+          "expected": 1
+        }
+      ]
     },
     {
       "id": "failure-conditional-review-non-green",
@@ -1504,7 +1900,15 @@
         }
       ],
       "expected_valid": true,
-      "expected_outcome": "accepted"
+      "expected_outcome": "accepted",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "risky_task",
+          "filter": {},
+          "expected": 1
+        }
+      ]
     },
     {
       "id": "failure-final-review-blocking",
@@ -1521,7 +1925,15 @@
         }
       ],
       "expected_valid": true,
-      "expected_outcome": "accepted"
+      "expected_outcome": "accepted",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "final_full_diff_review",
+          "filter": {},
+          "expected": 1
+        }
+      ]
     },
     {
       "id": "completion-forced-rerun",
@@ -1553,7 +1965,223 @@
         }
       ],
       "expected_valid": true,
-      "expected_outcome": "accepted"
+      "expected_outcome": "accepted",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "prior_integration",
+          "filter": {},
+          "expected": 1
+        }
+      ]
+    },
+    {
+      "id": "completion-without-reuse-runs-full-verify",
+      "trace": [
+        {
+          "event": "completion_full_verify",
+          "outcome": "green",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "final_full_diff_review",
+          "outcome": "green",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "review_verdict",
+          "outcome": "clear",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "completion",
+          "owner": "orchestrator"
+        }
+      ],
+      "expected_valid": true,
+      "expected_outcome": "accepted",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "completion_full_verify",
+          "filter": {},
+          "expected": 1
+        }
+      ]
+    },
+    {
+      "id": "concern-user-requirement-pending",
+      "trace": [
+        {
+          "event": "user_owned_requirement_concern",
+          "value": "C-pending",
+          "owner": "user"
+        },
+        {
+          "event": "concern_disposition",
+          "value": "C-pending",
+          "disposition": "pending",
+          "owner": "orchestrator"
+        }
+      ],
+      "expected_valid": true,
+      "expected_outcome": "accepted",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "user_owned_requirement_concern",
+          "filter": {},
+          "expected": 1
+        }
+      ]
+    },
+    {
+      "id": "concern-user-safety-promoted",
+      "trace": [
+        {
+          "event": "user_owned_safety_concern",
+          "value": "C-promoted",
+          "owner": "user"
+        },
+        {
+          "event": "concern_disposition",
+          "value": "C-promoted",
+          "disposition": "promoted_to_failure",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "failure_overlay_entered",
+          "overlay": "failure",
+          "owner": "runtime_failure_overlay"
+        }
+      ],
+      "expected_valid": true,
+      "expected_outcome": "accepted",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "user_owned_safety_concern",
+          "filter": {},
+          "expected": 1
+        }
+      ]
+    },
+    {
+      "id": "direct-substantive-failure-remedial-worktree",
+      "trace": [
+        {
+          "event": "route_selected",
+          "route": "direct",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "task_implementation",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "evidence_captured",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "base_commit",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "completion_gate",
+          "outcome": "non_green",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "failure_overlay_entered",
+          "overlay": "failure",
+          "owner": "runtime_failure_overlay"
+        },
+        {
+          "event": "remedial_worktree_created",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "remedial_implementer_continuation",
+          "owner": "implementer"
+        }
+      ],
+      "expected_valid": true,
+      "expected_outcome": "accepted",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "remedial_worktree_created",
+          "filter": {},
+          "expected": 1
+        },
+        {
+          "op": "before",
+          "event_a": "completion_gate",
+          "event_b": "failure_overlay_entered"
+        },
+        {
+          "op": "before",
+          "event_a": "failure_overlay_entered",
+          "event_b": "remedial_worktree_created"
+        },
+        {
+          "op": "before",
+          "event_a": "remedial_worktree_created",
+          "event_b": "remedial_implementer_continuation"
+        },
+        {
+          "op": "owner",
+          "event": "remedial_implementer_continuation",
+          "expected_owner": "implementer"
+        }
+      ]
+    },
+    {
+      "id": "review-blocking-verdict-failure",
+      "trace": [
+        {
+          "event": "final_full_diff_review",
+          "outcome": "blocking",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "failure_overlay_entered",
+          "overlay": "failure",
+          "owner": "runtime_failure_overlay"
+        },
+        {
+          "event": "review_verdict",
+          "outcome": "blocking",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "failure_overlay_entered",
+          "overlay": "failure",
+          "owner": "runtime_failure_overlay"
+        }
+      ],
+      "expected_valid": true,
+      "expected_outcome": "accepted",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "failure_overlay_entered",
+          "filter": {
+            "overlay": "failure"
+          },
+          "expected": 2
+        },
+        {
+          "op": "before",
+          "event_a": "final_full_diff_review",
+          "event_b": "review_verdict"
+        },
+        {
+          "op": "owner",
+          "event": "review_verdict",
+          "expected_owner": "orchestrator"
+        }
+      ]
     }
   ],
   "mutants": [
@@ -1595,7 +2223,15 @@
       "expected_valid": false,
       "expected_outcome": "rejected",
       "expected_contract_id": "RUN-EXTERNAL-PROOF",
-      "expected_reason": "external route requires an unconditional base commit"
+      "expected_reason": "external route requires an unconditional base commit",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "route_selected",
+          "filter": {},
+          "expected": 1
+        }
+      ]
     },
     {
       "id": "external-missing-independent-proof",
@@ -1631,7 +2267,15 @@
       "expected_valid": false,
       "expected_outcome": "rejected",
       "expected_contract_id": "RUN-EXTERNAL-PROOF",
-      "expected_reason": "external route requires independent commit proof"
+      "expected_reason": "external route requires independent commit proof",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "route_selected",
+          "filter": {},
+          "expected": 1
+        }
+      ]
     },
     {
       "id": "single-risky-merge-before-verification",
@@ -1671,7 +2315,15 @@
       "expected_valid": false,
       "expected_outcome": "rejected",
       "expected_contract_id": "RUN-ROUTE-TOPOLOGY",
-      "expected_reason": "single-risky verification must precede merge"
+      "expected_reason": "single-risky verification must precede merge",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "route_selected",
+          "filter": {},
+          "expected": 1
+        }
+      ]
     },
     {
       "id": "parallel-missing-integration-gate",
@@ -1716,7 +2368,15 @@
       "expected_valid": false,
       "expected_outcome": "rejected",
       "expected_contract_id": "RUN-ROUTE-TOPOLOGY",
-      "expected_reason": "parallel route requires one green integration gate"
+      "expected_reason": "parallel route requires one green integration gate",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "route_selected",
+          "filter": {},
+          "expected": 1
+        }
+      ]
     },
     {
       "id": "completion-reuse-missing-sha",
@@ -1741,7 +2401,15 @@
       "expected_valid": false,
       "expected_outcome": "rejected",
       "expected_contract_id": "RUN-COMPLETION-REUSE",
-      "expected_reason": "completion reuse requires the prior gate base-tip SHA"
+      "expected_reason": "completion reuse requires the prior gate base-tip SHA",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "prior_integration",
+          "filter": {},
+          "expected": 1
+        }
+      ]
     },
     {
       "id": "completion-reuse-missing-verify-set",
@@ -1766,7 +2434,15 @@
       "expected_valid": false,
       "expected_outcome": "rejected",
       "expected_contract_id": "RUN-COMPLETION-REUSE",
-      "expected_reason": "completion reuse requires the prior verify set"
+      "expected_reason": "completion reuse requires the prior verify set",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "prior_integration",
+          "filter": {},
+          "expected": 1
+        }
+      ]
     },
     {
       "id": "unevaluable-verification-treated-as-green",
@@ -1797,7 +2473,15 @@
       "expected_valid": false,
       "expected_outcome": "rejected",
       "expected_contract_id": "RUN-FAIL-CLOSED",
-      "expected_reason": "unevaluable verification result must enter failure overlay"
+      "expected_reason": "unevaluable verification result must enter failure overlay",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "route_selected",
+          "filter": {},
+          "expected": 1
+        }
+      ]
     },
     {
       "id": "startup-wrong-owner",
@@ -1810,7 +2494,15 @@
       "expected_valid": false,
       "expected_outcome": "rejected",
       "expected_contract_id": "RUN-LIFECYCLE-OWNERSHIP",
-      "expected_reason": "startup ownership belongs to harness lifecycle"
+      "expected_reason": "startup ownership belongs to harness lifecycle",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "startup",
+          "filter": {},
+          "expected": 1
+        }
+      ]
     },
     {
       "id": "pending-concern-completes",
@@ -1827,6 +2519,11 @@
           "owner": "orchestrator"
         },
         {
+          "event": "completion_full_verify",
+          "outcome": "green",
+          "owner": "orchestrator"
+        },
+        {
           "event": "completion",
           "owner": "orchestrator"
         }
@@ -1834,7 +2531,15 @@
       "expected_valid": false,
       "expected_outcome": "rejected",
       "expected_contract_id": "RUN-CONCERN-DISPOSITION",
-      "expected_reason": "pending concern blocks completion"
+      "expected_reason": "pending concern blocks completion",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "concern_recorded",
+          "filter": {},
+          "expected": 1
+        }
+      ]
     },
     {
       "id": "user-safety-non-user-acceptance",
@@ -1854,7 +2559,15 @@
       "expected_valid": false,
       "expected_outcome": "rejected",
       "expected_contract_id": "RUN-CONCERN-DISPOSITION",
-      "expected_reason": "user-owned safety concern requires user acceptance"
+      "expected_reason": "user-owned safety concern requires user acceptance for terminal disposition",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "user_owned_safety_concern",
+          "filter": {},
+          "expected": 1
+        }
+      ]
     },
     {
       "id": "conditional-review-replaces-final",
@@ -1880,7 +2593,15 @@
       "expected_valid": false,
       "expected_outcome": "rejected",
       "expected_contract_id": "RUN-REVIEW-TOPOLOGY",
-      "expected_reason": "conditional review never replaces final full-diff review"
+      "expected_reason": "conditional review never replaces final full-diff review",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "risky_task",
+          "filter": {},
+          "expected": 1
+        }
+      ]
     },
     {
       "id": "routine-progress-narration",
@@ -1897,7 +2618,15 @@
       "expected_valid": false,
       "expected_outcome": "rejected",
       "expected_contract_id": "RUN-OUTPUT-SEMANTICS",
-      "expected_reason": "routine progress narration is forbidden"
+      "expected_reason": "routine progress narration is forbidden",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "routine_read",
+          "filter": {},
+          "expected": 1
+        }
+      ]
     },
     {
       "id": "external-mismatched-base-pin",
@@ -1938,7 +2667,15 @@
       "expected_valid": false,
       "expected_outcome": "rejected",
       "expected_contract_id": "RUN-EXTERNAL-PROOF",
-      "expected_reason": "external base pin must match the selected base"
+      "expected_reason": "external base pin must match the selected base",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "route_selected",
+          "filter": {},
+          "expected": 1
+        }
+      ]
     },
     {
       "id": "merge-precondition-labeled-lifecycle-only",
@@ -1978,7 +2715,15 @@
       "expected_valid": false,
       "expected_outcome": "rejected",
       "expected_contract_id": "RUN-FAIL-CLOSED",
-      "expected_reason": "unevaluable merge precondition must enter failure overlay"
+      "expected_reason": "unevaluable merge precondition must enter failure overlay",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "startup",
+          "filter": {},
+          "expected": 1
+        }
+      ]
     },
     {
       "id": "external-missing-base-pin-value",
@@ -2018,7 +2763,15 @@
       "expected_valid": false,
       "expected_outcome": "rejected",
       "expected_contract_id": "RUN-EXTERNAL-PROOF",
-      "expected_reason": "external base pin requires a non-empty scalar value"
+      "expected_reason": "external base pin requires a non-empty scalar value",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "route_selected",
+          "filter": {},
+          "expected": 1
+        }
+      ]
     },
     {
       "id": "completion-skip-full-verify-missing-green",
@@ -2043,7 +2796,15 @@
       "expected_valid": false,
       "expected_outcome": "rejected",
       "expected_contract_id": "RUN-COMPLETION-REUSE",
-      "expected_reason": "incomplete or changed completion facts require full verify"
+      "expected_reason": "incomplete or changed completion facts require full verify",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "prior_verify_set",
+          "filter": {},
+          "expected": 1
+        }
+      ]
     },
     {
       "id": "completion-skip-full-verify-mismatched-set",
@@ -2072,7 +2833,15 @@
       "expected_valid": false,
       "expected_outcome": "rejected",
       "expected_contract_id": "RUN-COMPLETION-REUSE",
-      "expected_reason": "incomplete or changed completion facts require full verify"
+      "expected_reason": "incomplete or changed completion facts require full verify",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "prior_integration",
+          "filter": {},
+          "expected": 1
+        }
+      ]
     },
     {
       "id": "completion-skip-full-verify-mismatched-sha",
@@ -2101,7 +2870,15 @@
       "expected_valid": false,
       "expected_outcome": "rejected",
       "expected_contract_id": "RUN-COMPLETION-REUSE",
-      "expected_reason": "incomplete or changed completion facts require full verify"
+      "expected_reason": "incomplete or changed completion facts require full verify",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "prior_integration",
+          "filter": {},
+          "expected": 1
+        }
+      ]
     },
     {
       "id": "failure-external-evidence-no-overlay",
@@ -2134,7 +2911,15 @@
       "expected_valid": false,
       "expected_outcome": "rejected",
       "expected_contract_id": "RUN-FAIL-CLOSED",
-      "expected_reason": "non_green external evidence must enter failure overlay"
+      "expected_reason": "non_green external evidence must enter failure overlay",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "route_selected",
+          "filter": {},
+          "expected": 1
+        }
+      ]
     },
     {
       "id": "failure-completion-full-verify-no-overlay",
@@ -2148,7 +2933,15 @@
       "expected_valid": false,
       "expected_outcome": "rejected",
       "expected_contract_id": "RUN-FAIL-CLOSED",
-      "expected_reason": "non_green completion full verify result must enter failure overlay"
+      "expected_reason": "non_green completion full verify result must enter failure overlay",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "completion_full_verify",
+          "filter": {},
+          "expected": 1
+        }
+      ]
     },
     {
       "id": "failure-conditional-review-no-overlay",
@@ -2170,7 +2963,15 @@
       "expected_valid": false,
       "expected_outcome": "rejected",
       "expected_contract_id": "RUN-FAIL-CLOSED",
-      "expected_reason": "non_green conditional spec review result must enter failure overlay"
+      "expected_reason": "non_green conditional spec review result must enter failure overlay",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "risky_task",
+          "filter": {},
+          "expected": 1
+        }
+      ]
     },
     {
       "id": "failure-final-review-clear-verdict-no-overlay",
@@ -2189,7 +2990,15 @@
       "expected_valid": false,
       "expected_outcome": "rejected",
       "expected_contract_id": "RUN-FAIL-CLOSED",
-      "expected_reason": "blocking final review result must enter failure overlay"
+      "expected_reason": "blocking final review result must enter failure overlay",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "final_full_diff_review",
+          "filter": {},
+          "expected": 1
+        }
+      ]
     },
     {
       "id": "failure-overlay-wrong-owner",
@@ -2208,7 +3017,15 @@
       "expected_valid": false,
       "expected_outcome": "rejected",
       "expected_contract_id": "RUN-FAIL-CLOSED",
-      "expected_reason": "failure overlay must be runtime-failure-overlay-owned"
+      "expected_reason": "failure overlay must be runtime-failure-overlay-owned",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "task_verification",
+          "filter": {},
+          "expected": 1
+        }
+      ]
     },
     {
       "id": "concern-missing-disposition-value",
@@ -2227,7 +3044,15 @@
       "expected_valid": false,
       "expected_outcome": "rejected",
       "expected_contract_id": "RUN-CONCERN-DISPOSITION",
-      "expected_reason": "concern disposition requires a non-empty closed value"
+      "expected_reason": "concern disposition requires a non-empty closed value",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "concern_recorded",
+          "filter": {},
+          "expected": 1
+        }
+      ]
     },
     {
       "id": "concern-unknown-disposition-value",
@@ -2247,7 +3072,15 @@
       "expected_valid": false,
       "expected_outcome": "rejected",
       "expected_contract_id": "RUN-CONCERN-DISPOSITION",
-      "expected_reason": "concern disposition is outside the closed vocabulary"
+      "expected_reason": "concern disposition is outside the closed vocabulary",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "concern_recorded",
+          "filter": {},
+          "expected": 1
+        }
+      ]
     },
     {
       "id": "conditional-review-without-cascade",
@@ -2270,7 +3103,15 @@
       "expected_valid": false,
       "expected_outcome": "rejected",
       "expected_contract_id": "RUN-REVIEW-TOPOLOGY",
-      "expected_reason": "conditional review applies only to risky downstream cascade"
+      "expected_reason": "conditional review applies only to risky downstream cascade",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "risky_task",
+          "filter": {},
+          "expected": 1
+        }
+      ]
     },
     {
       "id": "direct-parallel-action-mixing",
@@ -2300,7 +3141,15 @@
       "expected_valid": false,
       "expected_outcome": "rejected",
       "expected_contract_id": "RUN-ROUTE-TOPOLOGY",
-      "expected_reason": "direct route forbids route-specific event serial_merge"
+      "expected_reason": "direct route forbids route-specific event serial_merge",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "route_selected",
+          "filter": {},
+          "expected": 1
+        }
+      ]
     },
     {
       "id": "single-risky-work-after-failed-verification-before-overlay",
@@ -2336,7 +3185,15 @@
       "expected_valid": false,
       "expected_outcome": "rejected",
       "expected_contract_id": "RUN-FAIL-CLOSED",
-      "expected_reason": "failure overlay must precede any present continuation"
+      "expected_reason": "failure overlay must precede any present continuation",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "route_selected",
+          "filter": {},
+          "expected": 1
+        }
+      ]
     },
     {
       "id": "completion-reuse-conflicting-prior-integration",
@@ -2373,7 +3230,15 @@
       "expected_valid": false,
       "expected_outcome": "rejected",
       "expected_contract_id": "RUN-COMPLETION-REUSE",
-      "expected_reason": "completion reuse requires exactly one prior integration result"
+      "expected_reason": "completion reuse requires exactly one prior integration result",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "prior_integration",
+          "filter": {},
+          "expected": 2
+        }
+      ]
     },
     {
       "id": "direct-completion-without-final-review",
@@ -2396,6 +3261,11 @@
           "owner": "orchestrator"
         },
         {
+          "event": "completion_full_verify",
+          "outcome": "green",
+          "owner": "orchestrator"
+        },
+        {
           "event": "completion",
           "owner": "orchestrator"
         }
@@ -2403,7 +3273,15 @@
       "expected_valid": false,
       "expected_outcome": "rejected",
       "expected_contract_id": "RUN-REVIEW-TOPOLOGY",
-      "expected_reason": "successful completion or user gate requires final full-diff review"
+      "expected_reason": "successful completion or user gate requires final full-diff review",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "route_selected",
+          "filter": {},
+          "expected": 1
+        }
+      ]
     },
     {
       "id": "direct-user-gate-without-final-review",
@@ -2426,6 +3304,11 @@
           "owner": "orchestrator"
         },
         {
+          "event": "completion_full_verify",
+          "outcome": "green",
+          "owner": "orchestrator"
+        },
+        {
           "event": "user_gate",
           "owner": "orchestrator"
         }
@@ -2433,7 +3316,15 @@
       "expected_valid": false,
       "expected_outcome": "rejected",
       "expected_contract_id": "RUN-REVIEW-TOPOLOGY",
-      "expected_reason": "successful completion or user gate requires final full-diff review"
+      "expected_reason": "successful completion or user gate requires final full-diff review",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "route_selected",
+          "filter": {},
+          "expected": 1
+        }
+      ]
     },
     {
       "id": "blocking-conditional-review-clear-verdict",
@@ -2465,7 +3356,15 @@
       "expected_valid": false,
       "expected_outcome": "rejected",
       "expected_contract_id": "RUN-REVIEW-TOPOLOGY",
-      "expected_reason": "failed conditional review cannot have a clear verdict"
+      "expected_reason": "failed conditional review cannot have a clear verdict",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "risky_task",
+          "filter": {},
+          "expected": 1
+        }
+      ]
     },
     {
       "id": "clear-verdict-without-green-final-review",
@@ -2479,7 +3378,15 @@
       "expected_valid": false,
       "expected_outcome": "rejected",
       "expected_contract_id": "RUN-REVIEW-TOPOLOGY",
-      "expected_reason": "clear review verdict requires one successful final full-diff review"
+      "expected_reason": "review verdict requires one applicable final full-diff review",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "review_verdict",
+          "filter": {},
+          "expected": 1
+        }
+      ]
     },
     {
       "id": "task-verification-missing-outcome",
@@ -2492,7 +3399,15 @@
       "expected_valid": false,
       "expected_outcome": "rejected",
       "expected_contract_id": "RUN-FAIL-CLOSED",
-      "expected_reason": "task verification requires a non-empty closed outcome"
+      "expected_reason": "task verification requires a non-empty closed outcome",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "task_verification",
+          "filter": {},
+          "expected": 1
+        }
+      ]
     },
     {
       "id": "failure-overlay-missing-overlay",
@@ -2510,7 +3425,15 @@
       "expected_valid": false,
       "expected_outcome": "rejected",
       "expected_contract_id": "RUN-FAIL-CLOSED",
-      "expected_reason": "failure overlay requires explicit failure identity"
+      "expected_reason": "failure overlay requires explicit failure identity",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "task_verification",
+          "filter": {},
+          "expected": 1
+        }
+      ]
     },
     {
       "id": "failure-overlay-missing-owner",
@@ -2528,7 +3451,15 @@
       "expected_valid": false,
       "expected_outcome": "rejected",
       "expected_contract_id": "RUN-FAIL-CLOSED",
-      "expected_reason": "failure overlay must be runtime-failure-overlay-owned"
+      "expected_reason": "failure overlay must be runtime-failure-overlay-owned",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "task_verification",
+          "filter": {},
+          "expected": 1
+        }
+      ]
     },
     {
       "id": "route-omitted-direct-events",
@@ -2549,7 +3480,15 @@
       "expected_valid": false,
       "expected_outcome": "rejected",
       "expected_contract_id": "RUN-ROUTE-TOPOLOGY",
-      "expected_reason": "route-specific events require exactly one selected route"
+      "expected_reason": "route-specific events require exactly one selected route",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "task_implementation",
+          "filter": {},
+          "expected": 1
+        }
+      ]
     },
     {
       "id": "route-omitted-complete-mixed-routes",
@@ -2661,7 +3600,15 @@
       "expected_valid": false,
       "expected_outcome": "rejected",
       "expected_contract_id": "RUN-ROUTE-TOPOLOGY",
-      "expected_reason": "route-specific events require exactly one selected route"
+      "expected_reason": "route-specific events require exactly one selected route",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "task_implementation",
+          "filter": {},
+          "expected": 3
+        }
+      ]
     },
     {
       "id": "failure-routine-write-before-overlay",
@@ -2684,7 +3631,15 @@
       "expected_valid": false,
       "expected_outcome": "rejected",
       "expected_contract_id": "RUN-FAIL-CLOSED",
-      "expected_reason": "failure overlay must precede any present continuation"
+      "expected_reason": "failure overlay must precede any present continuation",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "completion_gate",
+          "filter": {},
+          "expected": 1
+        }
+      ]
     },
     {
       "id": "failure-routine-dispatch-before-overlay",
@@ -2707,7 +3662,15 @@
       "expected_valid": false,
       "expected_outcome": "rejected",
       "expected_contract_id": "RUN-FAIL-CLOSED",
-      "expected_reason": "failure overlay must precede any present continuation"
+      "expected_reason": "failure overlay must precede any present continuation",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "completion_gate",
+          "filter": {},
+          "expected": 1
+        }
+      ]
     },
     {
       "id": "failure-routine-merge-before-overlay",
@@ -2730,7 +3693,15 @@
       "expected_valid": false,
       "expected_outcome": "rejected",
       "expected_contract_id": "RUN-FAIL-CLOSED",
-      "expected_reason": "failure overlay must precede any present continuation"
+      "expected_reason": "failure overlay must precede any present continuation",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "completion_gate",
+          "filter": {},
+          "expected": 1
+        }
+      ]
     },
     {
       "id": "failure-routine-gate-before-overlay",
@@ -2753,7 +3724,15 @@
       "expected_valid": false,
       "expected_outcome": "rejected",
       "expected_contract_id": "RUN-FAIL-CLOSED",
-      "expected_reason": "failure overlay must precede any present continuation"
+      "expected_reason": "failure overlay must precede any present continuation",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "completion_gate",
+          "filter": {},
+          "expected": 1
+        }
+      ]
     },
     {
       "id": "failure-routine-cleanup-before-overlay",
@@ -2776,7 +3755,15 @@
       "expected_valid": false,
       "expected_outcome": "rejected",
       "expected_contract_id": "RUN-FAIL-CLOSED",
-      "expected_reason": "failure overlay must precede any present continuation"
+      "expected_reason": "failure overlay must precede any present continuation",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "completion_gate",
+          "filter": {},
+          "expected": 1
+        }
+      ]
     },
     {
       "id": "final-review-clear-success",
@@ -2809,6 +3796,11 @@
           "owner": "orchestrator"
         },
         {
+          "event": "completion_full_verify",
+          "outcome": "green",
+          "owner": "orchestrator"
+        },
+        {
           "event": "completion",
           "owner": "orchestrator"
         }
@@ -2816,7 +3808,15 @@
       "expected_valid": false,
       "expected_outcome": "rejected",
       "expected_contract_id": "RUN-REVIEW-TOPOLOGY",
-      "expected_reason": "clear review verdict requires one green final full-diff review"
+      "expected_reason": "clear review verdict requires one green final full-diff review",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "route_selected",
+          "filter": {},
+          "expected": 1
+        }
+      ]
     },
     {
       "id": "review-verdict-blocking-no-overlay",
@@ -2835,7 +3835,15 @@
       "expected_valid": false,
       "expected_outcome": "rejected",
       "expected_contract_id": "RUN-FAIL-CLOSED",
-      "expected_reason": "blocking review verdict must enter failure overlay"
+      "expected_reason": "blocking review verdict must enter failure overlay",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "final_full_diff_review",
+          "filter": {},
+          "expected": 1
+        }
+      ]
     },
     {
       "id": "review-verdict-conflicting-completion",
@@ -2861,6 +3869,11 @@
           "owner": "orchestrator"
         },
         {
+          "event": "completion_full_verify",
+          "outcome": "green",
+          "owner": "orchestrator"
+        },
+        {
           "event": "completion",
           "owner": "orchestrator"
         }
@@ -2868,7 +3881,185 @@
       "expected_valid": false,
       "expected_outcome": "rejected",
       "expected_contract_id": "RUN-REVIEW-TOPOLOGY",
-      "expected_reason": "review verdict must occur exactly once"
+      "expected_reason": "review verdict must occur exactly once",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "final_full_diff_review",
+          "filter": {},
+          "expected": 1
+        }
+      ]
+    },
+    {
+      "id": "completion-endpoint-without-reuse-or-full-verify",
+      "trace": [
+        {
+          "event": "final_full_diff_review",
+          "outcome": "green",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "review_verdict",
+          "outcome": "clear",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "completion",
+          "owner": "orchestrator"
+        }
+      ],
+      "expected_valid": false,
+      "expected_outcome": "rejected",
+      "expected_contract_id": "RUN-COMPLETION-REUSE",
+      "expected_reason": "completion endpoint without reusable facts requires full verify",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "final_full_diff_review",
+          "filter": {},
+          "expected": 1
+        }
+      ]
+    },
+    {
+      "id": "failure-routine-read-before-overlay",
+      "trace": [
+        {
+          "event": "completion_gate",
+          "outcome": "non_green",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "routine_read",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "failure_overlay_entered",
+          "overlay": "failure",
+          "owner": "runtime_failure_overlay"
+        }
+      ],
+      "expected_valid": false,
+      "expected_outcome": "rejected",
+      "expected_contract_id": "RUN-FAIL-CLOSED",
+      "expected_reason": "failure overlay must precede any present continuation",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "completion_gate",
+          "filter": {},
+          "expected": 1
+        }
+      ]
+    },
+    {
+      "id": "blocking-verdict-without-review",
+      "trace": [
+        {
+          "event": "review_verdict",
+          "outcome": "blocking",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "failure_overlay_entered",
+          "overlay": "failure",
+          "owner": "runtime_failure_overlay"
+        }
+      ],
+      "expected_valid": false,
+      "expected_outcome": "rejected",
+      "expected_contract_id": "RUN-REVIEW-TOPOLOGY",
+      "expected_reason": "review verdict requires one applicable final full-diff review",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "review_verdict",
+          "filter": {},
+          "expected": 1
+        }
+      ]
+    },
+    {
+      "id": "green-review-blocking-verdict",
+      "trace": [
+        {
+          "event": "final_full_diff_review",
+          "outcome": "green",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "review_verdict",
+          "outcome": "blocking",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "failure_overlay_entered",
+          "overlay": "failure",
+          "owner": "runtime_failure_overlay"
+        }
+      ],
+      "expected_valid": false,
+      "expected_outcome": "rejected",
+      "expected_contract_id": "RUN-REVIEW-TOPOLOGY",
+      "expected_reason": "blocking review verdict cannot follow a green final full-diff review",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "final_full_diff_review",
+          "filter": {},
+          "expected": 1
+        }
+      ]
+    },
+    {
+      "id": "external-base-commit-wrong-owner",
+      "trace": [
+        {
+          "event": "route_selected",
+          "route": "external",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "selected_base",
+          "value": "sha-A",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "external_base_pin",
+          "value": "sha-A",
+          "owner": "implementer"
+        },
+        {
+          "event": "external_action",
+          "owner": "implementer"
+        },
+        {
+          "event": "external_evidence",
+          "outcome": "green",
+          "owner": "implementer"
+        },
+        {
+          "event": "base_commit",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "independent_commit_proof",
+          "owner": "orchestrator"
+        }
+      ],
+      "expected_valid": false,
+      "expected_outcome": "rejected",
+      "expected_contract_id": "RUN-EXTERNAL-PROOF",
+      "expected_reason": "external base commit must be implementer-owned",
+      "assertions": [
+        {
+          "op": "count",
+          "event": "route_selected",
+          "filter": {},
+          "expected": 1
+        }
+      ]
     }
   ]
 }

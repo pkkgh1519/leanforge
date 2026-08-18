@@ -13,6 +13,7 @@ MARKDOWN_PATHS = (
     ROOT / "src/skills/run/references/orchestration.md",
     ROOT / "src/skills/run/references/harness-lifecycle.md",
 )
+ASSERTION_OPERATORS = ["count", "forbid", "before", "same", "owner"]
 TOP_LEVEL_KEYS = {"schema_version", "contract_id", "vocabulary", "invariants"}
 EXPECTED_INVARIANT_KINDS = {
     "RUN-ROUTE-TOPOLOGY": "route_topology",
@@ -62,11 +63,14 @@ CONTINUATION_EVENTS = RESULT_EVENTS + [
     "completion_reused",
     "completion",
     "user_gate",
+    "routine_read",
     "routine_write",
     "routine_dispatch",
     "routine_merge",
     "routine_gate",
     "routine_cleanup",
+    "remedial_worktree_created",
+    "remedial_implementer_continuation",
 ]
 FAILURE_OUTCOMES = {"non_green", "unevaluable", "blocking"}
 RESULT_OUTCOMES = {
@@ -169,6 +173,8 @@ EXPECTED_VOCABULARY = {
         "routine_merge",
         "routine_gate",
         "routine_cleanup",
+        "remedial_worktree_created",
+        "remedial_implementer_continuation",
         "user_output_needed_question",
         "user_output_actual_blocker",
         "user_output_wave_completion",
@@ -270,6 +276,11 @@ EXPECTED_SCENARIO_IDS = {
     "failure-conditional-review-non-green",
     "failure-final-review-blocking",
     "completion-forced-rerun",
+    "completion-without-reuse-runs-full-verify",
+    "concern-user-requirement-pending",
+    "concern-user-safety-promoted",
+    "direct-substantive-failure-remedial-worktree",
+    "review-blocking-verdict-failure",
 }
 EXPECTED_MUTANT_IDS = {
     "external-conditional-base-commit",
@@ -318,6 +329,11 @@ EXPECTED_MUTANT_IDS = {
     "final-review-clear-success",
     "review-verdict-blocking-no-overlay",
     "review-verdict-conflicting-completion",
+    "completion-endpoint-without-reuse-or-full-verify",
+    "failure-routine-read-before-overlay",
+    "blocking-verdict-without-review",
+    "green-review-blocking-verdict",
+    "external-base-commit-wrong-owner",
 }
 
 
@@ -538,22 +554,139 @@ def validate_required_metadata(trace, vocabulary):
     return None
 
 
+def validate_assertions(assertions, vocabulary, label):
+    if not isinstance(assertions, list) or not assertions:
+        raise ValueError(f"{label} must be a non-empty array")
+    expected_keys = {
+        "count": {"op", "event", "filter", "expected"},
+        "forbid": {"op", "event", "filter"},
+        "before": {"op", "event_a", "event_b"},
+        "same": {"op", "event_a", "field_a", "event_b", "field_b"},
+        "owner": {"op", "event", "expected_owner"},
+    }
+    for index, assertion in enumerate(assertions):
+        assertion_label = f"{label}[{index}]"
+        if not isinstance(assertion, dict):
+            raise ValueError(f"{assertion_label} must be an object")
+        operator = assertion.get("op")
+        if operator not in ASSERTION_OPERATORS:
+            raise ValueError(f"{assertion_label} has an unknown assertion operator")
+        require_exact_keys(assertion, expected_keys[operator], assertion_label)
+
+        event_keys = [key for key in assertion if key in {"event", "event_a", "event_b"}]
+        for key in event_keys:
+            if assertion[key] not in vocabulary["event"]:
+                raise ValueError(f"{assertion_label}.{key} has an unknown event")
+
+        if operator in {"count", "forbid"}:
+            event = assertion["event"]
+            filters = assertion["filter"]
+            if not isinstance(filters, dict):
+                raise ValueError(f"{assertion_label}.filter must be an object")
+            allowed_filters = EVENT_METADATA_SCHEMA[event]["allowed"] - {"event"}
+            if not set(filters).issubset(allowed_filters):
+                raise ValueError(f"{assertion_label}.filter has an invalid field")
+            if any(type(value) is not str for value in filters.values()):
+                raise ValueError(f"{assertion_label}.filter values must be strings")
+        if operator == "count" and (
+            type(assertion["expected"]) is not int or assertion["expected"] < 0
+        ):
+            raise ValueError(f"{assertion_label}.expected must be a non-negative integer")
+        if operator == "same":
+            for event_key, field_key in (
+                ("event_a", "field_a"),
+                ("event_b", "field_b"),
+            ):
+                allowed_fields = EVENT_METADATA_SCHEMA[assertion[event_key]]["allowed"] - {
+                    "event"
+                }
+                if assertion[field_key] not in allowed_fields:
+                    raise ValueError(f"{assertion_label}.{field_key} is invalid for its event")
+        if operator == "owner" and assertion["expected_owner"] not in vocabulary["owner"]:
+            raise ValueError(f"{assertion_label}.expected_owner is unknown")
+
+
+def evaluate_assertions(trace, assertions):
+    """Evaluate fixture literals without consulting the semantic validator."""
+
+    def occurrences(event, filters=None):
+        filters = filters or {}
+        return [
+            occurrence
+            for occurrence in trace
+            if occurrence.get("event") == event
+            and all(occurrence.get(key) == value for key, value in filters.items())
+        ]
+
+    failures = []
+    for index, assertion in enumerate(assertions):
+        operator = assertion["op"]
+        passed = False
+        if operator == "count":
+            passed = (
+                len(occurrences(assertion["event"], assertion["filter"]))
+                == assertion["expected"]
+            )
+        elif operator == "forbid":
+            passed = not occurrences(assertion["event"], assertion["filter"])
+        elif operator == "before":
+            first = [
+                trace_index
+                for trace_index, occurrence in enumerate(trace)
+                if occurrence.get("event") == assertion["event_a"]
+            ]
+            second = [
+                trace_index
+                for trace_index, occurrence in enumerate(trace)
+                if occurrence.get("event") == assertion["event_b"]
+            ]
+            passed = bool(first and second) and max(first) < min(second)
+        elif operator == "same":
+            first = occurrences(assertion["event_a"])
+            second = occurrences(assertion["event_b"])
+            passed = (
+                len(first) == 1
+                and len(second) == 1
+                and assertion["field_a"] in first[0]
+                and assertion["field_b"] in second[0]
+                and first[0][assertion["field_a"]]
+                == second[0][assertion["field_b"]]
+            )
+        elif operator == "owner":
+            owned = occurrences(assertion["event"])
+            passed = bool(owned) and all(
+                occurrence.get("owner") == assertion["expected_owner"]
+                for occurrence in owned
+            )
+        if not passed:
+            failures.append(f"assertions[{index}] {operator} failed")
+    return failures
+
+
 def validate_fixture(fixture, vocabulary):
     require_exact_keys(
         fixture,
-        {"schema_version", "behavior_origin_commit", "scenarios", "mutants"},
+        {
+            "schema_version",
+            "behavior_origin_commit",
+            "assertion_language",
+            "scenarios",
+            "mutants",
+        },
         "fixture",
     )
     if type(fixture["schema_version"]) is not int or fixture["schema_version"] != 1:
         raise ValueError("fixture schema_version must be integer 1")
     if fixture["behavior_origin_commit"] != "fb252b4236cc607002e131210f6161db72f6841e":
         raise ValueError("fixture behavior_origin_commit is not protected v1.8.1")
+    if fixture["assertion_language"] != ASSERTION_OPERATORS:
+        raise ValueError("fixture assertion language must exactly match the closed operators")
 
     seen_ids = set()
     for collection_name, expected_keys, expected_valid, expected_outcome in (
         (
             "scenarios",
-            {"id", "trace", "expected_valid", "expected_outcome"},
+            {"id", "trace", "assertions", "expected_valid", "expected_outcome"},
             True,
             "accepted",
         ),
@@ -562,6 +695,7 @@ def validate_fixture(fixture, vocabulary):
             {
                 "id",
                 "trace",
+                "assertions",
                 "expected_valid",
                 "expected_outcome",
                 "expected_contract_id",
@@ -585,6 +719,12 @@ def validate_fixture(fixture, vocabulary):
             if item["expected_outcome"] != expected_outcome:
                 raise ValueError(f"{label}.expected_outcome has the wrong literal")
             validate_trace(item["trace"], vocabulary, f"{label}.trace")
+            validate_assertions(item["assertions"], vocabulary, f"{label}.assertions")
+            assertion_failures = evaluate_assertions(item["trace"], item["assertions"])
+            if assertion_failures:
+                raise ValueError(
+                    f"{label}.assertions do not match the fixture trace: {assertion_failures}"
+                )
             if collection_name == "mutants":
                 if item["expected_contract_id"] not in EXPECTED_INVARIANT_KINDS:
                     raise ValueError(f"{label}.expected_contract_id is unknown")
@@ -730,6 +870,44 @@ def first_failed_result_index(trace):
     )
 
 
+REMEDIAL_EVENTS = {
+    "remedial_worktree_created",
+    "remedial_implementer_continuation",
+}
+
+
+def validate_direct_remedial_topology(trace, route_index):
+    if not any(occurrence.get("event") in REMEDIAL_EVENTS for occurrence in trace):
+        return None
+    if trace[route_index].get("route") != "direct":
+        return "post-failure remedial topology requires the selected direct route"
+    worktrees = matching_indexes(trace, "remedial_worktree_created")
+    continuations = matching_indexes(trace, "remedial_implementer_continuation")
+    if len(worktrees) != 1 or len(continuations) != 1:
+        return "direct remediation requires one remedial worktree and implementer continuation"
+    if trace[worktrees[0]].get("owner") != "orchestrator":
+        return "direct remedial worktree must be orchestrator-owned"
+    if trace[continuations[0]].get("owner") != "implementer":
+        return "direct remedial continuation must be implementer-owned"
+    failures = [
+        index
+        for index, occurrence in enumerate(trace)
+        if occurrence.get("event") in RESULT_EVENTS and result_failed(occurrence)
+    ]
+    overlays = matching_indexes(trace, "failure_overlay_entered", overlay="failure")
+    if not any(
+        route_index < failure < overlay < worktrees[0] < continuations[0]
+        and trace[overlay].get("owner") == "runtime_failure_overlay"
+        for failure in failures
+        for overlay in overlays
+    ):
+        return (
+            "direct substantive failure must precede failure overlay, remedial worktree, "
+            "and implementer continuation"
+        )
+    return None
+
+
 def validate_reached_route_prefix(trace, route, route_index, failure_index):
     stages = ROUTE_STAGE_ORDER[route]
     if any(
@@ -774,7 +952,10 @@ def validate_reached_route_prefix(trace, route, route_index, failure_index):
 def validate_route_topology(trace):
     selected = matching_indexes(trace, "route_selected")
     if not selected:
-        if any(item.get("event") in ROUTE_SPECIFIC_EVENTS for item in trace):
+        if any(
+            item.get("event") in ROUTE_SPECIFIC_EVENTS.union(REMEDIAL_EVENTS)
+            for item in trace
+        ):
             return "route-specific events require exactly one selected route"
         return None
     if len(selected) != 1:
@@ -782,6 +963,9 @@ def validate_route_topology(trace):
     route = trace[selected[0]].get("route")
     if route not in ROUTE_ALLOWED_EVENTS:
         return "selected route is outside the closed route vocabulary"
+    remedial_reason = validate_direct_remedial_topology(trace, selected[0])
+    if remedial_reason is not None:
+        return remedial_reason
     for occurrence in trace:
         event = occurrence.get("event")
         if event in ROUTE_SPECIFIC_EVENTS and event not in ROUTE_ALLOWED_EVENTS[route]:
@@ -1035,6 +1219,7 @@ def validate_external_proof(trace):
     checks = (
         (len(matching_indexes(trace, "base_commit")) == 1, "external route requires an unconditional base commit"),
         (not has_event(trace, "conditional_base_commit"), "external base commit must not be conditional"),
+        (owner_is(trace, "base_commit", "implementer"), "external base commit must be implementer-owned"),
         (len(matching_indexes(trace, "independent_commit_proof")) == 1, "external route requires independent commit proof"),
         (owner_is(trace, "independent_commit_proof", "orchestrator"), "external commit proof must be independently owned"),
         (ordered(trace, "external_evidence", "base_commit"), "external evidence must precede base commit"),
@@ -1139,6 +1324,9 @@ def validate_completion_reuse(trace):
         return None
     if full_verify:
         return None
+    if has_event(trace, "completion") or has_event(trace, "user_gate"):
+        if not has_fact_context:
+            return "completion endpoint without reusable facts requires full verify"
     if has_fact_context:
         return "incomplete or changed completion facts require full verify"
     return None
@@ -1216,13 +1404,19 @@ def validate_concern_disposition(trace):
     for event, label in user_concerns.items():
         for concern_index in matching_indexes(trace, event):
             concern_value = trace[concern_index].get("value")
-            if not any(
-                trace[index].get("value") == concern_value
-                and trace[index].get("disposition") == "user_accepted"
-                and trace[index].get("owner") == "user"
+            disposition_index = next(
+                index
                 for index in dispositions
-            ):
-                return f"user-owned {label} concern requires user acceptance"
+                if trace[index].get("value") == concern_value
+            )
+            disposition = trace[disposition_index].get("disposition")
+            if disposition in {"pending", "promoted_to_failure"}:
+                continue
+            if trace[disposition_index].get("owner") != "user":
+                return (
+                    f"user-owned {label} concern requires user acceptance "
+                    "for terminal disposition"
+                )
     return None
 
 
@@ -1284,6 +1478,8 @@ def validate_review_topology(trace):
         return "final full-diff review must occur exactly once"
     if len(verdict_indexes) > 1:
         return "review verdict must occur exactly once"
+    if verdict_indexes and len(final_indexes) != 1:
+        return "review verdict requires one applicable final full-diff review"
     if final_review:
         final_outcome = trace[final_indexes[0]].get("outcome")
         if final_outcome not in RESULT_OUTCOMES["final_full_diff_review"]:
@@ -1292,6 +1488,11 @@ def validate_review_topology(trace):
             trace, "review_verdict", outcome="clear"
         ):
             return "blocking final review cannot have a clear verdict"
+        if has_event(trace, "review_verdict", outcome="blocking"):
+            if final_outcome == "green":
+                return "blocking review verdict cannot follow a green final full-diff review"
+            if not ordered(trace, "final_full_diff_review", "review_verdict"):
+                return "final full-diff review must precede blocking review verdict"
     if clear_verdicts:
         if len(clear_verdicts) != 1 or len(final_indexes) != 1:
             return "clear review verdict requires one successful final full-diff review"
@@ -1370,6 +1571,34 @@ def render_protected_block(invariant):
     )
 
 
+def protected_block_mismatches(contract, markdown_blobs):
+    combined_markdown = b"\n".join(markdown_blobs.values())
+    expected_ids = {invariant["id"] for invariant in contract["invariants"]}
+    marker_ids = {
+        match.decode("ascii")
+        for match in re.findall(
+            rb"<!-- leanforge:run-semantic:([^:]+):start -->",
+            combined_markdown,
+        )
+    }
+    mismatches = expected_ids.symmetric_difference(marker_ids)
+    for invariant in contract["invariants"]:
+        invariant_id = invariant["id"]
+        escaped_id = re.escape(invariant_id.encode("ascii"))
+        marker = re.compile(
+            rb"(?ms)<!-- leanforge:run-semantic:"
+            + escaped_id
+            + rb":start -->.*?<!-- leanforge:run-semantic:"
+            + escaped_id
+            + rb":end -->"
+        )
+        blocks = marker.findall(combined_markdown)
+        expected = render_protected_block(invariant).encode("utf-8")
+        if len(blocks) != 1 or blocks[0] != expected:
+            mismatches.add(invariant_id)
+    return mismatches
+
+
 class RunSemanticContractTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -1381,6 +1610,10 @@ class RunSemanticContractTests(unittest.TestCase):
     def test_hand_authored_behavior_scenarios(self):
         for scenario in self.fixture["scenarios"]:
             with self.subTest(scenario=scenario["id"]):
+                self.assertEqual(
+                    evaluate_assertions(scenario["trace"], scenario["assertions"]),
+                    [],
+                )
                 result = validate_semantics(self.contract, scenario["trace"])
                 self.assertEqual(result["valid"], scenario["expected_valid"])
                 self.assertEqual(result["outcome"], scenario["expected_outcome"])
@@ -1391,6 +1624,10 @@ class RunSemanticContractTests(unittest.TestCase):
         survivors = []
         for mutant in self.fixture["mutants"]:
             with self.subTest(mutant=mutant["id"]):
+                self.assertEqual(
+                    evaluate_assertions(mutant["trace"], mutant["assertions"]),
+                    [],
+                )
                 result = validate_semantics(self.contract, mutant["trace"])
                 if result["valid"]:
                     survivors.append(mutant["id"])
@@ -1497,6 +1734,21 @@ class RunSemanticContractTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             validate_semantics(self.contract, invalid_scalar)
 
+    def test_external_base_commit_is_implementer_owned_and_precedes_proof(self):
+        trace = [
+            {"event": "route_selected", "route": "external", "owner": "orchestrator"},
+            {"event": "selected_base", "value": "sha-A", "owner": "orchestrator"},
+            {"event": "external_base_pin", "value": "sha-A", "owner": "implementer"},
+            {"event": "external_action", "owner": "implementer"},
+            {"event": "external_evidence", "outcome": "green", "owner": "implementer"},
+            {"event": "base_commit", "owner": "orchestrator"},
+            {"event": "independent_commit_proof", "owner": "orchestrator"},
+        ]
+        self.assertEqual(
+            validate_external_proof(trace),
+            "external base commit must be implementer-owned",
+        )
+
     def test_completion_reuse_is_derived_from_actual_facts(self):
         reuse = [
             {"event": "prior_integration", "outcome": "green"},
@@ -1537,6 +1789,62 @@ class RunSemanticContractTests(unittest.TestCase):
                     result["reason"],
                     "incomplete or changed completion facts require full verify",
                 )
+
+    def test_completion_endpoint_without_reuse_facts_requires_full_verify(self):
+        self.assertEqual(
+            validate_completion_reuse(
+                [{"event": "completion", "owner": "orchestrator"}]
+            ),
+            "completion endpoint without reusable facts requires full verify",
+        )
+
+    def test_completion_reuse_facts_remain_unique_green_and_equal(self):
+        cases = (
+            (
+                [
+                    {"event": "prior_integration", "outcome": "green"},
+                    {"event": "prior_integration", "outcome": "green"},
+                    {"event": "completion_reused"},
+                ],
+                "completion reuse requires exactly one prior integration result",
+            ),
+            (
+                [
+                    {"event": "prior_integration", "outcome": "non_green"},
+                    {"event": "prior_verify_set", "value": "full"},
+                    {"event": "completion_verify_set", "value": "full"},
+                    {"event": "prior_gate_base_tip", "value": "sha-A"},
+                    {"event": "current_base_tip", "value": "sha-A"},
+                    {"event": "completion_reused"},
+                ],
+                "completion reuse requires prior green integration",
+            ),
+            (
+                [
+                    {"event": "prior_integration", "outcome": "green"},
+                    {"event": "prior_verify_set", "value": "full"},
+                    {"event": "completion_verify_set", "value": "changed"},
+                    {"event": "prior_gate_base_tip", "value": "sha-A"},
+                    {"event": "current_base_tip", "value": "sha-A"},
+                    {"event": "completion_reused"},
+                ],
+                "completion reuse requires an identical verify set",
+            ),
+            (
+                [
+                    {"event": "prior_integration", "outcome": "green"},
+                    {"event": "prior_verify_set", "value": "full"},
+                    {"event": "completion_verify_set", "value": "full"},
+                    {"event": "prior_gate_base_tip", "value": "sha-A"},
+                    {"event": "current_base_tip", "value": "sha-B"},
+                    {"event": "completion_reused"},
+                ],
+                "completion reuse requires the same gate and current base-tip SHA",
+            ),
+        )
+        for trace, reason in cases:
+            with self.subTest(reason=reason):
+                self.assertEqual(validate_completion_reuse(trace), reason)
 
     def test_failure_overlay_composes_with_route_prefix_and_all_results(self):
         terminal_single_risky = [
@@ -1644,6 +1952,62 @@ class RunSemanticContractTests(unittest.TestCase):
                 self.assertEqual(result["contract_id"], "RUN-CONCERN-DISPOSITION")
                 self.assertEqual(result["reason"], reason)
 
+    def test_user_owned_pending_and_promoted_concerns_do_not_require_acceptance(self):
+        user_concerns = (
+            "user_owned_requirement_concern",
+            "user_owned_compatibility_concern",
+            "user_owned_safety_concern",
+        )
+        for event in user_concerns:
+            pending = [
+                {"event": event, "value": "C-1", "owner": "user"},
+                {
+                    "event": "concern_disposition",
+                    "value": "C-1",
+                    "disposition": "pending",
+                    "owner": "orchestrator",
+                },
+            ]
+            promoted = [
+                {"event": event, "value": "C-1", "owner": "user"},
+                {
+                    "event": "concern_disposition",
+                    "value": "C-1",
+                    "disposition": "promoted_to_failure",
+                    "owner": "orchestrator",
+                },
+                {
+                    "event": "failure_overlay_entered",
+                    "overlay": "failure",
+                    "owner": "runtime_failure_overlay",
+                },
+            ]
+            with self.subTest(event=event, disposition="pending"):
+                self.assertIsNone(validate_concern_disposition(pending))
+            with self.subTest(event=event, disposition="promoted_to_failure"):
+                self.assertIsNone(validate_concern_disposition(promoted))
+
+    def test_user_owned_terminal_concern_requires_user_acceptance(self):
+        for disposition in ("resolved", "explicitly_accepted"):
+            trace = [
+                {
+                    "event": "user_owned_requirement_concern",
+                    "value": "C-1",
+                    "owner": "user",
+                },
+                {
+                    "event": "concern_disposition",
+                    "value": "C-1",
+                    "disposition": disposition,
+                    "owner": "orchestrator",
+                },
+            ]
+            with self.subTest(disposition=disposition):
+                self.assertEqual(
+                    validate_concern_disposition(trace),
+                    "user-owned requirement concern requires user acceptance for terminal disposition",
+                )
+
     def test_review_topology_is_bidirectional_and_result_bearing(self):
         conditional_without_cascade = [
             {"event": "risky_task", "owner": "orchestrator"},
@@ -1687,12 +2051,35 @@ class RunSemanticContractTests(unittest.TestCase):
             {"event": "task_implementation", "owner": "orchestrator"},
             {"event": "evidence_captured", "owner": "orchestrator"},
             {"event": "base_commit", "owner": "orchestrator"},
+            {"event": "completion_full_verify", "outcome": "green", "owner": "orchestrator"},
             {"event": "final_full_diff_review", "outcome": "green", "owner": "orchestrator"},
             {"event": "review_verdict", "outcome": "clear", "owner": "orchestrator"},
             {"event": "completion", "owner": "orchestrator"},
             {"event": "user_gate", "owner": "orchestrator"},
         ]
         self.assertTrue(validate_semantics(self.contract, successful_completion)["valid"])
+
+    def test_blocking_review_verdict_requires_matching_review_topology(self):
+        self.assertEqual(
+            validate_review_topology(
+                [{"event": "review_verdict", "outcome": "blocking"}]
+            ),
+            "review verdict requires one applicable final full-diff review",
+        )
+        self.assertEqual(
+            validate_review_topology(
+                [
+                    {"event": "final_full_diff_review", "outcome": "green"},
+                    {"event": "review_verdict", "outcome": "blocking"},
+                    {
+                        "event": "failure_overlay_entered",
+                        "overlay": "failure",
+                        "owner": "runtime_failure_overlay",
+                    },
+                ]
+            ),
+            "blocking review verdict cannot follow a green final full-diff review",
+        )
 
     def test_route_specific_events_require_one_compatible_selected_route(self):
         missing_route_reason = "route-specific events require exactly one selected route"
@@ -1759,6 +2146,50 @@ class RunSemanticContractTests(unittest.TestCase):
                     validate_failure_overlay(trace),
                     "failure overlay must precede any present continuation",
                 )
+
+    def test_every_routine_event_is_a_failure_continuation(self):
+        routine_events = {
+            event
+            for event in self.contract["vocabulary"]["event"]
+            if event.startswith("routine_")
+        }
+        self.assertTrue(
+            routine_events.issubset(
+                set(self.contract["vocabulary"]["continuation_event"])
+            )
+        )
+        for event in sorted(routine_events):
+            trace = [
+                {"event": "completion_gate", "outcome": "non_green"},
+                {"event": event},
+                {
+                    "event": "failure_overlay_entered",
+                    "overlay": "failure",
+                    "owner": "runtime_failure_overlay",
+                },
+            ]
+            with self.subTest(event=event):
+                self.assertEqual(
+                    validate_failure_overlay(trace),
+                    "failure overlay must precede any present continuation",
+                )
+
+    def test_direct_failure_can_enter_distinct_remedial_worktree_topology(self):
+        trace = [
+            {"event": "route_selected", "route": "direct", "owner": "orchestrator"},
+            {"event": "task_implementation", "owner": "orchestrator"},
+            {"event": "evidence_captured", "owner": "orchestrator"},
+            {"event": "base_commit", "owner": "orchestrator"},
+            {"event": "completion_gate", "outcome": "non_green", "owner": "orchestrator"},
+            {
+                "event": "failure_overlay_entered",
+                "overlay": "failure",
+                "owner": "runtime_failure_overlay",
+            },
+            {"event": "remedial_worktree_created", "owner": "orchestrator"},
+            {"event": "remedial_implementer_continuation", "owner": "implementer"},
+        ]
+        self.assertTrue(validate_semantics(self.contract, trace)["valid"])
 
     def test_final_review_success_and_verdict_are_exact_and_cardinal(self):
         for endpoint in ("completion", "user_gate"):
@@ -1852,7 +2283,7 @@ class RunSemanticContractTests(unittest.TestCase):
 
     def test_fixture_is_an_independent_oracle_without_rule_selection(self):
         serialized = json.dumps(self.fixture, ensure_ascii=False)
-        for forbidden_key in ('"contracts"', '"assertions"', '"assertion_language"'):
+        for forbidden_key in ('"contracts"', '"contract_id"'):
             with self.subTest(forbidden_key=forbidden_key):
                 self.assertNotIn(forbidden_key, serialized)
         for collection_name in ("scenarios", "mutants"):
@@ -1861,25 +2292,90 @@ class RunSemanticContractTests(unittest.TestCase):
                     self.assertIn("expected_valid", item)
                     self.assertIn("expected_outcome", item)
 
-    def test_exactly_one_deterministic_protected_block_per_invariant(self):
-        combined_markdown = "\n".join(
-            path.read_text(encoding="utf-8") for path in MARKDOWN_PATHS
+    def test_fixture_declares_closed_assertion_language_and_literal_assertions(self):
+        self.assertEqual(
+            self.fixture.get("assertion_language"),
+            ["count", "forbid", "before", "same", "owner"],
         )
-        invariants = {item["id"]: item for item in self.contract["invariants"]}
-        marker_ids = re.findall(
-            r"<!-- leanforge:run-semantic:([^:]+):start -->", combined_markdown
+        for collection_name in ("scenarios", "mutants"):
+            for item in self.fixture[collection_name]:
+                with self.subTest(collection=collection_name, item=item["id"]):
+                    self.assertIsInstance(item.get("assertions"), list)
+                    self.assertTrue(item["assertions"])
+
+    def test_each_assertion_operator_catches_a_targeted_trace_mutation(self):
+        scenarios = {item["id"]: item for item in self.fixture["scenarios"]}
+        direct = scenarios["direct-success"]
+        external = scenarios["external-success"]
+        mutations = {}
+
+        mutations["count"] = copy.deepcopy(direct["trace"])
+        mutations["count"].insert(0, copy.deepcopy(mutations["count"][0]))
+        mutations["forbid"] = copy.deepcopy(direct["trace"])
+        mutations["forbid"].append(
+            {"event": "worktree_created", "owner": "orchestrator"}
         )
-        self.assertEqual(sorted(marker_ids), sorted(EXPECTED_INVARIANT_KINDS))
-        for invariant_id, invariant in invariants.items():
-            with self.subTest(invariant=invariant_id):
-                marker = re.compile(
-                    rf"(?ms)<!-- leanforge:run-semantic:{re.escape(invariant_id)}:"
-                    rf"start -->.*?<!-- leanforge:run-semantic:"
-                    rf"{re.escape(invariant_id)}:end -->"
+        mutations["before"] = copy.deepcopy(direct["trace"])
+        mutations["before"][0], mutations["before"][1] = (
+            mutations["before"][1],
+            mutations["before"][0],
+        )
+        mutations["same"] = copy.deepcopy(external["trace"])
+        next(
+            occurrence
+            for occurrence in mutations["same"]
+            if occurrence["event"] == "external_base_pin"
+        )["value"] = "sha-B"
+        mutations["owner"] = copy.deepcopy(direct["trace"])
+        next(
+            occurrence
+            for occurrence in mutations["owner"]
+            if occurrence["event"] == "task_implementation"
+        )["owner"] = "implementer"
+
+        operator_sources = {
+            "count": direct,
+            "forbid": direct,
+            "before": direct,
+            "same": external,
+            "owner": direct,
+        }
+        for operator in ASSERTION_OPERATORS:
+            assertion = next(
+                assertion
+                for assertion in operator_sources[operator]["assertions"]
+                if assertion["op"] == operator
+            )
+            with self.subTest(operator=operator):
+                self.assertEqual(
+                    evaluate_assertions(mutations[operator], [assertion]),
+                    [f"assertions[0] {operator} failed"],
                 )
-                blocks = marker.findall(combined_markdown)
-                self.assertEqual(len(blocks), 1)
-                self.assertEqual(blocks[0], render_protected_block(invariant))
+
+    def test_protected_block_comparison_rejects_crlf_byte_drift(self):
+        markdown_blobs = {path: path.read_bytes() for path in MARKDOWN_PATHS}
+        self.assertEqual(protected_block_mismatches(self.contract, markdown_blobs), set())
+        invariant = self.contract["invariants"][0]
+        expected = render_protected_block(invariant).encode("utf-8")
+        drifted = expected.replace(b"\n", b"\r\n")
+        mutated_blobs = dict(markdown_blobs)
+        containing_path = next(
+            path for path, raw in markdown_blobs.items() if expected in raw
+        )
+        mutated_blobs[containing_path] = mutated_blobs[containing_path].replace(
+            expected, drifted, 1
+        )
+        self.assertEqual(
+            protected_block_mismatches(self.contract, mutated_blobs),
+            {invariant["id"]},
+        )
+
+    def test_exactly_one_deterministic_protected_block_per_invariant(self):
+        markdown_blobs = {path: path.read_bytes() for path in MARKDOWN_PATHS}
+        self.assertEqual(
+            protected_block_mismatches(self.contract, markdown_blobs),
+            set(),
+        )
 
     def test_contract_schema_fails_closed(self):
         mutations = []
@@ -1913,7 +2409,10 @@ class RunSemanticContractTests(unittest.TestCase):
         mutations.append(("caller-selected contracts", caller_contracts))
         assertion_program = copy.deepcopy(self.fixture)
         assertion_program["scenarios"][0]["assertions"] = []
-        mutations.append(("fixture assertion program", assertion_program))
+        mutations.append(("empty fixture assertion program", assertion_program))
+        unknown_assertion = copy.deepcopy(self.fixture)
+        unknown_assertion["scenarios"][0]["assertions"][0]["op"] = "select_rule"
+        mutations.append(("unknown fixture assertion", unknown_assertion))
         unknown_event = copy.deepcopy(self.fixture)
         unknown_event["scenarios"][0]["trace"][0]["event"] = "unknown_event"
         mutations.append(("unknown event", unknown_event))

@@ -118,7 +118,7 @@ merge gates, wiring, verification, context budget, cleanup, and failure handling
 {
   "id": "RUN-ROUTE-TOPOLOGY",
   "kind": "route_topology",
-  "definition": "Run has exactly four closed success routes, and any route-specific event requires exactly one route_selected with a closed route value. Their topologies are mutually exclusive: direct is orchestrator-owned on the base with captured evidence, single_risky uses one isolated implementer worktree with verification and merge gates, parallel uses isolated task worktrees with serial merge, regeneration, wiring, and a green wave integration gate, and external is a base-pinned implementer route without a file diff. Topology validates the ordered prefix reached before the first failed result, forbids later route advancement, and does not require unreached success-only stages. Failure is an overlay, not a success route.",
+  "definition": "Run has exactly four closed success routes, and any route-specific event requires exactly one route_selected with a closed route value. Their topologies are mutually exclusive: direct is orchestrator-owned on the base with captured evidence, single_risky uses one isolated implementer worktree with verification and merge gates, parallel uses isolated task worktrees with serial merge, regeneration, wiring, and a green wave integration gate, and external is a base-pinned implementer route without a file diff. Topology validates the ordered prefix reached before the first failed result, forbids later success-route advancement, and does not require unreached success-only stages. A direct route may enter a distinct post-failure remedial topology only after the failure overlay, with an orchestrator-owned remedial worktree followed by an implementer continuation. Failure is an overlay, not a success route.",
   "constraints": [
     "The closed success-route set is direct, single_risky, parallel, and external.",
     "Any route-specific event requires exactly one route_selected event with one closed route value.",
@@ -127,7 +127,8 @@ merge gates, wiring, verification, context budget, cleanup, and failure handling
     "Single-risky work uses one isolated implementer worktree and verifies before merge gates and merge.",
     "Parallel work uses isolated task worktrees, serial merge, regeneration, wiring, and a green integration gate in that order.",
     "External work is performed by a base-pinned implementer without a task worktree or file diff.",
-    "The reached route prefix is ordered; a failed or unevaluable result ends it, forbids downstream route advancement, and leaves unreached success events optional.",
+    "The reached route prefix is ordered; a failed or unevaluable result ends it, forbids downstream success-route advancement, and leaves unreached success events optional.",
+    "Direct post-failure substantive remediation is not initial route mixing: the failed result and runtime-owned failure overlay precede one orchestrator-owned remedial worktree and then one implementer continuation.",
     "Failure is an overlay and never a fifth success route."
   ]
 }
@@ -160,12 +161,12 @@ merge gates, wiring, verification, context budget, cleanup, and failure handling
 {
   "id": "RUN-REVIEW-TOPOLOGY",
   "kind": "review_topology",
-  "definition": "Conditional spec review occurs if and only if both risky-task and downstream-cascade-risk facts are present, and it never replaces final full-diff review after a clear conditional result. Every successful completion or user gate follows exactly one final full-diff review with outcome green and then exactly one review verdict with outcome clear. A clear verdict correlates only to that unique green final review. Duplicate or conflicting verdicts are invalid, and a blocking verdict is a failed review result that enters the runtime-owned failure overlay before continuation.",
+  "definition": "Conditional spec review occurs if and only if both risky-task and downstream-cascade-risk facts are present, and it never replaces final full-diff review after a clear conditional result. Every successful completion or user gate follows exactly one final full-diff review with outcome green and then exactly one review verdict with outcome clear. Every review verdict requires exactly one applicable final full-diff review: clear correlates only to its unique green review, while blocking cannot correlate to a green review and remains a failed result that enters the runtime-owned failure overlay before continuation. Duplicate or conflicting verdicts are invalid.",
   "constraints": [
     "Risky downstream cascade requires conditional spec review before dispatch and final review, and either missing prerequisite forbids it.",
     "Conditional and final review events and review verdicts carry their actual closed result values.",
     "Successful completion and the user gate require exactly one green final full-diff review, then exactly one clear review verdict, then the endpoint.",
-    "Review verdicts cannot duplicate or conflict; clear correlates only to the unique green final review, while blocking enters the runtime-owned failure overlay before continuation."
+    "Every verdict requires exactly one applicable final full-diff review; clear correlates only to a unique green final review, blocking cannot follow a green final review and enters the runtime-owned failure overlay before continuation."
   ]
 }
 ```
@@ -221,11 +222,12 @@ Done only when all hold on evidence:
 {
   "id": "RUN-COMPLETION-REUSE",
   "kind": "completion_reuse",
-  "definition": "Completion reuses prior integration only from unique actual facts: exactly one prior green integration result, one identical non-empty prior and completion verify set, and one identical non-empty prior-gate and current base-tip SHA. Duplicate or conflicting facts are invalid; any missing, non-green, unevaluable, or unequal fact requires the completion full verify set.",
+  "definition": "Completion reuses prior integration only from unique actual facts: exactly one prior green integration result, one identical non-empty prior and completion verify set, and one identical non-empty prior-gate and current base-tip SHA. Duplicate or conflicting facts are invalid; any missing, non-green, unevaluable, or unequal fact requires the completion full verify set, and a completion endpoint with all reuse facts omitted also requires that full verification.",
   "constraints": [
     "Reuse requires each of the five actual fact kinds exactly once: prior green integration, identical non-empty verify sets, and identical non-empty prior-gate and current base-tip SHAs.",
     "Duplicate or conflicting completion facts are rejected rather than selected or collapsed.",
     "Missing, non-green, unevaluable, or unequal facts require full verification and forbid reuse.",
+    "A completion or user-gate endpoint with no reuse facts cannot skip the completion full verify set.",
     "A full verify may be run even when all reuse facts match."
   ]
 }
