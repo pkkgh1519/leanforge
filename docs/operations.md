@@ -31,7 +31,7 @@ Git, Bash, Python, Perl이 PATH에 있어야 한다. CI 기준 Python은 3.12이
 ```text
 git clone https://github.com/pkkgh1519/leanforge.git
 cd leanforge
-git switch -c <branch-name>
+git switch -c feature/local-change
 git --version
 bash --version
 python --version
