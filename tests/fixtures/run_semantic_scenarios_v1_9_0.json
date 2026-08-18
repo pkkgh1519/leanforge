@@ -68,11 +68,13 @@
         },
         {
           "event": "worktree_created",
-          "owner": "orchestrator"
+          "owner": "orchestrator",
+          "task_id": "task-a"
         },
         {
           "event": "task_implementation",
-          "owner": "implementer"
+          "owner": "implementer",
+          "task_id": "task-a"
         },
         {
           "event": "evidence_captured",
@@ -81,7 +83,8 @@
         {
           "event": "task_verification",
           "outcome": "green",
-          "owner": "implementer"
+          "owner": "implementer",
+          "task_id": "task-a"
         },
         {
           "event": "merge_precondition",
@@ -91,11 +94,13 @@
         {
           "event": "merge_gate",
           "outcome": "green",
-          "owner": "orchestrator"
+          "owner": "orchestrator",
+          "task_id": "task-a"
         },
         {
           "event": "task_merged",
-          "owner": "orchestrator"
+          "owner": "orchestrator",
+          "task_id": "task-a"
         }
       ],
       "expected_valid": true,
@@ -452,11 +457,13 @@
         },
         {
           "event": "worktree_created",
-          "owner": "orchestrator"
+          "owner": "orchestrator",
+          "task_id": "task-a"
         },
         {
           "event": "task_implementation",
-          "owner": "implementer"
+          "owner": "implementer",
+          "task_id": "task-a"
         },
         {
           "event": "evidence_captured",
@@ -465,7 +472,8 @@
         {
           "event": "task_verification",
           "outcome": "non_green",
-          "owner": "implementer"
+          "owner": "implementer",
+          "task_id": "task-a"
         },
         {
           "event": "failure_overlay_entered",
@@ -524,11 +532,13 @@
         },
         {
           "event": "worktree_created",
-          "owner": "orchestrator"
+          "owner": "orchestrator",
+          "task_id": "task-a"
         },
         {
           "event": "task_implementation",
-          "owner": "implementer"
+          "owner": "implementer",
+          "task_id": "task-a"
         },
         {
           "event": "evidence_captured",
@@ -537,7 +547,8 @@
         {
           "event": "task_verification",
           "outcome": "unevaluable",
-          "owner": "implementer"
+          "owner": "implementer",
+          "task_id": "task-a"
         },
         {
           "event": "failure_overlay_entered",
@@ -596,11 +607,13 @@
         },
         {
           "event": "worktree_created",
-          "owner": "orchestrator"
+          "owner": "orchestrator",
+          "task_id": "task-a"
         },
         {
           "event": "task_implementation",
-          "owner": "implementer"
+          "owner": "implementer",
+          "task_id": "task-a"
         },
         {
           "event": "evidence_captured",
@@ -609,7 +622,8 @@
         {
           "event": "task_verification",
           "outcome": "green",
-          "owner": "implementer"
+          "owner": "implementer",
+          "task_id": "task-a"
         },
         {
           "event": "merge_precondition",
@@ -619,7 +633,8 @@
         {
           "event": "merge_gate",
           "outcome": "non_green",
-          "owner": "orchestrator"
+          "owner": "orchestrator",
+          "task_id": "task-a"
         },
         {
           "event": "failure_overlay_entered",
@@ -678,11 +693,13 @@
         },
         {
           "event": "worktree_created",
-          "owner": "orchestrator"
+          "owner": "orchestrator",
+          "task_id": "task-a"
         },
         {
           "event": "task_implementation",
-          "owner": "implementer"
+          "owner": "implementer",
+          "task_id": "task-a"
         },
         {
           "event": "evidence_captured",
@@ -691,7 +708,8 @@
         {
           "event": "task_verification",
           "outcome": "green",
-          "owner": "implementer"
+          "owner": "implementer",
+          "task_id": "task-a"
         },
         {
           "event": "merge_precondition",
@@ -701,7 +719,8 @@
         {
           "event": "merge_gate",
           "outcome": "unevaluable",
-          "owner": "orchestrator"
+          "owner": "orchestrator",
+          "task_id": "task-a"
         },
         {
           "event": "failure_overlay_entered",
@@ -2184,11 +2203,13 @@
         },
         {
           "event": "worktree_created",
-          "owner": "orchestrator"
+          "owner": "orchestrator",
+          "task_id": "task-a"
         },
         {
           "event": "task_implementation",
-          "owner": "implementer"
+          "owner": "implementer",
+          "task_id": "task-a"
         },
         {
           "event": "evidence_captured",
@@ -2197,7 +2218,8 @@
         {
           "event": "task_verification",
           "outcome": "green",
-          "owner": "implementer"
+          "owner": "implementer",
+          "task_id": "task-a"
         },
         {
           "event": "merge_precondition",
@@ -3245,11 +3267,13 @@
         },
         {
           "event": "worktree_created",
-          "owner": "orchestrator"
+          "owner": "orchestrator",
+          "task_id": "task-a"
         },
         {
           "event": "task_implementation",
-          "owner": "implementer"
+          "owner": "implementer",
+          "task_id": "task-a"
         },
         {
           "event": "evidence_captured",
@@ -3258,7 +3282,8 @@
         {
           "event": "task_verification",
           "outcome": "non_green",
-          "owner": "implementer"
+          "owner": "implementer",
+          "task_id": "task-a"
         },
         {
           "event": "failure_overlay_entered",
@@ -3287,11 +3312,13 @@
         },
         {
           "event": "worktree_created",
-          "owner": "orchestrator"
+          "owner": "orchestrator",
+          "task_id": "task-a"
         },
         {
           "event": "task_implementation",
-          "owner": "implementer"
+          "owner": "implementer",
+          "task_id": "task-a"
         },
         {
           "event": "evidence_captured",
@@ -3300,7 +3327,8 @@
         {
           "event": "task_verification",
           "outcome": "green",
-          "owner": "implementer"
+          "owner": "implementer",
+          "task_id": "task-a"
         },
         {
           "event": "merge_precondition",
@@ -3383,11 +3411,13 @@
         },
         {
           "event": "worktree_created",
-          "owner": "orchestrator"
+          "owner": "orchestrator",
+          "task_id": "task-a"
         },
         {
           "event": "task_implementation",
-          "owner": "implementer"
+          "owner": "implementer",
+          "task_id": "task-a"
         },
         {
           "event": "evidence_captured",
@@ -3396,7 +3426,8 @@
         {
           "event": "task_verification",
           "outcome": "non_green",
-          "owner": "implementer"
+          "owner": "implementer",
+          "task_id": "task-a"
         },
         {
           "event": "failure_overlay_entered",
@@ -3962,9 +3993,14 @@
       "assertions": [
         {
           "op": "count",
-          "event": "route_selected",
+          "event": "conditional_base_commit",
           "filter": {},
           "expected": 1
+        },
+        {
+          "op": "forbid",
+          "event": "base_commit",
+          "filter": {}
         }
       ]
     },
@@ -4005,10 +4041,9 @@
       "expected_reason": "external route requires independent commit proof",
       "assertions": [
         {
-          "op": "count",
-          "event": "route_selected",
-          "filter": {},
-          "expected": 1
+          "op": "forbid",
+          "event": "independent_commit_proof",
+          "filter": {}
         }
       ]
     },
@@ -4021,11 +4056,13 @@
         },
         {
           "event": "worktree_created",
-          "owner": "orchestrator"
+          "owner": "orchestrator",
+          "task_id": "task-a"
         },
         {
           "event": "task_implementation",
-          "owner": "implementer"
+          "owner": "implementer",
+          "task_id": "task-a"
         },
         {
           "event": "evidence_captured",
@@ -4033,12 +4070,14 @@
         },
         {
           "event": "task_merged",
-          "owner": "orchestrator"
+          "owner": "orchestrator",
+          "task_id": "task-a"
         },
         {
           "event": "task_verification",
           "outcome": "green",
-          "owner": "implementer"
+          "owner": "implementer",
+          "task_id": "task-a"
         },
         {
           "event": "merge_precondition",
@@ -4048,7 +4087,8 @@
         {
           "event": "merge_gate",
           "outcome": "green",
-          "owner": "orchestrator"
+          "owner": "orchestrator",
+          "task_id": "task-a"
         }
       ],
       "expected_valid": false,
@@ -4057,10 +4097,9 @@
       "expected_reason": "single-risky verification must precede merge",
       "assertions": [
         {
-          "op": "count",
-          "event": "route_selected",
-          "filter": {},
-          "expected": 1
+          "op": "before",
+          "event_a": "task_merged",
+          "event_b": "task_verification"
         }
       ]
     },
@@ -4161,10 +4200,9 @@
       "expected_reason": "parallel route requires one green integration gate",
       "assertions": [
         {
-          "op": "count",
-          "event": "route_selected",
-          "filter": {},
-          "expected": 1
+          "op": "forbid",
+          "event": "integration_gate",
+          "filter": {}
         }
       ]
     },
@@ -4184,6 +4222,10 @@
           "value": "build,test,lint"
         },
         {
+          "event": "prior_gate_base_tip",
+          "value": "sha-A"
+        },
+        {
           "event": "completion_reused",
           "owner": "orchestrator"
         }
@@ -4191,13 +4233,20 @@
       "expected_valid": false,
       "expected_outcome": "rejected",
       "expected_contract_id": "RUN-COMPLETION-REUSE",
-      "expected_reason": "completion reuse requires the prior gate base-tip SHA",
+      "expected_reason": "completion reuse requires the current base-tip SHA",
       "assertions": [
         {
           "op": "count",
-          "event": "prior_integration",
-          "filter": {},
+          "event": "prior_gate_base_tip",
+          "filter": {
+            "value": "sha-A"
+          },
           "expected": 1
+        },
+        {
+          "op": "forbid",
+          "event": "current_base_tip",
+          "filter": {}
         }
       ]
     },
@@ -4217,6 +4266,10 @@
           "value": "sha-A"
         },
         {
+          "event": "prior_verify_set",
+          "value": "build,test,lint"
+        },
+        {
           "event": "completion_reused",
           "owner": "orchestrator"
         }
@@ -4224,13 +4277,20 @@
       "expected_valid": false,
       "expected_outcome": "rejected",
       "expected_contract_id": "RUN-COMPLETION-REUSE",
-      "expected_reason": "completion reuse requires the prior verify set",
+      "expected_reason": "completion reuse requires the completion verify set",
       "assertions": [
         {
           "op": "count",
-          "event": "prior_integration",
-          "filter": {},
+          "event": "prior_verify_set",
+          "filter": {
+            "value": "build,test,lint"
+          },
           "expected": 1
+        },
+        {
+          "op": "forbid",
+          "event": "completion_verify_set",
+          "filter": {}
         }
       ]
     },
@@ -4244,11 +4304,13 @@
         },
         {
           "event": "worktree_created",
-          "owner": "orchestrator"
+          "owner": "orchestrator",
+          "task_id": "task-a"
         },
         {
           "event": "task_implementation",
-          "owner": "implementer"
+          "owner": "implementer",
+          "task_id": "task-a"
         },
         {
           "event": "evidence_captured",
@@ -4257,7 +4319,8 @@
         {
           "event": "task_verification",
           "outcome": "unevaluable",
-          "owner": "implementer"
+          "owner": "implementer",
+          "task_id": "task-a"
         },
         {
           "event": "progress",
@@ -4271,9 +4334,22 @@
       "assertions": [
         {
           "op": "count",
-          "event": "route_selected",
+          "event": "task_verification",
+          "filter": {
+            "outcome": "unevaluable"
+          },
+          "expected": 1
+        },
+        {
+          "op": "count",
+          "event": "progress",
           "filter": {},
           "expected": 1
+        },
+        {
+          "op": "forbid",
+          "event": "failure_overlay_entered",
+          "filter": {}
         }
       ]
     },
@@ -4291,10 +4367,9 @@
       "expected_reason": "startup ownership belongs to harness lifecycle",
       "assertions": [
         {
-          "op": "count",
+          "op": "owner",
           "event": "startup",
-          "filter": {},
-          "expected": 1
+          "expected_owner": "runtime_failure_overlay"
         }
       ]
     },
@@ -4329,14 +4404,16 @@
       "assertions": [
         {
           "op": "count",
-          "event": "concern_recorded",
-          "filter": {},
+          "event": "concern_disposition",
+          "filter": {
+            "disposition": "pending"
+          },
           "expected": 1
         },
         {
           "op": "before",
-          "event_a": "concern_recorded",
-          "event_b": "concern_disposition"
+          "event_a": "concern_disposition",
+          "event_b": "completion"
         }
       ]
     },
@@ -4362,14 +4439,16 @@
       "assertions": [
         {
           "op": "count",
-          "event": "user_owned_safety_concern",
-          "filter": {},
+          "event": "concern_disposition",
+          "filter": {
+            "disposition": "explicitly_accepted"
+          },
           "expected": 1
         },
         {
-          "op": "before",
-          "event_a": "user_owned_safety_concern",
-          "event_b": "concern_disposition"
+          "op": "owner",
+          "event": "concern_disposition",
+          "expected_owner": "orchestrator"
         }
       ]
     },
@@ -4404,9 +4483,22 @@
       "assertions": [
         {
           "op": "count",
-          "event": "risky_task",
+          "event": "conditional_spec_review",
+          "filter": {
+            "outcome": "clear"
+          },
+          "expected": 1
+        },
+        {
+          "op": "count",
+          "event": "downstream_dispatch",
           "filter": {},
           "expected": 1
+        },
+        {
+          "op": "forbid",
+          "event": "final_full_diff_review",
+          "filter": {}
         }
       ]
     },
@@ -4429,7 +4521,7 @@
       "assertions": [
         {
           "op": "count",
-          "event": "routine_read",
+          "event": "user_output_routine_progress",
           "filter": {},
           "expected": 1
         }
@@ -4478,8 +4570,18 @@
       "assertions": [
         {
           "op": "count",
-          "event": "route_selected",
-          "filter": {},
+          "event": "selected_base",
+          "filter": {
+            "value": "sha-A"
+          },
+          "expected": 1
+        },
+        {
+          "op": "count",
+          "event": "external_base_pin",
+          "filter": {
+            "value": "sha-B"
+          },
           "expected": 1
         }
       ]
@@ -4498,11 +4600,13 @@
         },
         {
           "event": "worktree_created",
-          "owner": "orchestrator"
+          "owner": "orchestrator",
+          "task_id": "task-a"
         },
         {
           "event": "task_implementation",
-          "owner": "implementer"
+          "owner": "implementer",
+          "task_id": "task-a"
         },
         {
           "event": "evidence_captured",
@@ -4511,7 +4615,8 @@
         {
           "event": "task_verification",
           "outcome": "green",
-          "owner": "implementer"
+          "owner": "implementer",
+          "task_id": "task-a"
         },
         {
           "event": "merge_precondition",
@@ -4530,9 +4635,22 @@
       "assertions": [
         {
           "op": "count",
-          "event": "startup",
+          "event": "merge_precondition",
+          "filter": {
+            "outcome": "unevaluable"
+          },
+          "expected": 1
+        },
+        {
+          "op": "count",
+          "event": "progress",
           "filter": {},
           "expected": 1
+        },
+        {
+          "op": "forbid",
+          "event": "failure_overlay_entered",
+          "filter": {}
         }
       ]
     },
@@ -4578,9 +4696,16 @@
       "assertions": [
         {
           "op": "count",
-          "event": "route_selected",
+          "event": "external_base_pin",
           "filter": {},
           "expected": 1
+        },
+        {
+          "op": "forbid",
+          "event": "external_base_pin",
+          "filter": {
+            "value": "sha-A"
+          }
         }
       ]
     },
@@ -4610,10 +4735,14 @@
       "expected_reason": "incomplete or changed completion facts require full verify",
       "assertions": [
         {
-          "op": "count",
-          "event": "prior_verify_set",
-          "filter": {},
-          "expected": 1
+          "op": "forbid",
+          "event": "prior_integration",
+          "filter": {}
+        },
+        {
+          "op": "forbid",
+          "event": "completion_full_verify",
+          "filter": {}
         }
       ]
     },
@@ -4648,9 +4777,24 @@
       "assertions": [
         {
           "op": "count",
-          "event": "prior_integration",
-          "filter": {},
+          "event": "prior_verify_set",
+          "filter": {
+            "value": "build,test"
+          },
           "expected": 1
+        },
+        {
+          "op": "count",
+          "event": "completion_verify_set",
+          "filter": {
+            "value": "build,test,lint"
+          },
+          "expected": 1
+        },
+        {
+          "op": "forbid",
+          "event": "completion_full_verify",
+          "filter": {}
         }
       ]
     },
@@ -4685,9 +4829,24 @@
       "assertions": [
         {
           "op": "count",
-          "event": "prior_integration",
-          "filter": {},
+          "event": "prior_gate_base_tip",
+          "filter": {
+            "value": "sha-A"
+          },
           "expected": 1
+        },
+        {
+          "op": "count",
+          "event": "current_base_tip",
+          "filter": {
+            "value": "sha-B"
+          },
+          "expected": 1
+        },
+        {
+          "op": "forbid",
+          "event": "completion_full_verify",
+          "filter": {}
         }
       ]
     },
@@ -4726,9 +4885,16 @@
       "assertions": [
         {
           "op": "count",
-          "event": "route_selected",
-          "filter": {},
+          "event": "external_evidence",
+          "filter": {
+            "outcome": "non_green"
+          },
           "expected": 1
+        },
+        {
+          "op": "forbid",
+          "event": "failure_overlay_entered",
+          "filter": {}
         }
       ]
     },
@@ -4749,8 +4915,15 @@
         {
           "op": "count",
           "event": "completion_full_verify",
-          "filter": {},
+          "filter": {
+            "outcome": "non_green"
+          },
           "expected": 1
+        },
+        {
+          "op": "forbid",
+          "event": "failure_overlay_entered",
+          "filter": {}
         }
       ]
     },
@@ -4781,9 +4954,16 @@
       "assertions": [
         {
           "op": "count",
-          "event": "risky_task",
-          "filter": {},
+          "event": "conditional_spec_review",
+          "filter": {
+            "outcome": "non_green"
+          },
           "expected": 1
+        },
+        {
+          "op": "forbid",
+          "event": "failure_overlay_entered",
+          "filter": {}
         }
       ]
     },
@@ -4809,8 +4989,23 @@
         {
           "op": "count",
           "event": "final_full_diff_review",
-          "filter": {},
+          "filter": {
+            "outcome": "blocking"
+          },
           "expected": 1
+        },
+        {
+          "op": "count",
+          "event": "review_verdict",
+          "filter": {
+            "outcome": "clear"
+          },
+          "expected": 1
+        },
+        {
+          "op": "forbid",
+          "event": "failure_overlay_entered",
+          "filter": {}
         }
       ]
     },
@@ -4834,10 +5029,9 @@
       "expected_reason": "failure overlay must be runtime-failure-overlay-owned",
       "assertions": [
         {
-          "op": "count",
-          "event": "task_verification",
-          "filter": {},
-          "expected": 1
+          "op": "owner",
+          "event": "failure_overlay_entered",
+          "expected_owner": "orchestrator"
         }
       ]
     },
@@ -4862,14 +5056,44 @@
       "assertions": [
         {
           "op": "count",
-          "event": "concern_recorded",
+          "event": "concern_disposition",
           "filter": {},
           "expected": 1
         },
         {
-          "op": "before",
-          "event_a": "concern_recorded",
-          "event_b": "concern_disposition"
+          "op": "forbid",
+          "event": "concern_disposition",
+          "filter": {
+            "disposition": "resolved"
+          }
+        },
+        {
+          "op": "forbid",
+          "event": "concern_disposition",
+          "filter": {
+            "disposition": "explicitly_accepted"
+          }
+        },
+        {
+          "op": "forbid",
+          "event": "concern_disposition",
+          "filter": {
+            "disposition": "user_accepted"
+          }
+        },
+        {
+          "op": "forbid",
+          "event": "concern_disposition",
+          "filter": {
+            "disposition": "promoted_to_failure"
+          }
+        },
+        {
+          "op": "forbid",
+          "event": "concern_disposition",
+          "filter": {
+            "disposition": "pending"
+          }
         }
       ]
     },
@@ -4895,14 +5119,11 @@
       "assertions": [
         {
           "op": "count",
-          "event": "concern_recorded",
-          "filter": {},
+          "event": "concern_disposition",
+          "filter": {
+            "disposition": "ignored"
+          },
           "expected": 1
-        },
-        {
-          "op": "before",
-          "event_a": "concern_recorded",
-          "event_b": "concern_disposition"
         }
       ]
     },
@@ -4933,9 +5154,16 @@
       "assertions": [
         {
           "op": "count",
-          "event": "risky_task",
-          "filter": {},
+          "event": "conditional_spec_review",
+          "filter": {
+            "outcome": "clear"
+          },
           "expected": 1
+        },
+        {
+          "op": "forbid",
+          "event": "downstream_cascade_risk",
+          "filter": {}
         }
       ]
     },
@@ -4972,6 +5200,14 @@
         {
           "op": "count",
           "event": "route_selected",
+          "filter": {
+            "route": "direct"
+          },
+          "expected": 1
+        },
+        {
+          "op": "count",
+          "event": "serial_merge",
           "filter": {},
           "expected": 1
         }
@@ -4987,11 +5223,13 @@
         },
         {
           "event": "worktree_created",
-          "owner": "orchestrator"
+          "owner": "orchestrator",
+          "task_id": "task-a"
         },
         {
           "event": "task_implementation",
-          "owner": "implementer"
+          "owner": "implementer",
+          "task_id": "task-a"
         },
         {
           "event": "evidence_captured",
@@ -5000,11 +5238,13 @@
         {
           "event": "task_verification",
           "outcome": "non_green",
-          "owner": "implementer"
+          "owner": "implementer",
+          "task_id": "task-a"
         },
         {
           "event": "task_implementation",
-          "owner": "implementer"
+          "owner": "implementer",
+          "task_id": "task-a"
         },
         {
           "event": "failure_overlay_entered",
@@ -5019,9 +5259,22 @@
       "assertions": [
         {
           "op": "count",
-          "event": "route_selected",
-          "filter": {},
+          "event": "task_verification",
+          "filter": {
+            "outcome": "non_green"
+          },
           "expected": 1
+        },
+        {
+          "op": "count",
+          "event": "task_implementation",
+          "filter": {},
+          "expected": 2
+        },
+        {
+          "op": "before",
+          "event_a": "task_verification",
+          "event_b": "failure_overlay_entered"
         }
       ]
     },
@@ -5065,8 +5318,18 @@
         {
           "op": "count",
           "event": "prior_integration",
-          "filter": {},
-          "expected": 2
+          "filter": {
+            "outcome": "green"
+          },
+          "expected": 1
+        },
+        {
+          "op": "count",
+          "event": "prior_integration",
+          "filter": {
+            "outcome": "non_green"
+          },
+          "expected": 1
         }
       ]
     },
@@ -5107,9 +5370,14 @@
       "assertions": [
         {
           "op": "count",
-          "event": "route_selected",
+          "event": "completion",
           "filter": {},
           "expected": 1
+        },
+        {
+          "op": "forbid",
+          "event": "final_full_diff_review",
+          "filter": {}
         }
       ]
     },
@@ -5150,9 +5418,14 @@
       "assertions": [
         {
           "op": "count",
-          "event": "route_selected",
+          "event": "user_gate",
           "filter": {},
           "expected": 1
+        },
+        {
+          "op": "forbid",
+          "event": "final_full_diff_review",
+          "filter": {}
         }
       ]
     },
@@ -5193,8 +5466,18 @@
       "assertions": [
         {
           "op": "count",
-          "event": "risky_task",
-          "filter": {},
+          "event": "conditional_spec_review",
+          "filter": {
+            "outcome": "blocking"
+          },
+          "expected": 1
+        },
+        {
+          "op": "count",
+          "event": "review_verdict",
+          "filter": {
+            "outcome": "clear"
+          },
           "expected": 1
         }
       ]
@@ -5216,8 +5499,15 @@
         {
           "op": "count",
           "event": "review_verdict",
-          "filter": {},
+          "filter": {
+            "outcome": "clear"
+          },
           "expected": 1
+        },
+        {
+          "op": "forbid",
+          "event": "final_full_diff_review",
+          "filter": {}
         }
       ]
     },
@@ -5239,6 +5529,27 @@
           "event": "task_verification",
           "filter": {},
           "expected": 1
+        },
+        {
+          "op": "forbid",
+          "event": "task_verification",
+          "filter": {
+            "outcome": "green"
+          }
+        },
+        {
+          "op": "forbid",
+          "event": "task_verification",
+          "filter": {
+            "outcome": "non_green"
+          }
+        },
+        {
+          "op": "forbid",
+          "event": "task_verification",
+          "filter": {
+            "outcome": "unevaluable"
+          }
         }
       ]
     },
@@ -5262,9 +5573,16 @@
       "assertions": [
         {
           "op": "count",
-          "event": "task_verification",
+          "event": "failure_overlay_entered",
           "filter": {},
           "expected": 1
+        },
+        {
+          "op": "forbid",
+          "event": "failure_overlay_entered",
+          "filter": {
+            "overlay": "failure"
+          }
         }
       ]
     },
@@ -5288,9 +5606,18 @@
       "assertions": [
         {
           "op": "count",
-          "event": "task_verification",
-          "filter": {},
+          "event": "failure_overlay_entered",
+          "filter": {
+            "overlay": "failure"
+          },
           "expected": 1
+        },
+        {
+          "op": "forbid",
+          "event": "failure_overlay_entered",
+          "filter": {
+            "owner": "runtime_failure_overlay"
+          }
         }
       ]
     },
@@ -5315,6 +5642,11 @@
       "expected_contract_id": "RUN-ROUTE-TOPOLOGY",
       "expected_reason": "route-specific events require exactly one selected route",
       "assertions": [
+        {
+          "op": "forbid",
+          "event": "route_selected",
+          "filter": {}
+        },
         {
           "op": "count",
           "event": "task_implementation",
@@ -5436,10 +5768,27 @@
       "expected_reason": "route-specific events require exactly one selected route",
       "assertions": [
         {
+          "op": "forbid",
+          "event": "route_selected",
+          "filter": {}
+        },
+        {
           "op": "count",
           "event": "task_implementation",
           "filter": {},
           "expected": 3
+        },
+        {
+          "op": "count",
+          "event": "serial_merge",
+          "filter": {},
+          "expected": 1
+        },
+        {
+          "op": "count",
+          "event": "external_action",
+          "filter": {},
+          "expected": 1
         }
       ]
     },
@@ -5468,9 +5817,19 @@
       "assertions": [
         {
           "op": "count",
-          "event": "completion_gate",
+          "event": "routine_write",
           "filter": {},
           "expected": 1
+        },
+        {
+          "op": "before",
+          "event_a": "completion_gate",
+          "event_b": "routine_write"
+        },
+        {
+          "op": "before",
+          "event_a": "routine_write",
+          "event_b": "failure_overlay_entered"
         }
       ]
     },
@@ -5499,9 +5858,19 @@
       "assertions": [
         {
           "op": "count",
-          "event": "completion_gate",
+          "event": "routine_dispatch",
           "filter": {},
           "expected": 1
+        },
+        {
+          "op": "before",
+          "event_a": "completion_gate",
+          "event_b": "routine_dispatch"
+        },
+        {
+          "op": "before",
+          "event_a": "routine_dispatch",
+          "event_b": "failure_overlay_entered"
         }
       ]
     },
@@ -5530,9 +5899,19 @@
       "assertions": [
         {
           "op": "count",
-          "event": "completion_gate",
+          "event": "routine_merge",
           "filter": {},
           "expected": 1
+        },
+        {
+          "op": "before",
+          "event_a": "completion_gate",
+          "event_b": "routine_merge"
+        },
+        {
+          "op": "before",
+          "event_a": "routine_merge",
+          "event_b": "failure_overlay_entered"
         }
       ]
     },
@@ -5561,9 +5940,19 @@
       "assertions": [
         {
           "op": "count",
-          "event": "completion_gate",
+          "event": "routine_gate",
           "filter": {},
           "expected": 1
+        },
+        {
+          "op": "before",
+          "event_a": "completion_gate",
+          "event_b": "routine_gate"
+        },
+        {
+          "op": "before",
+          "event_a": "routine_gate",
+          "event_b": "failure_overlay_entered"
         }
       ]
     },
@@ -5592,9 +5981,19 @@
       "assertions": [
         {
           "op": "count",
-          "event": "completion_gate",
+          "event": "routine_cleanup",
           "filter": {},
           "expected": 1
+        },
+        {
+          "op": "before",
+          "event_a": "completion_gate",
+          "event_b": "routine_cleanup"
+        },
+        {
+          "op": "before",
+          "event_a": "routine_cleanup",
+          "event_b": "failure_overlay_entered"
         }
       ]
     },
@@ -5645,7 +6044,23 @@
       "assertions": [
         {
           "op": "count",
-          "event": "route_selected",
+          "event": "final_full_diff_review",
+          "filter": {
+            "outcome": "clear"
+          },
+          "expected": 1
+        },
+        {
+          "op": "count",
+          "event": "review_verdict",
+          "filter": {
+            "outcome": "clear"
+          },
+          "expected": 1
+        },
+        {
+          "op": "count",
+          "event": "completion",
           "filter": {},
           "expected": 1
         }
@@ -5672,9 +6087,16 @@
       "assertions": [
         {
           "op": "count",
-          "event": "final_full_diff_review",
-          "filter": {},
+          "event": "review_verdict",
+          "filter": {
+            "outcome": "blocking"
+          },
           "expected": 1
+        },
+        {
+          "op": "forbid",
+          "event": "failure_overlay_entered",
+          "filter": {}
         }
       ]
     },
@@ -5718,7 +6140,23 @@
       "assertions": [
         {
           "op": "count",
-          "event": "final_full_diff_review",
+          "event": "review_verdict",
+          "filter": {
+            "outcome": "blocking"
+          },
+          "expected": 1
+        },
+        {
+          "op": "count",
+          "event": "review_verdict",
+          "filter": {
+            "outcome": "clear"
+          },
+          "expected": 1
+        },
+        {
+          "op": "count",
+          "event": "completion",
           "filter": {},
           "expected": 1
         }
@@ -5749,9 +6187,19 @@
       "assertions": [
         {
           "op": "count",
-          "event": "final_full_diff_review",
+          "event": "completion",
           "filter": {},
           "expected": 1
+        },
+        {
+          "op": "forbid",
+          "event": "completion_reused",
+          "filter": {}
+        },
+        {
+          "op": "forbid",
+          "event": "completion_full_verify",
+          "filter": {}
         }
       ]
     },
@@ -5780,9 +6228,19 @@
       "assertions": [
         {
           "op": "count",
-          "event": "completion_gate",
+          "event": "routine_read",
           "filter": {},
           "expected": 1
+        },
+        {
+          "op": "before",
+          "event_a": "completion_gate",
+          "event_b": "routine_read"
+        },
+        {
+          "op": "before",
+          "event_a": "routine_read",
+          "event_b": "failure_overlay_entered"
         }
       ]
     },
@@ -5808,8 +6266,15 @@
         {
           "op": "count",
           "event": "review_verdict",
-          "filter": {},
+          "filter": {
+            "outcome": "blocking"
+          },
           "expected": 1
+        },
+        {
+          "op": "forbid",
+          "event": "final_full_diff_review",
+          "filter": {}
         }
       ]
     },
@@ -5840,7 +6305,17 @@
         {
           "op": "count",
           "event": "final_full_diff_review",
-          "filter": {},
+          "filter": {
+            "outcome": "green"
+          },
+          "expected": 1
+        },
+        {
+          "op": "count",
+          "event": "review_verdict",
+          "filter": {
+            "outcome": "blocking"
+          },
           "expected": 1
         }
       ]
@@ -5883,14 +6358,13 @@
       ],
       "expected_valid": false,
       "expected_outcome": "rejected",
-      "expected_contract_id": "RUN-EXTERNAL-PROOF",
+      "expected_contract_id": "RUN-ROUTE-TOPOLOGY",
       "expected_reason": "external base commit must be implementer-owned",
       "assertions": [
         {
-          "op": "count",
-          "event": "route_selected",
-          "filter": {},
-          "expected": 1
+          "op": "owner",
+          "event": "base_commit",
+          "expected_owner": "orchestrator"
         }
       ]
     },
@@ -5904,11 +6378,13 @@
         },
         {
           "event": "worktree_created",
-          "owner": "orchestrator"
+          "owner": "orchestrator",
+          "task_id": "task-a"
         },
         {
           "event": "task_implementation",
-          "owner": "implementer"
+          "owner": "implementer",
+          "task_id": "task-a"
         },
         {
           "event": "evidence_captured",
@@ -5917,16 +6393,19 @@
         {
           "event": "task_verification",
           "outcome": "green",
-          "owner": "implementer"
+          "owner": "implementer",
+          "task_id": "task-a"
         },
         {
           "event": "merge_gate",
           "outcome": "green",
-          "owner": "orchestrator"
+          "owner": "orchestrator",
+          "task_id": "task-a"
         },
         {
           "event": "task_merged",
-          "owner": "orchestrator"
+          "owner": "orchestrator",
+          "task_id": "task-a"
         },
         {
           "event": "merge_precondition",
@@ -5941,18 +6420,8 @@
       "assertions": [
         {
           "op": "before",
-          "event_a": "task_verification",
-          "event_b": "task_merged"
-        },
-        {
-          "op": "before",
           "event_a": "task_merged",
           "event_b": "merge_precondition"
-        },
-        {
-          "op": "owner",
-          "event": "task_merged",
-          "expected_owner": "orchestrator"
         }
       ]
     },
