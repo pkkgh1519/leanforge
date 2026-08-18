@@ -53,7 +53,7 @@ project-root/
 2. Prime·Run·Set·Run TDD 의미를 바꾸기 전 `docs/business-rules.md`와 `src/AGENTS.md`를 읽고 관련 contract test를 찾는다.
 3. 호스트 메타데이터나 권한을 바꾸기 전 `platform/AGENTS.md`와 `build/AGENTS.md`를 읽고 생성 결과의 차이를 확인한다.
 4. 버전·CHANGELOG·README·manifest를 바꾸기 전 `docs/operations.md`, `build/AGENTS.md`, `tests/test_release_consistency.py`를 읽는다.
-5. 로컬 상태 이전·복구·worktree 처리에 손대기 전 `docs/security.md`와 `src/skills/run/AGENTS.md`의 실패 경계를 확인한다.
+5. 로컬 상태 이전·복구·worktree 처리에 손대기 전 `docs/security.md`, `src/AGENTS.md`, `src/skills/run/SKILL.md`와 관련 `src/skills/run/references/`의 실패 경계를 확인한다.
 
 ## 문제 처리
 

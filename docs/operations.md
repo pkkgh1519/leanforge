@@ -2,15 +2,40 @@
 
 ## 사용자 설치
 
-필수 조건은 PATH에서 실행 가능한 Git, Claude Code 또는 Codex, 그리고 Git 저장소 workspace다. Claude Code에서는 marketplace `pkkgh1519/leanforge`를 추가한 뒤 `leanforge` plugin을 설치한다. Codex에서는 같은 marketplace를 추가하고 `leanforge@leanforge`를 설치한다. 설치 후 command palette에서 Prime, Run, Set, Run TDD 네 command가 보이는지 확인한다.
+필수 조건은 PATH에서 실행 가능한 Git, Claude Code 또는 Codex, 그리고 설치 후 사용할 Git 저장소 workspace다. 먼저 터미널에서 Git을 확인한다.
+
+```text
+git --version
+```
+
+Claude Code를 사용하면 Claude Code의 command 입력창에서 다음 순서로 실행한다.
+
+```text
+/plugin marketplace add pkkgh1519/leanforge
+/plugin install leanforge
+```
+
+Codex를 사용하면 터미널에서 다음 순서로 실행한다.
+
+```text
+codex plugin marketplace add pkkgh1519/leanforge
+codex plugin add leanforge@leanforge
+```
+
+설치 후 Git 저장소 workspace에서 command palette를 열어 Prime, Run, Set, Run TDD 네 command가 보이는지 확인한다.
 
 ## 기여자 준비
 
-저장소를 checkout한 뒤 Python과 Bash, Perl이 PATH에 있어야 한다. CI 기준 Python은 3.12이며 테스트는 Python 표준 라이브러리 `unittest`만 사용한다. 별도 package install 없이 다음 순서로 현재 상태를 확인한다.
+Git, Bash, Python, Perl이 PATH에 있어야 한다. CI 기준 Python은 3.12이며 테스트는 Python 표준 라이브러리 `unittest`만 사용하므로 별도 package 설치는 필요 없다. 새 checkout은 다음 순서로 준비한다.
 
 ```text
+git clone https://github.com/pkkgh1519/leanforge.git
+cd leanforge
+git switch -c <branch-name>
+git --version
 bash --version
 python --version
+perl -e 'print "$^V\n"'
 bash build/build.sh
 python -m unittest discover -s tests -v
 git diff --check

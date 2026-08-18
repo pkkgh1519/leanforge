@@ -1,4 +1,4 @@
-# Build and release consistency
+# 빌드와 릴리스 일관성
 
 ## 범위
 

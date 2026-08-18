@@ -21,6 +21,6 @@
 - 실제 Claude Code·Codex host에서 별도 승인 후 20회 behavior smoke로 deterministic contract 외의 host 동작을 관찰한다.
 - Token·latency 개선을 주장할 필요가 생길 때만 100회 반복 측정을 사용한다. 반복 측정은 deterministic gate를 대체하지 않는다.
 
-## Blocker
+## 차단 사항
 
 현재 확인된 제품 blocker는 없다. 외부 게시와 main 통합은 기술 blocker가 아니라 사용자 승인 대기 상태다.

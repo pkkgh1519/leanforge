@@ -1,4 +1,4 @@
-# Canonical skill source
+# 공통 스킬 정본
 
 ## 범위
 
