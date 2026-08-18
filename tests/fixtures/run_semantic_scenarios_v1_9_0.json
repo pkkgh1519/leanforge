@@ -1219,6 +1219,11 @@
           "value": "concern-concern-resolved"
         },
         {
+          "event": "completion_full_verify",
+          "outcome": "green",
+          "owner": "orchestrator"
+        },
+        {
           "event": "final_full_diff_review",
           "outcome": "green",
           "owner": "orchestrator"
@@ -1226,11 +1231,6 @@
         {
           "event": "review_verdict",
           "outcome": "clear",
-          "owner": "orchestrator"
-        },
-        {
-          "event": "completion_full_verify",
-          "outcome": "green",
           "owner": "orchestrator"
         },
         {
@@ -1264,6 +1264,11 @@
           "value": "concern-concern-explicitly-accepted"
         },
         {
+          "event": "completion_full_verify",
+          "outcome": "green",
+          "owner": "orchestrator"
+        },
+        {
           "event": "final_full_diff_review",
           "outcome": "green",
           "owner": "orchestrator"
@@ -1271,11 +1276,6 @@
         {
           "event": "review_verdict",
           "outcome": "clear",
-          "owner": "orchestrator"
-        },
-        {
-          "event": "completion_full_verify",
-          "outcome": "green",
           "owner": "orchestrator"
         },
         {
@@ -1309,6 +1309,11 @@
           "value": "concern-concern-user-requirement-accepted"
         },
         {
+          "event": "completion_full_verify",
+          "outcome": "green",
+          "owner": "orchestrator"
+        },
+        {
           "event": "final_full_diff_review",
           "outcome": "green",
           "owner": "orchestrator"
@@ -1316,11 +1321,6 @@
         {
           "event": "review_verdict",
           "outcome": "clear",
-          "owner": "orchestrator"
-        },
-        {
-          "event": "completion_full_verify",
-          "outcome": "green",
           "owner": "orchestrator"
         },
         {
@@ -3786,6 +3786,11 @@
           "owner": "orchestrator"
         },
         {
+          "event": "completion_full_verify",
+          "outcome": "green",
+          "owner": "orchestrator"
+        },
+        {
           "event": "final_full_diff_review",
           "outcome": "clear",
           "owner": "orchestrator"
@@ -3793,11 +3798,6 @@
         {
           "event": "review_verdict",
           "outcome": "clear",
-          "owner": "orchestrator"
-        },
-        {
-          "event": "completion_full_verify",
-          "outcome": "green",
           "owner": "orchestrator"
         },
         {
@@ -3849,6 +3849,11 @@
       "id": "review-verdict-conflicting-completion",
       "trace": [
         {
+          "event": "completion_full_verify",
+          "outcome": "green",
+          "owner": "orchestrator"
+        },
+        {
           "event": "final_full_diff_review",
           "outcome": "green",
           "owner": "orchestrator"
@@ -3866,11 +3871,6 @@
         {
           "event": "review_verdict",
           "outcome": "clear",
-          "owner": "orchestrator"
-        },
-        {
-          "event": "completion_full_verify",
-          "outcome": "green",
           "owner": "orchestrator"
         },
         {

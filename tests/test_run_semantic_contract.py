@@ -1263,7 +1263,13 @@ def validate_failure_overlay(trace):
     for result_index, occurrence in enumerate(trace):
         event = occurrence.get("event")
         outcome = occurrence.get("outcome")
-        if event not in phases or outcome not in FAILURE_OUTCOMES:
+        promoted_failure = (
+            event == "concern_disposition"
+            and occurrence.get("disposition") == "promoted_to_failure"
+        )
+        if not promoted_failure and (
+            event not in phases or outcome not in FAILURE_OUTCOMES
+        ):
             continue
         overlays = [
             index
@@ -1278,6 +1284,8 @@ def validate_failure_overlay(trace):
         if not owned_overlays:
             if overlays:
                 return "failure overlay must be runtime-failure-overlay-owned"
+            if promoted_failure:
+                return "promoted concern requires failure overlay"
             return f"{outcome} {phases[event]} must enter failure overlay"
         for continuation_index, later in enumerate(trace):
             if continuation_index <= result_index or later.get("event") not in continuations:
@@ -1305,6 +1313,29 @@ def validate_completion_reuse(trace):
         "completion_reused",
     }
     has_fact_context = any(item.get("event") in fact_events for item in trace)
+    review_indexes = matching_indexes(trace, "final_full_diff_review")
+    review_and_endpoints = (
+        review_indexes
+        + matching_indexes(trace, "completion")
+        + matching_indexes(trace, "user_gate")
+    )
+    if review_and_endpoints:
+        first_review_or_endpoint = min(review_and_endpoints)
+        reuse_fact_indexes = [
+            index
+            for index, item in enumerate(trace)
+            if item.get("event") in fact_events
+        ]
+        if any(index > first_review_or_endpoint for index in reuse_fact_indexes):
+            return (
+                "completion reuse facts and decision must precede final review "
+                "and endpoint"
+            )
+    if review_indexes and any(
+        index > min(review_indexes)
+        for index in matching_indexes(trace, "completion_full_verify")
+    ):
+        return "completion full verify must precede final review and endpoint"
     if len(reuse_indexes) > 1:
         return "completion reuse decision must occur exactly once"
     unique_fact_reasons = {
@@ -1840,6 +1871,40 @@ class RunSemanticContractTests(unittest.TestCase):
             "completion endpoint without reusable facts requires full verify",
         )
 
+    def test_completion_decisions_precede_final_review_and_endpoint(self):
+        reuse_reason = (
+            "completion reuse facts and decision must precede final review and endpoint"
+        )
+        full_verify_reason = (
+            "completion full verify must precede final review and endpoint"
+        )
+        for endpoint in ("completion", "user_gate"):
+            reuse_after_endpoint = [
+                {"event": "final_full_diff_review", "outcome": "green", "owner": "orchestrator"},
+                {"event": "review_verdict", "outcome": "clear", "owner": "orchestrator"},
+                {"event": endpoint, "owner": "orchestrator"},
+                {"event": "prior_integration", "outcome": "green"},
+                {"event": "prior_verify_set", "value": "build,test,lint"},
+                {"event": "completion_verify_set", "value": "build,test,lint"},
+                {"event": "prior_gate_base_tip", "value": "sha-A"},
+                {"event": "current_base_tip", "value": "sha-A"},
+                {"event": "completion_reused", "owner": "orchestrator"},
+            ]
+            full_verify_after_review = [
+                {"event": "final_full_diff_review", "outcome": "green", "owner": "orchestrator"},
+                {"event": "review_verdict", "outcome": "clear", "owner": "orchestrator"},
+                {"event": "completion_full_verify", "outcome": "green", "owner": "orchestrator"},
+                {"event": endpoint, "owner": "orchestrator"},
+            ]
+            with self.subTest(endpoint=endpoint, decision="reuse"):
+                result = validate_semantics(self.contract, reuse_after_endpoint)
+                self.assertEqual(result["contract_id"], "RUN-COMPLETION-REUSE")
+                self.assertEqual(result["reason"], reuse_reason)
+            with self.subTest(endpoint=endpoint, decision="full_verify"):
+                result = validate_semantics(self.contract, full_verify_after_review)
+                self.assertEqual(result["contract_id"], "RUN-COMPLETION-REUSE")
+                self.assertEqual(result["reason"], full_verify_reason)
+
     def test_completion_reuse_facts_remain_unique_green_and_equal(self):
         cases = (
             (
@@ -2144,6 +2209,58 @@ class RunSemanticContractTests(unittest.TestCase):
                         ),
                         f"{route.replace('_', '-')} route forbids route-specific event {event}",
                     )
+
+    def test_promoted_failure_uses_closed_failure_continuation_precedence(self):
+        reason = "failure overlay must precede any present continuation"
+        for event in sorted(CONTINUATION_EVENTS):
+            trace = [
+                {"event": "concern_recorded", "value": "C-1", "owner": "orchestrator"},
+                {
+                    "event": "concern_disposition",
+                    "value": "C-1",
+                    "disposition": "promoted_to_failure",
+                    "owner": "orchestrator",
+                },
+                {"event": event},
+                {
+                    "event": "failure_overlay_entered",
+                    "overlay": "failure",
+                    "owner": "runtime_failure_overlay",
+                },
+            ]
+            with self.subTest(continuation=event):
+                self.assertEqual(validate_failure_overlay(trace), reason)
+
+        promoted_retry = [
+            {"event": "concern_recorded", "value": "C-1", "owner": "orchestrator"},
+            {
+                "event": "concern_disposition",
+                "value": "C-1",
+                "disposition": "promoted_to_failure",
+                "owner": "orchestrator",
+            },
+            {"event": "retry", "owner": "orchestrator"},
+            {
+                "event": "failure_overlay_entered",
+                "overlay": "failure",
+                "owner": "runtime_failure_overlay",
+            },
+        ]
+        result = validate_semantics(self.contract, promoted_retry)
+        self.assertEqual(result["contract_id"], "RUN-FAIL-CLOSED")
+        self.assertEqual(result["reason"], reason)
+
+        pending_retry = [
+            {"event": "concern_recorded", "value": "C-1", "owner": "orchestrator"},
+            {
+                "event": "concern_disposition",
+                "value": "C-1",
+                "disposition": "pending",
+                "owner": "orchestrator",
+            },
+            {"event": "retry", "owner": "orchestrator"},
+        ]
+        self.assertTrue(validate_semantics(self.contract, pending_retry)["valid"])
 
     def test_failure_overlay_precedes_every_closed_continuation_category(self):
         categories = {

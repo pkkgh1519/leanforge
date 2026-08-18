@@ -224,11 +224,12 @@ Done only when all hold on evidence:
 {
   "id": "RUN-COMPLETION-REUSE",
   "kind": "completion_reuse",
-  "definition": "Completion reuses prior integration only from unique actual facts: exactly one prior green integration result, one identical non-empty prior and completion verify set, and one identical non-empty prior-gate and current base-tip SHA. Duplicate or conflicting facts are invalid; any missing, non-green, unevaluable, or unequal fact requires the completion full verify set, and a completion endpoint with all reuse facts omitted also requires that full verification. A completion or user-gate endpoint may rely on full verification only when the latest completion_full_verify preceding that endpoint is green; a non-green or unevaluable attempt remains blocking until a later green full verify.",
+  "definition": "Completion reuses prior integration only from unique actual facts: exactly one prior green integration result, one identical non-empty prior and completion verify set, and one identical non-empty prior-gate and current base-tip SHA. Duplicate or conflicting facts are invalid; any missing, non-green, unevaluable, or unequal fact requires the completion full verify set, and a completion endpoint with all reuse facts omitted also requires that full verification. Every reuse fact, reuse decision, and completion full-verify result precedes final full-diff review and any completion or user-gate endpoint. A completion or user-gate endpoint may rely on full verification only when the latest completion_full_verify preceding that endpoint is green; a non-green or unevaluable attempt remains blocking until a later green full verify.",
   "constraints": [
     "Reuse requires each of the five actual fact kinds exactly once: prior green integration, identical non-empty verify sets, and identical non-empty prior-gate and current base-tip SHAs.",
     "Duplicate or conflicting completion facts are rejected rather than selected or collapsed.",
     "Missing, non-green, unevaluable, or unequal facts require full verification and forbid reuse.",
+    "Every reuse fact, reuse decision, and completion full verify precedes final full-diff review and every completion or user-gate endpoint.",
     "A completion or user-gate endpoint that does not reuse valid facts requires a preceding completion full verify whose latest applicable outcome is green.",
     "A non-green or unevaluable full verify remains blocking until a later green full verify precedes the endpoint.",
     "A full verify may be run even when all reuse facts match."

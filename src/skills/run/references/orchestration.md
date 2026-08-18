@@ -349,10 +349,10 @@ marked accepted — never silently dropped.
 {
   "id": "RUN-CONCERN-DISPOSITION",
   "kind": "concern_disposition",
-  "definition": "Every recorded concern has exactly one correlated disposition with a non-empty value from resolved, explicitly_accepted, user_accepted, promoted_to_failure, and pending. Pending blocks completion and the user gate; user-owned requirement, compatibility, and safety concerns may remain pending or be promoted to failure without user acceptance, while a resolved or accepted terminal disposition must be user-owned. The failure overlay wins every overlap.",
+  "definition": "Every recorded concern has exactly one correlated disposition with a non-empty value from resolved, explicitly_accepted, user_accepted, promoted_to_failure, and pending. Pending blocks completion and the user gate without entering the failure overlay. A promoted_to_failure disposition is a failure result whose runtime-owned failure overlay precedes every closed continuation. User-owned requirement, compatibility, and safety concerns may remain pending or be promoted to failure without user acceptance, while a resolved or accepted terminal disposition must be user-owned. The failure overlay wins every overlap.",
   "constraints": [
     "Every recorded concern correlates to exactly one non-empty value from the five closed dispositions.",
-    "Pending blocks completion and the user gate, while promoted failure also blocks progress.",
+    "Pending blocks completion and the user gate without entering the failure overlay; promoted-to-failure enters the runtime-owned failure overlay before every closed continuation.",
     "User-owned requirement, compatibility, and safety concerns permit pending or promoted-to-failure dispositions without acceptance; resolved, explicitly accepted, or user-accepted terminal dispositions must be user-owned."
   ]
 }
@@ -380,12 +380,12 @@ non-behavioral changes only — substantive findings still go to an independent 
 {
   "id": "RUN-FAIL-CLOSED",
   "kind": "failure_overlay",
-  "definition": "Every result-bearing event carries one non-empty closed outcome, and every blocking, non-green, or unevaluable result enters the explicit failure overlay owned by runtime_failure_overlay before every present continuation. Continuations include route work and action, remedial worktree and implementer continuation, dispatch, merge, gate, cleanup, progress, and every routine read, write, dispatch, merge, gate, and cleanup event. The closed results cover task and merge checks, regeneration and wiring, integration, external evidence, completion verification, runtime smoke, conditional spec review, final review, and review verdict. A terminal failure may stop after entering the overlay. Unevaluable is never green.",
+  "definition": "Every result-bearing event carries one non-empty closed outcome, and every blocking, non-green, or unevaluable result enters the explicit failure overlay owned by runtime_failure_overlay before every present continuation. A concern disposition of promoted_to_failure is a failure result under the same overlay-before-continuation rule. Continuations include route work and action, remedial worktree and implementer continuation, dispatch, merge, gate, cleanup, progress, and every routine read, write, dispatch, merge, gate, and cleanup event. The closed results cover task and merge checks, regeneration and wiring, integration, external evidence, completion verification, runtime smoke, conditional spec review, final review, and review verdict. A terminal failure may stop after entering the overlay. Unevaluable is never green.",
   "constraints": [
     "Each event allows only its closed event-specific metadata and requires every identifier, value, owner, overlay, or result field used by its invariant.",
     "Every result-bearing event requires one non-empty outcome from its closed result vocabulary.",
-    "Every blocking, non-green, and unevaluable closed result event, including a blocking review verdict, enters the failure overlay.",
-    "failure_overlay_entered requires overlay failure and owner runtime_failure_overlay, and precedes every present route-work, remedial, dispatch, merge, gate, cleanup, progress, or routine continuation after a failed result.",
+    "Every blocking, non-green, and unevaluable closed result event, including a blocking review verdict, and every promoted-to-failure concern disposition enters the failure overlay.",
+    "failure_overlay_entered requires overlay failure and owner runtime_failure_overlay, and precedes every present route-work, remedial, dispatch, merge, gate, cleanup, progress, or routine continuation after a failed result or promoted-to-failure disposition.",
     "No continuation event is required after a terminal failure enters the overlay."
   ]
 }
