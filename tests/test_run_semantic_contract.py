@@ -221,6 +221,7 @@ def event_metadata_schema():
             schema[event]["required"].add(key)
 
     add("route_selected", "route", required=True)
+    schema["route_selected"]["required"].add("owner")
     for event in TASK_CORRELATION_EVENTS:
         add(event, "task_id")
     for event in REVIEW_CORRELATION_EVENTS:
@@ -360,7 +361,7 @@ EXPECTED_MUTANT_IDS = {
     "failure-overlay-missing-overlay",
     "failure-overlay-missing-owner",
     "route-omitted-direct-events",
-    "route-omitted-complete-mixed-routes",
+    "route-omitted-complete-single-risky",
     "failure-routine-write-before-overlay",
     "failure-routine-dispatch-before-overlay",
     "failure-routine-merge-before-overlay",
@@ -592,8 +593,11 @@ def validate_required_metadata(trace, vocabulary):
             expected_owner, reason = review_owners[event]
             if occurrence.get("owner") != expected_owner:
                 return "RUN-REVIEW-TOPOLOGY", reason
-        if event == "route_selected" and occurrence.get("route") not in vocabulary["route"]:
-            return "RUN-ROUTE-TOPOLOGY", "selected route is outside the closed route vocabulary"
+        if event == "route_selected":
+            if occurrence.get("route") not in vocabulary["route"]:
+                return "RUN-ROUTE-TOPOLOGY", "selected route is outside the closed route vocabulary"
+            if occurrence.get("owner") != "orchestrator":
+                return "RUN-ROUTE-TOPOLOGY", "route selection must be orchestrator-owned"
         if event in RESULT_OUTCOMES and occurrence.get("outcome") not in RESULT_OUTCOMES[event]:
             invariant_id = (
                 "RUN-REVIEW-TOPOLOGY"
@@ -1029,11 +1033,13 @@ def validate_direct_remedial_topology(trace, route_index):
 
 ROUTE_EVENT_OWNERS = {
     "direct": {
+        "route_selected": "orchestrator",
         "task_implementation": "orchestrator",
         "evidence_captured": "orchestrator",
         "base_commit": "orchestrator",
     },
     "single_risky": {
+        "route_selected": "orchestrator",
         "worktree_created": "orchestrator",
         "task_implementation": "implementer",
         "evidence_captured": "implementer",
@@ -1043,6 +1049,7 @@ ROUTE_EVENT_OWNERS = {
         "task_merged": "orchestrator",
     },
     "parallel": {
+        "route_selected": "orchestrator",
         "isolated_task_worktrees": "orchestrator",
         "worktree_created": "orchestrator",
         "task_implementation": "implementer",
@@ -1057,6 +1064,7 @@ ROUTE_EVENT_OWNERS = {
         "integration_gate": "orchestrator",
     },
     "external": {
+        "route_selected": "orchestrator",
         "selected_base": "orchestrator",
         "external_base_pin": "implementer",
         "external_action": "implementer",
@@ -1076,16 +1084,24 @@ SINGLE_RISKY_OWNER_REASONS = {
 }
 ROUTE_OWNER_REASONS = {
     "direct": {
+        "route_selected": "route selection must be orchestrator-owned",
         "task_implementation": "direct implementation must be orchestrator-owned",
         "evidence_captured": "direct evidence must be orchestrator-owned",
         "base_commit": "direct base commit must be orchestrator-owned",
     },
-    "single_risky": SINGLE_RISKY_OWNER_REASONS,
+    "single_risky": {
+        "route_selected": "route selection must be orchestrator-owned",
+        **SINGLE_RISKY_OWNER_REASONS,
+    },
     "parallel": {
-        event: f"parallel route {event} must be {owner}-owned"
-        for event, owner in ROUTE_EVENT_OWNERS["parallel"].items()
+        **{
+            event: f"parallel route {event} must be {owner}-owned"
+            for event, owner in ROUTE_EVENT_OWNERS["parallel"].items()
+        },
+        "route_selected": "route selection must be orchestrator-owned",
     },
     "external": {
+        "route_selected": "route selection must be orchestrator-owned",
         "selected_base": "external selected base must be orchestrator-owned",
         "external_base_pin": "external base pin must be implementer-owned",
         "external_action": "external action must be implementer-owned",
@@ -1099,7 +1115,7 @@ ROUTE_OWNER_REASONS = {
 def validate_route_event_contract(trace, route, boundary_index):
     prefix = trace[: boundary_index + 1]
     repeatable = TASK_CORRELATION_EVENTS if route == "parallel" else set()
-    for event in ROUTE_STAGE_ORDER[route]:
+    for event in ["route_selected", *ROUTE_STAGE_ORDER[route]]:
         indexes = matching_indexes(prefix, event)
         if event not in repeatable and len(indexes) > 1:
             return f"{route.replace('_', '-')} route requires exactly one {event}"
@@ -2360,15 +2376,15 @@ def repair_known_opposite(mutant_id, trace):
                 "owner": "orchestrator",
             },
         )
-    elif mutant_id == "route-omitted-complete-mixed-routes":
-        repaired = [
+    elif mutant_id == "route-omitted-complete-single-risky":
+        repaired.insert(
+            0,
             {
                 "event": "route_selected",
-                "route": "direct",
+                "route": "single_risky",
                 "owner": "orchestrator",
             },
-            *repaired[:3],
-        ]
+        )
     elif mutant_id.startswith("failure-routine-"):
         overlay = occurrence("failure_overlay_entered")
         repaired.remove(overlay)
@@ -2989,6 +3005,76 @@ class RunSemanticContractTests(unittest.TestCase):
             "blocking review verdict cannot follow a green final full-diff review",
         )
 
+    def test_route_selection_is_orchestrator_owned_on_every_route(self):
+        self.assertEqual(
+            EVENT_METADATA_SCHEMA["route_selected"]["required"],
+            {"event", "route", "owner"},
+        )
+        successes = {
+            route: next(
+                item["trace"]
+                for item in self.fixture["scenarios"]
+                if item["id"] == scenario_id
+            )
+            for route, scenario_id in {
+                "direct": "direct-success",
+                "single_risky": "single-risky-success",
+                "parallel": "parallel-success",
+                "external": "external-success",
+            }.items()
+        }
+        for route, trace in successes.items():
+            self.assertEqual(ROUTE_EVENT_OWNERS[route]["route_selected"], "orchestrator")
+            for owner in (None, "user"):
+                mutation = copy.deepcopy(trace)
+                selection = next(
+                    item for item in mutation if item["event"] == "route_selected"
+                )
+                if owner is None:
+                    selection.pop("owner")
+                else:
+                    selection["owner"] = owner
+                with self.subTest(route=route, owner=owner):
+                    reason = "route selection must be orchestrator-owned"
+                    self.assertEqual(validate_route_topology(mutation), reason)
+                    result = validate_semantics(self.contract, mutation)
+                    self.assertEqual(result["contract_id"], "RUN-ROUTE-TOPOLOGY")
+                    self.assertEqual(result["reason"], reason)
+
+    def test_missing_route_selection_mutants_are_one_dimensional(self):
+        mutants = {item["id"]: item for item in self.fixture["mutants"]}
+        self.assertNotIn("route-omitted-complete-mixed-routes", mutants)
+        direct_assertion = {
+            "op": "forbid",
+            "event": "route_selected",
+            "filter": {},
+        }
+        cases = {
+            "route-omitted-direct-events": "direct-success",
+            "route-omitted-complete-single-risky": "single-risky-success",
+        }
+        for mutant_id, scenario_id in cases.items():
+            mutant = mutants[mutant_id]
+            complete_trace = next(
+                item["trace"]
+                for item in self.fixture["scenarios"]
+                if item["id"] == scenario_id
+            )
+            with self.subTest(mutant=mutant_id):
+                self.assertEqual(mutant["trace"], complete_trace[1:])
+                self.assertEqual(mutant["assertions"][0], direct_assertion)
+                repaired = repair_known_opposite(mutant_id, mutant["trace"])
+                self.assertEqual(repaired, complete_trace)
+                self.assertEqual(
+                    evaluate_assertions(repaired, mutant["assertions"]),
+                    ["assertions[0] forbid failed"],
+                )
+
+        self.assertEqual(
+            mutants["route-omitted-complete-single-risky"]["assertions"],
+            [direct_assertion],
+        )
+
     def test_route_specific_events_require_one_compatible_selected_route(self):
         missing_route_reason = "route-specific events require exactly one selected route"
         for event in sorted(ROUTE_SPECIFIC_EVENTS):
@@ -3004,7 +3090,11 @@ class RunSemanticContractTests(unittest.TestCase):
                     self.assertEqual(
                         validate_route_topology(
                             [
-                                {"event": "route_selected", "route": route},
+                                {
+                                    "event": "route_selected",
+                                    "route": route,
+                                    "owner": "orchestrator",
+                                },
                                 {"event": event},
                             ]
                         ),

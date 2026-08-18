@@ -3970,7 +3970,8 @@
       "trace": [
         {
           "event": "route_selected",
-          "route": "external"
+          "route": "external",
+          "owner": "orchestrator"
         },
         {
           "event": "selected_base",
@@ -4023,7 +4024,8 @@
       "trace": [
         {
           "event": "route_selected",
-          "route": "external"
+          "route": "external",
+          "owner": "orchestrator"
         },
         {
           "event": "selected_base",
@@ -4066,7 +4068,8 @@
       "trace": [
         {
           "event": "route_selected",
-          "route": "single_risky"
+          "route": "single_risky",
+          "owner": "orchestrator"
         },
         {
           "event": "worktree_created",
@@ -5735,110 +5738,45 @@
       ]
     },
     {
-      "id": "route-omitted-complete-mixed-routes",
+      "id": "route-omitted-complete-single-risky",
       "trace": [
         {
+          "event": "worktree_created",
+          "owner": "orchestrator",
+          "task_id": "task-a"
+        },
+        {
           "event": "task_implementation",
-          "owner": "orchestrator"
+          "owner": "implementer",
+          "task_id": "task-a"
         },
         {
           "event": "evidence_captured",
-          "owner": "orchestrator"
-        },
-        {
-          "event": "base_commit",
-          "owner": "orchestrator"
-        },
-        {
-          "event": "worktree_created",
-          "owner": "orchestrator"
-        },
-        {
-          "event": "task_implementation",
-          "owner": "implementer"
+          "owner": "implementer",
+          "task_id": "task-a"
         },
         {
           "event": "task_verification",
           "outcome": "green",
-          "owner": "implementer"
+          "owner": "implementer",
+          "task_id": "task-a"
         },
         {
           "event": "merge_precondition",
           "outcome": "green",
-          "owner": "orchestrator"
+          "owner": "orchestrator",
+          "task_id": "task-a"
         },
         {
           "event": "merge_gate",
           "outcome": "green",
-          "owner": "orchestrator"
+          "owner": "orchestrator",
+          "task_id": "task-a"
         },
         {
           "event": "task_merged",
-          "owner": "orchestrator"
-        },
-        {
-          "event": "isolated_task_worktrees",
-          "owner": "orchestrator"
-        },
-        {
-          "event": "task_implementation",
-          "owner": "implementer"
-        },
-        {
-          "event": "task_verifications_complete",
-          "outcome": "green",
-          "owner": "orchestrator"
-        },
-        {
-          "event": "merge_gates_complete",
-          "outcome": "green",
-          "owner": "orchestrator"
-        },
-        {
-          "event": "serial_merge",
-          "owner": "orchestrator"
-        },
-        {
-          "event": "regeneration",
-          "outcome": "green",
-          "owner": "orchestrator"
-        },
-        {
-          "event": "wiring",
-          "outcome": "green",
-          "owner": "orchestrator"
-        },
-        {
-          "event": "integration_gate",
-          "outcome": "green",
-          "owner": "orchestrator"
-        },
-        {
-          "event": "selected_base",
-          "value": "sha-A",
-          "owner": "orchestrator"
-        },
-        {
-          "event": "external_base_pin",
-          "value": "sha-A",
-          "owner": "implementer"
-        },
-        {
-          "event": "external_action",
-          "owner": "implementer"
-        },
-        {
-          "event": "external_evidence",
-          "outcome": "green",
-          "owner": "implementer"
-        },
-        {
-          "event": "base_commit",
-          "owner": "implementer"
-        },
-        {
-          "event": "independent_commit_proof",
-          "owner": "orchestrator"
+          "owner": "orchestrator",
+          "task_id": "task-a"
         }
       ],
       "expected_valid": false,
@@ -5850,24 +5788,6 @@
           "op": "forbid",
           "event": "route_selected",
           "filter": {}
-        },
-        {
-          "op": "count",
-          "event": "task_implementation",
-          "filter": {},
-          "expected": 3
-        },
-        {
-          "op": "count",
-          "event": "serial_merge",
-          "filter": {},
-          "expected": 1
-        },
-        {
-          "op": "count",
-          "event": "external_action",
-          "filter": {},
-          "expected": 1
         }
       ]
     },
