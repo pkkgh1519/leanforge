@@ -999,6 +999,28 @@ REMEDIAL_EVENTS = {
 }
 
 
+def first_route_stop_index(trace):
+    return next(
+        (
+            index
+            for index, occurrence in enumerate(trace)
+            if (
+                occurrence.get("event") in RESULT_EVENTS
+                and result_failed(occurrence)
+            )
+            or (
+                occurrence.get("event") == "concern_disposition"
+                and occurrence.get("disposition") == "promoted_to_failure"
+            )
+            or (
+                occurrence.get("event") == "failure_overlay_entered"
+                and occurrence.get("overlay") == "failure"
+            )
+        ),
+        None,
+    )
+
+
 def validate_direct_remedial_topology(trace, route_index):
     if not any(occurrence.get("event") in REMEDIAL_EVENTS for occurrence in trace):
         return None
@@ -1179,7 +1201,8 @@ def validate_reached_route_prefix(
 ):
     stages = list(stage_order or ROUTE_STAGE_ORDER[route])
     if any(
-        index > failure_index and occurrence.get("event") in ROUTE_ALLOWED_EVENTS[route]
+        index > failure_index
+        and occurrence.get("event") in ROUTE_SPECIFIC_EVENTS.union({"route_selected"})
         for index, occurrence in enumerate(trace)
     ):
         return f"{route.replace('_', '-')} route cannot advance after a failed result"
@@ -1287,6 +1310,13 @@ def validate_route_topology(trace):
     route = trace[selected[0]].get("route")
     if route not in ROUTE_ALLOWED_EVENTS:
         return "selected route is outside the closed route vocabulary"
+    route_stop_index = first_route_stop_index(trace)
+    if route_stop_index is not None and any(
+        index > route_stop_index
+        and occurrence.get("event") in ROUTE_SPECIFIC_EVENTS.union({"route_selected"})
+        for index, occurrence in enumerate(trace)
+    ):
+        return f"{route.replace('_', '-')} route cannot advance after a failed result"
     remedial_reason = validate_direct_remedial_topology(trace, selected[0])
     if remedial_reason is not None:
         return remedial_reason
@@ -2011,6 +2041,42 @@ def validate_lifecycle_ownership(trace):
     return None
 
 
+def has_terminal_failure_after_clear(trace):
+    clear_conditional_indexes = matching_indexes(
+        trace,
+        "conditional_spec_review",
+        outcome="clear",
+    )
+    candidate_overlays = []
+    for conditional_index in clear_conditional_indexes:
+        for result_index, occurrence in enumerate(trace):
+            if (
+                result_index <= conditional_index
+                or occurrence.get("event") not in RESULT_EVENTS
+                or not result_failed(occurrence)
+            ):
+                continue
+            owned_overlays = [
+                overlay_index
+                for overlay_index in matching_indexes(
+                    trace,
+                    "failure_overlay_entered",
+                    overlay="failure",
+                    owner="runtime_failure_overlay",
+                )
+                if overlay_index > result_index
+            ]
+            if owned_overlays:
+                candidate_overlays.append(min(owned_overlays))
+    if not candidate_overlays:
+        return False
+    first_overlay = min(candidate_overlays)
+    return not any(
+        index > first_overlay and occurrence.get("event") in CONTINUATION_EVENTS
+        for index, occurrence in enumerate(trace)
+    )
+
+
 def validate_review_topology(trace):
     context_events = (
         "risky_task",
@@ -2067,23 +2133,7 @@ def validate_review_topology(trace):
         result_failed(trace[index]) for index in conditional_indexes
     )
     endpoints = matching_indexes(trace, "completion") + matching_indexes(trace, "user_gate")
-    terminal_failure_after_clear = bool(conditional_indexes) and not endpoints and any(
-        result_index > conditional_index
-        and result_failed(trace[result_index])
-        and any(
-            overlay_index > result_index
-            and trace[overlay_index].get("owner") == "runtime_failure_overlay"
-            for overlay_index in matching_indexes(
-                trace,
-                "failure_overlay_entered",
-                overlay="failure",
-            )
-        )
-        for conditional_index in conditional_indexes
-        if trace[conditional_index].get("outcome") == "clear"
-        for result_index, occurrence in enumerate(trace)
-        if occurrence.get("event") in RESULT_EVENTS
-    )
+    terminal_failure_after_clear = has_terminal_failure_after_clear(trace)
     if conditional_failed and clear_verdicts:
         return "failed conditional review cannot have a clear verdict"
     if triggered_ids and not conditional_failed:
@@ -2827,6 +2877,70 @@ class RunSemanticContractTests(unittest.TestCase):
             result["reason"],
             "failure overlay must be runtime-failure-overlay-owned",
         )
+
+    def test_success_route_cannot_start_or_advance_after_any_failed_result(self):
+        failures = (
+            {"event": "completion_gate", "outcome": "non_green", "owner": "orchestrator"},
+            {"event": "completion_gate", "outcome": "unevaluable", "owner": "orchestrator"},
+            {"event": "final_full_diff_review", "outcome": "blocking", "owner": "reviewer"},
+        )
+        overlay = {
+            "event": "failure_overlay_entered",
+            "overlay": "failure",
+            "owner": "runtime_failure_overlay",
+        }
+        for route, route_events in ROUTE_ALLOWED_EVENTS.items():
+            reason = f"{route.replace('_', '-')} route cannot advance after a failed result"
+            selection = {
+                "event": "route_selected",
+                "route": route,
+                "owner": "orchestrator",
+            }
+            for failure in failures:
+                terminal = [
+                    selection,
+                    copy.deepcopy(failure),
+                    copy.deepcopy(overlay),
+                ]
+                with self.subTest(route=route, event="route_selected", outcome=failure["outcome"]):
+                    self.assertIsNone(validate_route_topology(terminal))
+                    mutation = terminal[1:] + [selection]
+                    self.assertEqual(validate_route_topology(mutation), reason)
+                    result = validate_semantics(self.contract, mutation)
+                    self.assertEqual(result["contract_id"], "RUN-ROUTE-TOPOLOGY")
+                    self.assertEqual(result["reason"], reason)
+
+                for event in sorted(route_events):
+                    occurrence = {
+                        "event": event,
+                        "owner": ROUTE_EVENT_OWNERS[route].get(event, "orchestrator"),
+                    }
+                    if event in TASK_CORRELATION_EVENTS:
+                        occurrence["task_id"] = "task-a"
+                    if event in RESULT_EVENTS:
+                        occurrence["outcome"] = "green"
+                    trace = [
+                        selection,
+                        copy.deepcopy(failure),
+                        copy.deepcopy(overlay),
+                        occurrence,
+                    ]
+                    with self.subTest(route=route, event=event, outcome=failure["outcome"]):
+                        self.assertEqual(validate_route_topology(trace), reason)
+
+            promoted = [
+                {"event": "concern_recorded", "value": "C-1", "owner": "orchestrator"},
+                {
+                    "event": "concern_disposition",
+                    "value": "C-1",
+                    "disposition": "promoted_to_failure",
+                    "owner": "orchestrator",
+                },
+                copy.deepcopy(overlay),
+                selection,
+            ]
+            with self.subTest(route=route, event="route_selected", outcome="promoted"):
+                self.assertEqual(validate_route_topology(promoted), reason)
 
     def test_route_prefix_stops_at_first_failure_without_requiring_later_success(self):
         traces = (
@@ -4271,13 +4385,50 @@ class RunSemanticContractTests(unittest.TestCase):
         ]
         self.assertTrue(validate_semantics(self.contract, trace)["valid"])
 
-        continued = trace[:3] + [{"event": "downstream_dispatch", "owner": "orchestrator"}]
+        continued = trace + [{"event": "retry", "owner": "orchestrator"}]
         result = validate_semantics(self.contract, continued)
         self.assertEqual(result["contract_id"], "RUN-REVIEW-TOPOLOGY")
         self.assertEqual(
             result["reason"],
             "conditional review never replaces final full-diff review",
         )
+
+        recovered = continued + [
+            {"event": "completion_full_verify", "outcome": "green", "owner": "orchestrator"},
+            {"event": "final_full_diff_review", "outcome": "green", "owner": "reviewer"},
+            {"event": "review_verdict", "outcome": "clear", "owner": "reviewer"},
+        ]
+        self.assertTrue(validate_semantics(self.contract, recovered)["valid"])
+
+    def test_terminal_failure_review_exemption_closes_after_every_continuation(self):
+        trace = [
+            {"event": "risky_task", "task_id": "task-a", "owner": "orchestrator"},
+            {"event": "downstream_cascade_risk", "task_id": "task-a", "owner": "orchestrator"},
+            {
+                "event": "conditional_spec_review",
+                "task_id": "task-a",
+                "outcome": "clear",
+                "owner": "reviewer",
+            },
+            {"event": "completion_gate", "outcome": "non_green", "owner": "orchestrator"},
+            {
+                "event": "failure_overlay_entered",
+                "overlay": "failure",
+                "owner": "runtime_failure_overlay",
+            },
+        ]
+        self.assertTrue(has_terminal_failure_after_clear(trace))
+        terminal_bookkeeping = trace + [
+            {"event": "user_output_actual_blocker", "owner": "orchestrator"}
+        ]
+        self.assertTrue(has_terminal_failure_after_clear(terminal_bookkeeping))
+        self.assertTrue(validate_semantics(self.contract, terminal_bookkeeping)["valid"])
+
+        for event in sorted(CONTINUATION_EVENTS):
+            with self.subTest(continuation=event):
+                self.assertFalse(
+                    has_terminal_failure_after_clear(trace + [{"event": event}])
+                )
 
     def test_parallel_terminal_failure_validates_only_the_completed_prefix(self):
         trace = [
