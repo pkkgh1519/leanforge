@@ -196,6 +196,13 @@ TASK_CORRELATION_EVENTS = {
     "merge_gate",
     "task_merged",
 }
+REVIEW_CORRELATION_EVENTS = {
+    "risky_task",
+    "non_risky_task",
+    "downstream_cascade_risk",
+    "no_downstream_cascade_risk",
+    "conditional_spec_review",
+}
 
 
 def event_metadata_schema():
@@ -217,6 +224,8 @@ def event_metadata_schema():
     add("route_selected", "route", required=True)
     for event in TASK_CORRELATION_EVENTS:
         add(event, "task_id")
+    for event in REVIEW_CORRELATION_EVENTS:
+        add(event, "task_id", required=True)
     add("failure_overlay_entered", "overlay", required=True)
     schema["failure_overlay_entered"]["required"].add("owner")
     for event in RESULT_EVENTS:
@@ -224,6 +233,7 @@ def event_metadata_schema():
     add("prior_integration", "outcome", required=True)
     add("review_verdict", "outcome", required=True)
     for event in (
+        "conditional_spec_review",
         "final_full_diff_review",
         "review_verdict",
         "completion",
@@ -317,6 +327,7 @@ EXPECTED_MUTANT_IDS = {
     "external-missing-independent-proof",
     "external-mismatched-base-pin",
     "single-risky-merge-before-verification",
+    "single-risky-merge-before-precondition",
     "parallel-missing-integration-gate",
     "completion-reuse-missing-sha",
     "completion-reuse-missing-verify-set",
@@ -364,6 +375,7 @@ EXPECTED_MUTANT_IDS = {
     "blocking-verdict-without-review",
     "green-review-blocking-verdict",
     "external-base-commit-wrong-owner",
+    "concern-disposition-before-record",
 }
 
 
@@ -464,7 +476,7 @@ def validate_trace(trace, vocabulary, label):
         allowed = {"event", "owner"}
         if event == "route_selected":
             allowed.add("route")
-        if event in TASK_CORRELATION_EVENTS:
+        if event in TASK_CORRELATION_EVENTS.union(REVIEW_CORRELATION_EVENTS):
             allowed.add("task_id")
         if event == "failure_overlay_entered":
             allowed.add("overlay")
@@ -550,6 +562,10 @@ def validate_required_metadata(trace, vocabulary):
         "current_base_tip": "completion reuse requires the current base-tip SHA",
     }
     review_owners = {
+        "conditional_spec_review": (
+            "reviewer",
+            "conditional spec review must be fresh-reviewer-owned",
+        ),
         "final_full_diff_review": (
             "reviewer",
             "final full-diff review must be fresh-reviewer-owned",
@@ -594,6 +610,11 @@ def validate_required_metadata(trace, vocabulary):
             return "RUN-COMPLETION-REUSE", "prior integration requires a non-empty closed outcome"
         if event == "review_verdict" and occurrence.get("outcome") not in {"clear", "blocking"}:
             return "RUN-REVIEW-TOPOLOGY", "review verdict requires a non-empty closed outcome"
+        if event in REVIEW_CORRELATION_EVENTS and not occurrence.get("task_id"):
+            return (
+                "RUN-REVIEW-TOPOLOGY",
+                "conditional review facts and result require a non-empty task_id",
+            )
         if event == "failure_overlay_entered":
             if occurrence.get("overlay") != "failure":
                 return "RUN-FAIL-CLOSED", "failure overlay requires explicit failure identity"
@@ -883,6 +904,7 @@ ROUTE_ALLOWED_EVENTS = {
     "single_risky": {
         "worktree_created",
         "task_implementation",
+        "evidence_captured",
         "task_verification",
         "merge_precondition",
         "merge_gate",
@@ -917,6 +939,7 @@ ROUTE_STAGE_ORDER = {
     "single_risky": [
         "worktree_created",
         "task_implementation",
+        "evidence_captured",
         "task_verification",
         "merge_precondition",
         "merge_gate",
@@ -996,8 +1019,75 @@ def validate_direct_remedial_topology(trace, route_index):
     return None
 
 
-def validate_reached_route_prefix(trace, route, route_index, failure_index):
-    stages = ROUTE_STAGE_ORDER[route]
+ROUTE_EVENT_OWNERS = {
+    "direct": {
+        "task_implementation": "orchestrator",
+        "evidence_captured": "orchestrator",
+        "base_commit": "orchestrator",
+    },
+    "single_risky": {
+        "worktree_created": "orchestrator",
+        "task_implementation": "implementer",
+        "evidence_captured": "implementer",
+        "task_verification": "implementer",
+        "merge_precondition": "orchestrator",
+        "merge_gate": "orchestrator",
+        "task_merged": "orchestrator",
+    },
+    "parallel": {
+        "isolated_task_worktrees": "orchestrator",
+        "worktree_created": "orchestrator",
+        "task_implementation": "implementer",
+        "task_verification": "implementer",
+        "task_verifications_complete": "orchestrator",
+        "merge_gate": "orchestrator",
+        "merge_gates_complete": "orchestrator",
+        "serial_merge": "orchestrator",
+        "task_merged": "orchestrator",
+        "regeneration": "orchestrator",
+        "wiring": "orchestrator",
+        "integration_gate": "orchestrator",
+    },
+    "external": {
+        "selected_base": "orchestrator",
+        "external_base_pin": "implementer",
+        "external_action": "implementer",
+        "external_evidence": "implementer",
+        "base_commit": "implementer",
+        "independent_commit_proof": "orchestrator",
+    },
+}
+SINGLE_RISKY_OWNER_REASONS = {
+    "worktree_created": "single-risky worktree must be orchestrator-owned",
+    "task_implementation": "single-risky implementation must be implementer-owned",
+    "evidence_captured": "single-risky evidence must be implementer-owned",
+    "task_verification": "single-risky verification must be implementer-owned",
+    "merge_precondition": "single-risky merge precondition must be orchestrator-owned",
+    "merge_gate": "single-risky merge gate must be orchestrator-owned",
+    "task_merged": "single-risky merge must be orchestrator-owned",
+}
+
+
+def route_task_index_map(trace, event):
+    indexes = matching_indexes(trace, event)
+    result = {}
+    for index in indexes:
+        task_id = trace[index].get("task_id")
+        if not task_id or task_id in result:
+            return None
+        result[task_id] = index
+    return result
+
+
+def validate_reached_route_prefix(
+    trace,
+    route,
+    route_index,
+    failure_index,
+    *,
+    stage_order=None,
+):
+    stages = list(stage_order or ROUTE_STAGE_ORDER[route])
     if any(
         index > failure_index and occurrence.get("event") in ROUTE_ALLOWED_EVENTS[route]
         for index, occurrence in enumerate(trace)
@@ -1009,9 +1099,48 @@ def validate_reached_route_prefix(trace, route, route_index, failure_index):
     for position, event in enumerate(stages):
         indexes = matching_indexes(prefix, event)
         if len(indexes) > 1 and event not in repeatable:
+            if route == "single_risky":
+                return f"single-risky route requires exactly one {event}"
             return f"{route.replace('_', '-')} route prefix contains duplicate {event}"
         if indexes:
             positions.append((position, min(indexes), max(indexes)))
+
+    for event, owner in ROUTE_EVENT_OWNERS[route].items():
+        indexes = matching_indexes(prefix, event)
+        if indexes and any(trace[index].get("owner") != owner for index in indexes):
+            if route == "single_risky":
+                return SINGLE_RISKY_OWNER_REASONS[event]
+            return f"{route.replace('_', '-')} route prefix has wrong {event} owner"
+
+    if route == "parallel":
+        reached_task_events = [
+            event
+            for event in stages
+            if event in TASK_CORRELATION_EVENTS and has_event(prefix, event)
+        ]
+        if reached_task_events:
+            worktrees = route_task_index_map(prefix, "worktree_created")
+            if worktrees is None or len(worktrees) < 2:
+                return "parallel route requires at least two isolated task worktrees with stable task_id"
+            task_ids = set(worktrees)
+            for event in reached_task_events:
+                indexes = route_task_index_map(prefix, event)
+                if indexes is None or set(indexes) != task_ids:
+                    return "parallel task work, verification, gate, and merge evidence must correlate by task_id"
+
+    if route == "single_risky":
+        verification = matching_indexes(prefix, "task_verification")
+        precondition = matching_indexes(prefix, "merge_precondition")
+        merged = matching_indexes(prefix, "task_merged")
+        if verification and merged and merged[0] < verification[0]:
+            return "single-risky verification must precede merge"
+        if (
+            "merge_precondition" in stages
+            and precondition
+            and merged
+            and merged[0] < precondition[0]
+        ):
+            return "single-risky merge precondition must precede merge"
     if positions:
         highest_position = positions[-1][0]
         if [position for position, _, _ in positions] != list(range(highest_position + 1)):
@@ -1096,9 +1225,23 @@ def validate_route_topology(trace):
             return "direct evidence must precede base commit"
         return None
     if route == "single_risky":
+        structural_trace = (
+            trace if failure_index is None else trace[: failure_index + 1]
+        )
+        for event in ROUTE_STAGE_ORDER["single_risky"]:
+            indexes = matching_indexes(structural_trace, event)
+            if len(indexes) > 1:
+                return f"single-risky route requires exactly one {event}"
+            if (
+                indexes
+                and structural_trace[indexes[0]].get("owner")
+                != ROUTE_EVENT_OWNERS[route][event]
+            ):
+                return SINGLE_RISKY_OWNER_REASONS[event]
         checks = (
             (len(matching_indexes(trace, "worktree_created")) == 1, "single-risky route requires one task worktree"),
             (owner_is(trace, "task_implementation", "implementer"), "single-risky implementation must be implementer-owned"),
+            (len(matching_indexes(trace, "evidence_captured")) == 1, "single-risky route requires captured implementer evidence"),
         )
         for passed, reason in checks:
             if not passed:
@@ -1106,10 +1249,14 @@ def validate_route_topology(trace):
         verification = matching_indexes(trace, "task_verification")
         if len(verification) != 1:
             return "single-risky route requires green task verification"
-        if not ordered(trace, "route_selected", "worktree_created"):
+        if not ordered(structural_trace, "route_selected", "worktree_created"):
             return "single-risky worktree must follow route selection"
-        if not ordered(trace, "worktree_created", "task_implementation"):
+        if not ordered(structural_trace, "worktree_created", "task_implementation"):
             return "single-risky worktree must precede implementation"
+        if not ordered(structural_trace, "task_implementation", "evidence_captured"):
+            return "single-risky implementation must precede captured evidence"
+        if not ordered(structural_trace, "evidence_captured", "task_verification"):
+            return "single-risky captured evidence must precede verification"
         implementation_prefix = [
             index
             for index in matching_indexes(trace, "task_implementation")
@@ -1140,6 +1287,10 @@ def validate_route_topology(trace):
             return None
         if trace[preconditions[0]].get("outcome") != "green":
             return "single-risky route requires a green merge precondition"
+        if has_event(trace, "task_merged") and not ordered(
+            trace, "merge_precondition", "task_merged"
+        ):
+            return "single-risky merge precondition must precede merge"
 
         gates = matching_indexes(trace, "merge_gate")
         if len(gates) != 1:
@@ -1152,6 +1303,10 @@ def validate_route_topology(trace):
             return None
         if trace[gates[0]].get("outcome") != "green":
             return "single-risky route requires a green merge gate"
+        if len(matching_indexes(trace, "task_merged")) != 1:
+            return "single-risky route requires exactly one task_merged"
+        if not ordered(trace, "merge_precondition", "task_merged"):
+            return "single-risky merge precondition must precede merge"
         if not ordered(trace, "merge_gate", "task_merged"):
             return "single-risky merge gate must precede merge"
         return None
@@ -1495,18 +1650,43 @@ def validate_completion_reuse(trace):
     reuse_indexes = matching_indexes(trace, "completion_reused")
     reuse = bool(reuse_indexes)
     full_verify = has_event(trace, "completion_full_verify")
-    fact_events = {
+    evidence_events = {
         "prior_integration",
         "prior_verify_set",
         "completion_verify_set",
         "prior_gate_base_tip",
         "current_base_tip",
+    }
+    fact_events = {
+        *evidence_events,
         "completion_reused",
     }
     has_fact_context = any(item.get("event") in fact_events for item in trace)
     review_indexes = matching_indexes(trace, "final_full_diff_review")
+    review_verdict_indexes = matching_indexes(trace, "review_verdict")
+    if len(reuse_indexes) == 1:
+        decision_index = reuse_indexes[0]
+        evidence_indexes = [
+            index
+            for index, item in enumerate(trace)
+            if item.get("event") in evidence_events
+        ]
+        if any(index >= decision_index for index in evidence_indexes):
+            return "all completion reuse evidence facts must precede the reuse decision"
+        review_chain = (
+            review_indexes
+            + review_verdict_indexes
+            + matching_indexes(trace, "completion")
+            + matching_indexes(trace, "user_gate")
+        )
+        if review_chain and decision_index >= min(review_chain):
+            return (
+                "completion reuse decision must precede final review, verdict, "
+                "and endpoint"
+            )
     review_and_endpoints = (
         review_indexes
+        + review_verdict_indexes
         + matching_indexes(trace, "completion")
         + matching_indexes(trace, "user_gate")
     )
@@ -1596,6 +1776,18 @@ def validate_concern_disposition(trace):
         return None
     if not dispositions:
         return "concern must have a closed disposition"
+    for disposition_index in dispositions:
+        matching_concerns = [
+            concern_index
+            for concern_index in concern_indexes
+            if trace[concern_index].get("value")
+            == trace[disposition_index].get("value")
+        ]
+        if (
+            len(matching_concerns) == 1
+            and disposition_index < matching_concerns[0]
+        ):
+            return "recorded concern must precede its correlated disposition"
     for index in dispositions:
         disposition = trace[index].get("disposition")
         if not disposition:
@@ -1702,31 +1894,63 @@ def validate_lifecycle_ownership(trace):
 
 
 def validate_review_topology(trace):
-    has_risky = has_event(trace, "risky_task")
-    has_non_risky = has_event(trace, "non_risky_task")
-    has_cascade = has_event(trace, "downstream_cascade_risk")
-    no_cascade = has_event(trace, "no_downstream_cascade_risk")
-    review_facts = has_risky or has_non_risky or has_cascade or no_cascade
+    context_events = (
+        "risky_task",
+        "non_risky_task",
+        "downstream_cascade_risk",
+        "no_downstream_cascade_risk",
+    )
+    context_by_event = {}
+    for event in context_events:
+        task_ids = [trace[index].get("task_id") for index in matching_indexes(trace, event)]
+        if any(not task_id for task_id in task_ids):
+            return "conditional review facts and result require a non-empty task_id"
+        if len(task_ids) != len(set(task_ids)):
+            return "review context facts must be unique per task_id"
+        context_by_event[event] = set(task_ids)
+    risky_ids = context_by_event["risky_task"]
+    non_risky_ids = context_by_event["non_risky_task"]
+    cascade_ids = context_by_event["downstream_cascade_risk"]
+    no_cascade_ids = context_by_event["no_downstream_cascade_risk"]
+    if risky_ids.intersection(non_risky_ids):
+        return "review risk facts must not contradict for one task_id"
+    if cascade_ids.intersection(no_cascade_ids):
+        return "review cascade facts must not contradict for one task_id"
+    review_facts = any(context_by_event.values())
     conditional_indexes = matching_indexes(trace, "conditional_spec_review")
     final_indexes = matching_indexes(trace, "final_full_diff_review")
     verdict_indexes = matching_indexes(trace, "review_verdict")
     clear_verdicts = matching_indexes(trace, "review_verdict", outcome="clear")
-    conditional = bool(conditional_indexes)
     final_review = bool(final_indexes)
 
-    if conditional and not (has_risky and has_cascade):
-        return "conditional review applies only to risky downstream cascade"
-    if len(conditional_indexes) > 1:
-        return "conditional spec review must occur exactly once"
-    if conditional and trace[conditional_indexes[0]].get("outcome") not in RESULT_OUTCOMES["conditional_spec_review"]:
-        return "conditional spec review requires an actual result"
-    if has_risky and has_cascade and not conditional:
+    conditional_by_task = {}
+    for index in conditional_indexes:
+        occurrence = trace[index]
+        task_id = occurrence.get("task_id")
+        if not task_id:
+            return "conditional review facts and result require a non-empty task_id"
+        if task_id in conditional_by_task:
+            return "conditional spec review must occur exactly once per task_id"
+        conditional_by_task[task_id] = index
+        if occurrence.get("owner") != "reviewer":
+            return "conditional spec review must be fresh-reviewer-owned"
+        if occurrence.get("outcome") not in RESULT_OUTCOMES["conditional_spec_review"]:
+            return "conditional spec review requires an actual result"
+        if task_id not in risky_ids or task_id not in cascade_ids:
+            if risky_ids and cascade_ids:
+                return "conditional review facts and result must correlate by task_id"
+            return "conditional review applies only to risky downstream cascade"
+
+    triggered_ids = risky_ids.intersection(cascade_ids)
+    if any(task_id not in conditional_by_task for task_id in triggered_ids):
         return "risky downstream cascade requires conditional spec review"
 
-    conditional_failed = conditional and result_failed(trace[conditional_indexes[0]])
+    conditional_failed = any(
+        result_failed(trace[index]) for index in conditional_indexes
+    )
     if conditional_failed and clear_verdicts:
         return "failed conditional review cannot have a clear verdict"
-    if has_risky and has_cascade and not conditional_failed:
+    if triggered_ids and not conditional_failed:
         if not final_review:
             return "conditional review never replaces final full-diff review"
         if has_event(trace, "downstream_dispatch") and not ordered(
@@ -1950,6 +2174,7 @@ class RunSemanticContractTests(unittest.TestCase):
             {"event": "route_selected", "route": "single_risky", "owner": "orchestrator"},
             {"event": "worktree_created", "owner": "orchestrator"},
             {"event": "task_implementation", "owner": "implementer"},
+            {"event": "evidence_captured", "owner": "implementer"},
             {"event": "task_verification", "outcome": "green", "owner": "implementer"},
             {"event": "merge_precondition", "outcome": "unevaluable", "owner": "orchestrator"},
             {"event": "progress", "owner": "orchestrator"},
@@ -1966,6 +2191,7 @@ class RunSemanticContractTests(unittest.TestCase):
             {"event": "route_selected", "route": "single_risky", "owner": "orchestrator"},
             {"event": "worktree_created", "owner": "orchestrator"},
             {"event": "task_implementation", "owner": "implementer"},
+            {"event": "evidence_captured", "owner": "implementer"},
             {"event": "task_verification", "outcome": "non_green", "owner": "implementer"},
             {"event": "failure_overlay_entered", "overlay": "failure", "owner": "runtime_failure_overlay"},
         ]
@@ -2079,7 +2305,7 @@ class RunSemanticContractTests(unittest.TestCase):
 
     def test_completion_decisions_precede_final_review_and_endpoint(self):
         reuse_reason = (
-            "completion reuse facts and decision must precede final review and endpoint"
+            "completion reuse decision must precede final review, verdict, and endpoint"
         )
         full_verify_reason = (
             "completion full verify must precede final review and endpoint"
@@ -2164,6 +2390,7 @@ class RunSemanticContractTests(unittest.TestCase):
             {"event": "route_selected", "route": "single_risky", "owner": "orchestrator"},
             {"event": "worktree_created", "owner": "orchestrator"},
             {"event": "task_implementation", "owner": "implementer"},
+            {"event": "evidence_captured", "owner": "implementer"},
             {"event": "task_verification", "outcome": "non_green", "owner": "implementer"},
             {"event": "failure_overlay_entered", "overlay": "failure", "owner": "runtime_failure_overlay"},
         ]
@@ -2186,9 +2413,9 @@ class RunSemanticContractTests(unittest.TestCase):
             ),
             (
                 [
-                    {"event": "risky_task", "owner": "orchestrator"},
-                    {"event": "downstream_cascade_risk", "owner": "orchestrator"},
-                    {"event": "conditional_spec_review", "outcome": "non_green", "owner": "orchestrator"},
+                    {"event": "risky_task", "task_id": "task-review", "owner": "orchestrator"},
+                    {"event": "downstream_cascade_risk", "task_id": "task-review", "owner": "orchestrator"},
+                    {"event": "conditional_spec_review", "task_id": "task-review", "outcome": "non_green", "owner": "reviewer"},
                 ],
                 "non_green conditional spec review result must enter failure overlay",
             ),
@@ -2323,8 +2550,8 @@ class RunSemanticContractTests(unittest.TestCase):
 
     def test_review_topology_is_bidirectional_and_result_bearing(self):
         conditional_without_cascade = [
-            {"event": "risky_task", "owner": "orchestrator"},
-            {"event": "conditional_spec_review", "outcome": "clear", "owner": "orchestrator"},
+            {"event": "risky_task", "task_id": "task-review", "owner": "orchestrator"},
+            {"event": "conditional_spec_review", "task_id": "task-review", "outcome": "clear", "owner": "reviewer"},
             {"event": "final_full_diff_review", "outcome": "clear", "owner": "reviewer"},
         ]
         result = validate_semantics(self.contract, conditional_without_cascade)
@@ -2335,9 +2562,9 @@ class RunSemanticContractTests(unittest.TestCase):
         )
 
         missing_result = [
-            {"event": "risky_task", "owner": "orchestrator"},
-            {"event": "downstream_cascade_risk", "owner": "orchestrator"},
-            {"event": "conditional_spec_review", "owner": "orchestrator"},
+            {"event": "risky_task", "task_id": "task-review", "owner": "orchestrator"},
+            {"event": "downstream_cascade_risk", "task_id": "task-review", "owner": "orchestrator"},
+            {"event": "conditional_spec_review", "task_id": "task-review", "owner": "reviewer"},
             {"event": "final_full_diff_review", "outcome": "clear", "owner": "reviewer"},
         ]
         result = validate_semantics(self.contract, missing_result)
@@ -3153,6 +3380,333 @@ class RunSemanticContractTests(unittest.TestCase):
         for path in (ROOT / "src/skills/run").rglob("*.md"):
             with self.subTest(path=path.relative_to(ROOT)):
                 self.assertIsNone(force_load.search(path.read_text(encoding="utf-8")))
+
+    def test_later_non_route_failure_does_not_bypass_selected_route_structure(self):
+        cases = (
+            (
+                [
+                    {"event": "route_selected", "route": "single_risky", "owner": "orchestrator"},
+                    {"event": "worktree_created", "owner": "implementer"},
+                    {"event": "completion_gate", "outcome": "non_green", "owner": "orchestrator"},
+                    {"event": "failure_overlay_entered", "overlay": "failure", "owner": "runtime_failure_overlay"},
+                ],
+                "single-risky worktree must be orchestrator-owned",
+            ),
+            (
+                [
+                    {"event": "route_selected", "route": "parallel", "owner": "orchestrator"},
+                    {"event": "isolated_task_worktrees", "owner": "orchestrator"},
+                    {"event": "worktree_created", "task_id": "task-a", "owner": "orchestrator"},
+                    {"event": "completion_gate", "outcome": "unevaluable", "owner": "orchestrator"},
+                    {"event": "failure_overlay_entered", "overlay": "failure", "owner": "runtime_failure_overlay"},
+                ],
+                "parallel route requires at least two isolated task worktrees with stable task_id",
+            ),
+            (
+                [
+                    {"event": "route_selected", "route": "parallel", "owner": "orchestrator"},
+                    {"event": "isolated_task_worktrees", "owner": "orchestrator"},
+                    {"event": "worktree_created", "task_id": "task-a", "owner": "orchestrator"},
+                    {"event": "worktree_created", "task_id": "task-b", "owner": "orchestrator"},
+                    {"event": "task_implementation", "task_id": "task-a", "owner": "implementer"},
+                    {"event": "task_implementation", "task_id": "task-c", "owner": "implementer"},
+                    {"event": "completion_gate", "outcome": "non_green", "owner": "orchestrator"},
+                    {"event": "failure_overlay_entered", "overlay": "failure", "owner": "runtime_failure_overlay"},
+                ],
+                "parallel task work, verification, gate, and merge evidence must correlate by task_id",
+            ),
+        )
+        for trace, reason in cases:
+            with self.subTest(reason=reason):
+                result = validate_semantics(self.contract, trace)
+                self.assertEqual(result["contract_id"], "RUN-ROUTE-TOPOLOGY")
+                self.assertEqual(result["reason"], reason)
+
+    def test_single_risky_route_is_exactly_owned_cardinal_and_ordered(self):
+        trace = [
+            {"event": "route_selected", "route": "single_risky", "owner": "orchestrator"},
+            {"event": "worktree_created", "owner": "orchestrator"},
+            {"event": "task_implementation", "owner": "implementer"},
+            {"event": "evidence_captured", "owner": "implementer"},
+            {"event": "task_verification", "outcome": "green", "owner": "implementer"},
+            {"event": "merge_precondition", "outcome": "green", "owner": "orchestrator"},
+            {"event": "merge_gate", "outcome": "green", "owner": "orchestrator"},
+            {"event": "task_merged", "owner": "orchestrator"},
+        ]
+        self.assertTrue(validate_semantics(self.contract, trace)["valid"])
+
+        owner_reasons = {
+            "worktree_created": "single-risky worktree must be orchestrator-owned",
+            "task_implementation": "single-risky implementation must be implementer-owned",
+            "evidence_captured": "single-risky evidence must be implementer-owned",
+            "task_verification": "single-risky verification must be implementer-owned",
+            "merge_precondition": "single-risky merge precondition must be orchestrator-owned",
+            "merge_gate": "single-risky merge gate must be orchestrator-owned",
+            "task_merged": "single-risky merge must be orchestrator-owned",
+        }
+        for event, reason in owner_reasons.items():
+            mutation = copy.deepcopy(trace)
+            occurrence = next(item for item in mutation if item["event"] == event)
+            occurrence["owner"] = (
+                "implementer" if occurrence["owner"] == "orchestrator" else "orchestrator"
+            )
+            with self.subTest(event=event, mutation="owner"):
+                result = validate_semantics(self.contract, mutation)
+                self.assertEqual(result["contract_id"], "RUN-ROUTE-TOPOLOGY")
+                self.assertEqual(result["reason"], reason)
+
+        for event in ROUTE_STAGE_ORDER["single_risky"]:
+            mutation = copy.deepcopy(trace)
+            occurrence = next(item for item in mutation if item["event"] == event)
+            mutation.insert(mutation.index(occurrence), copy.deepcopy(occurrence))
+            with self.subTest(event=event, mutation="duplicate"):
+                result = validate_semantics(self.contract, mutation)
+                self.assertEqual(result["contract_id"], "RUN-ROUTE-TOPOLOGY")
+                self.assertEqual(
+                    result["reason"],
+                    f"single-risky route requires exactly one {event}",
+                )
+
+        for left, right in zip(
+            ROUTE_STAGE_ORDER["single_risky"],
+            ROUTE_STAGE_ORDER["single_risky"][1:],
+        ):
+            mutation = copy.deepcopy(trace)
+            left_index = next(
+                index for index, item in enumerate(mutation) if item["event"] == left
+            )
+            right_index = next(
+                index for index, item in enumerate(mutation) if item["event"] == right
+            )
+            mutation[left_index], mutation[right_index] = (
+                mutation[right_index],
+                mutation[left_index],
+            )
+            with self.subTest(left=left, right=right, mutation="order"):
+                result = validate_semantics(self.contract, mutation)
+                self.assertEqual(result["contract_id"], "RUN-ROUTE-TOPOLOGY")
+                self.assertFalse(result["valid"])
+
+    def test_parallel_reached_prefix_keeps_every_task_correlation_stage_closed(self):
+        success = next(
+            item
+            for item in self.fixture["scenarios"]
+            if item["id"] == "parallel-success"
+        )["trace"]
+        correlated_stages = (
+            "task_implementation",
+            "task_verification",
+            "merge_gate",
+            "task_merged",
+        )
+        for stage in correlated_stages:
+            stage_end = max(matching_indexes(success, stage))
+            trace = copy.deepcopy(success[: stage_end + 1])
+            trace.extend(
+                [
+                    {"event": "completion_gate", "outcome": "non_green", "owner": "orchestrator"},
+                    {"event": "failure_overlay_entered", "overlay": "failure", "owner": "runtime_failure_overlay"},
+                ]
+            )
+            with self.subTest(stage=stage, mutation="baseline"):
+                self.assertTrue(validate_semantics(self.contract, trace)["valid"])
+
+            mutation = copy.deepcopy(trace)
+            next(
+                item
+                for item in mutation
+                if item["event"] == stage and item.get("task_id") == "task-b"
+            )["task_id"] = "task-c"
+            with self.subTest(stage=stage, mutation="mixed-task-id"):
+                result = validate_semantics(self.contract, mutation)
+                self.assertEqual(result["contract_id"], "RUN-ROUTE-TOPOLOGY")
+                self.assertEqual(
+                    result["reason"],
+                    "parallel task work, verification, gate, and merge evidence must correlate by task_id",
+                )
+
+    def test_completion_reuse_evidence_precedes_decision_and_review_chain(self):
+        facts = [
+            {"event": "prior_integration", "outcome": "green"},
+            {"event": "prior_verify_set", "value": "full"},
+            {"event": "completion_verify_set", "value": "full"},
+            {"event": "prior_gate_base_tip", "value": "sha-A"},
+            {"event": "current_base_tip", "value": "sha-A"},
+        ]
+        decision_before_facts = [
+            {"event": "completion_reused", "owner": "orchestrator"},
+            *facts,
+        ]
+        result = validate_semantics(self.contract, decision_before_facts)
+        self.assertEqual(result["contract_id"], "RUN-COMPLETION-REUSE")
+        self.assertEqual(
+            result["reason"],
+            "all completion reuse evidence facts must precede the reuse decision",
+        )
+
+        decision_after_verdict = [
+            *facts,
+            {"event": "final_full_diff_review", "outcome": "green", "owner": "reviewer"},
+            {"event": "review_verdict", "outcome": "clear", "owner": "reviewer"},
+            {"event": "completion_reused", "owner": "orchestrator"},
+        ]
+        result = validate_semantics(self.contract, decision_after_verdict)
+        self.assertEqual(result["contract_id"], "RUN-COMPLETION-REUSE")
+        self.assertEqual(
+            result["reason"],
+            "completion reuse decision must precede final review, verdict, and endpoint",
+        )
+
+    def test_conditional_review_is_fresh_reviewer_owned_and_task_correlated(self):
+        valid = [
+            {"event": "risky_task", "task_id": "task-a", "owner": "orchestrator"},
+            {"event": "downstream_cascade_risk", "task_id": "task-a", "owner": "orchestrator"},
+            {"event": "conditional_spec_review", "task_id": "task-a", "outcome": "clear", "owner": "reviewer"},
+            {"event": "final_full_diff_review", "outcome": "green", "owner": "reviewer"},
+            {"event": "review_verdict", "outcome": "clear", "owner": "reviewer"},
+        ]
+        self.assertTrue(validate_semantics(self.contract, valid)["valid"])
+
+        cases = (
+            (
+                [
+                    {"event": "risky_task", "task_id": "task-a", "owner": "orchestrator"},
+                    {"event": "downstream_cascade_risk", "task_id": "task-a", "owner": "orchestrator"},
+                    {"event": "conditional_spec_review", "task_id": "task-a", "outcome": "clear", "owner": "orchestrator"},
+                    {"event": "final_full_diff_review", "outcome": "green", "owner": "reviewer"},
+                    {"event": "review_verdict", "outcome": "clear", "owner": "reviewer"},
+                ],
+                "conditional spec review must be fresh-reviewer-owned",
+            ),
+            (
+                [
+                    {"event": "risky_task", "task_id": "task-a", "owner": "orchestrator"},
+                    {"event": "downstream_cascade_risk", "task_id": "task-b", "owner": "orchestrator"},
+                    {"event": "conditional_spec_review", "task_id": "task-a", "outcome": "clear", "owner": "reviewer"},
+                    {"event": "final_full_diff_review", "outcome": "green", "owner": "reviewer"},
+                    {"event": "review_verdict", "outcome": "clear", "owner": "reviewer"},
+                ],
+                "conditional review facts and result must correlate by task_id",
+            ),
+            (
+                [
+                    {"event": "risky_task", "task_id": "task-a", "owner": "orchestrator"},
+                    {"event": "non_risky_task", "task_id": "task-a", "owner": "orchestrator"},
+                    {"event": "downstream_cascade_risk", "task_id": "task-a", "owner": "orchestrator"},
+                    {"event": "conditional_spec_review", "task_id": "task-a", "outcome": "clear", "owner": "reviewer"},
+                    {"event": "final_full_diff_review", "outcome": "green", "owner": "reviewer"},
+                    {"event": "review_verdict", "outcome": "clear", "owner": "reviewer"},
+                ],
+                "review risk facts must not contradict for one task_id",
+            ),
+            (
+                [
+                    {"event": "risky_task", "task_id": "task-a", "owner": "orchestrator"},
+                    {"event": "downstream_cascade_risk", "task_id": "task-a", "owner": "orchestrator"},
+                    {"event": "no_downstream_cascade_risk", "task_id": "task-a", "owner": "orchestrator"},
+                    {"event": "conditional_spec_review", "task_id": "task-a", "outcome": "clear", "owner": "reviewer"},
+                    {"event": "final_full_diff_review", "outcome": "green", "owner": "reviewer"},
+                    {"event": "review_verdict", "outcome": "clear", "owner": "reviewer"},
+                ],
+                "review cascade facts must not contradict for one task_id",
+            ),
+        )
+        for trace, reason in cases:
+            with self.subTest(reason=reason):
+                result = validate_semantics(self.contract, trace)
+                self.assertEqual(result["contract_id"], "RUN-REVIEW-TOPOLOGY")
+                self.assertEqual(result["reason"], reason)
+
+        missing_task_id = copy.deepcopy(valid)
+        missing_task_id[0].pop("task_id")
+        result = validate_semantics(self.contract, missing_task_id)
+        self.assertEqual(result["contract_id"], "RUN-REVIEW-TOPOLOGY")
+        self.assertEqual(
+            result["reason"],
+            "conditional review facts and result require a non-empty task_id",
+        )
+
+    def test_recorded_concern_precedes_every_correlated_disposition(self):
+        for disposition in EXPECTED_VOCABULARY["disposition"]:
+            trace = [
+                {
+                    "event": "concern_disposition",
+                    "value": "C-1",
+                    "disposition": disposition,
+                    "owner": "orchestrator",
+                },
+                {"event": "concern_recorded", "value": "C-1", "owner": "orchestrator"},
+            ]
+            if disposition == "promoted_to_failure":
+                trace.append(
+                    {
+                        "event": "failure_overlay_entered",
+                        "overlay": "failure",
+                        "owner": "runtime_failure_overlay",
+                    }
+                )
+            with self.subTest(disposition=disposition):
+                result = validate_semantics(self.contract, trace)
+                self.assertEqual(result["contract_id"], "RUN-CONCERN-DISPOSITION")
+                self.assertEqual(
+                    result["reason"],
+                    "recorded concern must precede its correlated disposition",
+                )
+
+    def test_merge_before_precondition_known_opposite_has_independent_order_oracle(self):
+        mutant = next(
+            item
+            for item in self.fixture["mutants"]
+            if item["id"] == "single-risky-merge-before-precondition"
+        )
+        trace = mutant["trace"]
+        opposite_assertion = next(
+            assertion
+            for assertion in mutant["assertions"]
+            if assertion == {
+                "op": "before",
+                "event_a": "task_merged",
+                "event_b": "merge_precondition",
+            }
+        )
+        self.assertEqual(evaluate_assertions(trace, [opposite_assertion]), [])
+        result = validate_semantics(self.contract, trace)
+        self.assertEqual(result["contract_id"], "RUN-ROUTE-TOPOLOGY")
+        self.assertEqual(
+            result["reason"],
+            "single-risky merge precondition must precede merge",
+        )
+
+        order_without_precondition = [
+            event
+            for event in ROUTE_STAGE_ORDER["single_risky"]
+            if event != "merge_precondition"
+        ]
+        self.assertIsNone(
+            validate_reached_route_prefix(
+                trace,
+                "single_risky",
+                0,
+                len(trace) - 1,
+                stage_order=order_without_precondition,
+            )
+        )
+
+        repaired = copy.deepcopy(trace)
+        precondition = next(
+            item for item in repaired if item["event"] == "merge_precondition"
+        )
+        repaired.remove(precondition)
+        gate_index = next(
+            index
+            for index, item in enumerate(repaired)
+            if item["event"] == "merge_gate"
+        )
+        repaired.insert(gate_index, precondition)
+        self.assertEqual(
+            evaluate_assertions(repaired, [opposite_assertion]),
+            ["assertions[0] before failed"],
+        )
 
 
 if __name__ == "__main__":

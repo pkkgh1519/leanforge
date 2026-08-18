@@ -349,9 +349,10 @@ marked accepted — never silently dropped.
 {
   "id": "RUN-CONCERN-DISPOSITION",
   "kind": "concern_disposition",
-  "definition": "Every recorded concern has exactly one correlated disposition with a non-empty value from resolved, explicitly_accepted, user_accepted, promoted_to_failure, and pending. Pending blocks completion and the user gate without entering the failure overlay. A promoted_to_failure disposition is a failure result whose runtime-owned failure overlay precedes every continuation that follows the disposition without retroactively constraining earlier progress or routine events. User-owned requirement, compatibility, and safety concerns may remain pending or be promoted to failure without user acceptance, while a resolved or accepted terminal disposition must be user-owned. The failure overlay wins every overlap.",
+  "definition": "Every recorded concern has exactly one correlated disposition that follows its record and carries a non-empty value from resolved, explicitly_accepted, user_accepted, promoted_to_failure, and pending. Pending blocks completion and the user gate without entering the failure overlay. A promoted_to_failure disposition is a failure result whose runtime-owned failure overlay precedes every continuation that follows the disposition without retroactively constraining earlier progress or routine events. User-owned requirement, compatibility, and safety concerns may remain pending or be promoted to failure without user acceptance, while a resolved or accepted terminal disposition must be user-owned. The failure overlay wins every overlap.",
   "constraints": [
-    "Every recorded concern correlates to exactly one non-empty value from the five closed dispositions.",
+    "Every recorded concern precedes exactly one correlated disposition with a non-empty value from the five closed dispositions.",
+    "A disposition cannot precede its correlated concern record, including pending and promoted-to-failure dispositions.",
     "Pending blocks completion and the user gate without entering the failure overlay; promoted-to-failure enters the runtime-owned failure overlay before every continuation that follows the disposition, while prior progress and routine events remain allowed.",
     "User-owned requirement, compatibility, and safety concerns permit pending or promoted-to-failure dispositions without acceptance; resolved, explicitly accepted, or user-accepted terminal dispositions must be user-owned."
   ]
