@@ -45,6 +45,16 @@ their dispatch steps.
   or final result. Keep routine reading, writing, dispatch, merge, gates, and cleanup silent and use
   plain language without internal labels or tool narration.
 
+<!-- leanforge:run-semantic:RUN-OUTPUT-SEMANTICS:start -->
+```json
+{
+  "id": "RUN-OUTPUT-SEMANTICS",
+  "kind": "output_semantics",
+  "definition": "User output is limited to a needed question, an actual blocker, wave completion, the final result, or an approval request. Routine read, write, dispatch, merge, gate, and cleanup operations emit no user output."
+}
+```
+<!-- leanforge:run-semantic:RUN-OUTPUT-SEMANTICS:end -->
+
 ## Input and preconditions
 
 - **Input.** Load `.leanforge/handoff.md`, then `spec.md`, then `plan.md`. If `.leanforge/` is absent
@@ -97,6 +107,16 @@ merge gates, wiring, verification, context budget, cleanup, and failure handling
    orchestrator-direct with the same captured-evidence floor as `implementer-prompt.md`; omitted `risk`
    remains unclassified and biases toward dispatch when behavior appears; `RISKY` uses one worktree
    implementer. No-file-diff work uses a base-pinned implementer with captured external evidence.
+
+<!-- leanforge:run-semantic:RUN-ROUTE-TOPOLOGY:start -->
+```json
+{
+  "id": "RUN-ROUTE-TOPOLOGY",
+  "kind": "route_topology",
+  "definition": "Run has exactly four success routes: direct is orchestrator-owned on the base with captured evidence, single_risky uses one isolated implementer worktree with verification and merge gates, parallel uses isolated task worktrees with serial merge, regeneration, wiring, and a green wave integration gate, and external is a base-pinned implementer route without a file diff. Failure is an overlay, not a success route."
+}
+```
+<!-- leanforge:run-semantic:RUN-ROUTE-TOPOLOGY:end -->
 4. **Run parallel waves in admitted batches.** Create worktrees serially under
    `.leanforge/worktrees/<task-id>`, provision only the current live-capacity batch, and dispatch one
    general-purpose leaf per task. Share dependencies safely and keep runtime resources isolated or
@@ -118,6 +138,16 @@ merge gates, wiring, verification, context budget, cleanup, and failure handling
 6. **Review policy.** Default to one final full-diff review. Add a conditional spec-review only when a
    `RISKY` task has downstream dependents and deviation could cascade. Use `spec-review-prompt.md` and
    `reviewer-prompt.md`; both remain independent leaves admitted through the live-slot contract.
+
+<!-- leanforge:run-semantic:RUN-REVIEW-TOPOLOGY:start -->
+```json
+{
+  "id": "RUN-REVIEW-TOPOLOGY",
+  "kind": "review_topology",
+  "definition": "Conditional spec review applies only to risky tasks with downstream cascade risk and never replaces final full-diff review. A clear final verdict has zero blocking findings."
+}
+```
+<!-- leanforge:run-semantic:RUN-REVIEW-TOPOLOGY:end -->
 
 **After all waves:**
 
@@ -163,6 +193,16 @@ Done only when all hold on evidence:
 - when the spec declares a runnable service, a minimal runtime smoke starts it, observes a successful
   response, and stops it; an unevaluable assertion is failure, never inferred success;
 - no escalation remains outstanding.
+
+<!-- leanforge:run-semantic:RUN-COMPLETION-REUSE:start -->
+```json
+{
+  "id": "RUN-COMPLETION-REUSE",
+  "kind": "completion_reuse",
+  "definition": "Completion reuses prior integration only when it is green, the verify set is identical, and the prior gate base-tip SHA equals the current base-tip SHA; every missing or changed condition reruns the full verify set."
+}
+```
+<!-- leanforge:run-semantic:RUN-COMPLETION-REUSE:end -->
 
 ## Finish
 

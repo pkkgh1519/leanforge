@@ -1,0 +1,2765 @@
+{
+  "schema_version": 1,
+  "contract_id": "leanforge.run.semantics",
+  "vocabulary": {
+    "route": [
+      "direct",
+      "single_risky",
+      "parallel",
+      "external"
+    ],
+    "overlay": [
+      "failure"
+    ],
+    "outcome": [
+      "green",
+      "non_green",
+      "unevaluable",
+      "clear",
+      "blocking"
+    ],
+    "disposition": [
+      "resolved",
+      "explicitly_accepted",
+      "user_accepted",
+      "promoted_to_failure",
+      "pending"
+    ],
+    "owner": [
+      "orchestrator",
+      "implementer",
+      "harness_lifecycle",
+      "runtime_failure_overlay",
+      "user"
+    ],
+    "event": [
+      "route_selected",
+      "worktree_created",
+      "isolated_task_worktrees",
+      "task_implementation",
+      "task_verification",
+      "task_verifications_complete",
+      "evidence_captured",
+      "merge_precondition",
+      "merge_gate",
+      "merge_gates_complete",
+      "serial_merge",
+      "task_merged",
+      "regeneration",
+      "wiring",
+      "integration_gate",
+      "external_action",
+      "external_evidence",
+      "base_commit",
+      "conditional_base_commit",
+      "independent_commit_proof",
+      "failure_overlay_entered",
+      "retry",
+      "cleanup",
+      "downstream_dispatch",
+      "progress",
+      "completion_gate",
+      "runtime_result",
+      "review_result",
+      "prior_integration",
+      "prior_verify_set",
+      "current_verify_set",
+      "prior_gate_base_tip",
+      "current_base_tip",
+      "verify_set_changed",
+      "base_tip_changed",
+      "completion_reused",
+      "completion_full_verify",
+      "concern_recorded",
+      "user_owned_requirement_concern",
+      "user_owned_compatibility_concern",
+      "user_owned_safety_concern",
+      "concern_disposition",
+      "completion",
+      "user_gate",
+      "startup",
+      "interrupted_run",
+      "archive",
+      "migration",
+      "runtime_task_failure",
+      "runtime_gate_failure",
+      "runtime_review_failure",
+      "risky_task",
+      "non_risky_task",
+      "downstream_cascade_risk",
+      "no_downstream_cascade_risk",
+      "conditional_spec_review",
+      "final_full_diff_review",
+      "review_verdict",
+      "blocking_finding",
+      "routine_read",
+      "routine_write",
+      "routine_dispatch",
+      "routine_merge",
+      "routine_gate",
+      "routine_cleanup",
+      "user_output_needed_question",
+      "user_output_actual_blocker",
+      "user_output_wave_completion",
+      "user_output_final_result",
+      "user_output_approval_request"
+    ],
+    "invariant_kind": [
+      "route_topology",
+      "external_proof",
+      "failure_overlay",
+      "completion_reuse",
+      "concern_disposition",
+      "lifecycle_ownership",
+      "review_topology",
+      "output_semantics"
+    ]
+  },
+  "invariants": [
+    {
+      "id": "RUN-ROUTE-TOPOLOGY",
+      "kind": "route_topology",
+      "definition": "Run has exactly four success routes: direct is orchestrator-owned on the base with captured evidence, single_risky uses one isolated implementer worktree with verification and merge gates, parallel uses isolated task worktrees with serial merge, regeneration, wiring, and a green wave integration gate, and external is a base-pinned implementer route without a file diff. Failure is an overlay, not a success route.",
+      "cases": [
+        {
+          "name": "direct",
+          "assertions": [
+            {
+              "op": "count",
+              "target": {
+                "event": "route_selected",
+                "route": "direct"
+              },
+              "equals": 1,
+              "reason": "direct route must be selected exactly once"
+            },
+            {
+              "op": "owner",
+              "target": {
+                "event": "task_implementation"
+              },
+              "equals": "orchestrator",
+              "reason": "direct implementation must be orchestrator-owned"
+            },
+            {
+              "op": "count",
+              "target": {
+                "event": "evidence_captured"
+              },
+              "equals": 1,
+              "reason": "direct route requires captured evidence"
+            },
+            {
+              "op": "count",
+              "target": {
+                "event": "base_commit"
+              },
+              "equals": 1,
+              "reason": "direct route requires one base commit"
+            },
+            {
+              "op": "forbid",
+              "target": {
+                "event": "worktree_created"
+              },
+              "reason": "direct route forbids a task worktree"
+            },
+            {
+              "op": "forbid",
+              "target": {
+                "event": "integration_gate"
+              },
+              "reason": "direct route has no wave integration gate"
+            }
+          ]
+        },
+        {
+          "name": "single_risky",
+          "assertions": [
+            {
+              "op": "count",
+              "target": {
+                "event": "route_selected",
+                "route": "single_risky"
+              },
+              "equals": 1,
+              "reason": "single-risky route must be selected exactly once"
+            },
+            {
+              "op": "count",
+              "target": {
+                "event": "worktree_created"
+              },
+              "equals": 1,
+              "reason": "single-risky route requires one task worktree"
+            },
+            {
+              "op": "owner",
+              "target": {
+                "event": "task_implementation"
+              },
+              "equals": "implementer",
+              "reason": "single-risky implementation must be implementer-owned"
+            },
+            {
+              "op": "count",
+              "target": {
+                "event": "task_verification",
+                "outcome": "green"
+              },
+              "equals": 1,
+              "reason": "single-risky route requires green task verification"
+            },
+            {
+              "op": "count",
+              "target": {
+                "event": "merge_precondition",
+                "outcome": "green"
+              },
+              "equals": 1,
+              "reason": "single-risky route requires a green merge precondition"
+            },
+            {
+              "op": "count",
+              "target": {
+                "event": "merge_gate",
+                "outcome": "green"
+              },
+              "equals": 1,
+              "reason": "single-risky route requires a green merge gate"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "task_verification"
+              },
+              "second": {
+                "event": "task_merged"
+              },
+              "reason": "single-risky verification must precede merge"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "task_verification"
+              },
+              "second": {
+                "event": "merge_precondition"
+              },
+              "reason": "single-risky verification must precede merge precondition"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "merge_precondition"
+              },
+              "second": {
+                "event": "merge_gate"
+              },
+              "reason": "single-risky merge precondition must precede merge gate"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "merge_gate"
+              },
+              "second": {
+                "event": "task_merged"
+              },
+              "reason": "single-risky merge gate must precede merge"
+            }
+          ]
+        },
+        {
+          "name": "parallel",
+          "assertions": [
+            {
+              "op": "count",
+              "target": {
+                "event": "route_selected",
+                "route": "parallel"
+              },
+              "equals": 1,
+              "reason": "parallel route must be selected exactly once"
+            },
+            {
+              "op": "count",
+              "target": {
+                "event": "isolated_task_worktrees"
+              },
+              "equals": 1,
+              "reason": "parallel route requires isolated task worktrees"
+            },
+            {
+              "op": "owner",
+              "target": {
+                "event": "task_implementation"
+              },
+              "equals": "implementer",
+              "reason": "parallel implementation must be implementer-owned"
+            },
+            {
+              "op": "count",
+              "target": {
+                "event": "task_verifications_complete",
+                "outcome": "green"
+              },
+              "equals": 1,
+              "reason": "parallel route requires green task verification"
+            },
+            {
+              "op": "count",
+              "target": {
+                "event": "merge_gates_complete",
+                "outcome": "green"
+              },
+              "equals": 1,
+              "reason": "parallel route requires green merge gates"
+            },
+            {
+              "op": "count",
+              "target": {
+                "event": "serial_merge"
+              },
+              "equals": 1,
+              "reason": "parallel route requires serial merge"
+            },
+            {
+              "op": "count",
+              "target": {
+                "event": "regeneration",
+                "outcome": "green"
+              },
+              "equals": 1,
+              "reason": "parallel route requires green regeneration"
+            },
+            {
+              "op": "count",
+              "target": {
+                "event": "wiring",
+                "outcome": "green"
+              },
+              "equals": 1,
+              "reason": "parallel route requires green wiring"
+            },
+            {
+              "op": "count",
+              "target": {
+                "event": "integration_gate",
+                "outcome": "green"
+              },
+              "equals": 1,
+              "reason": "parallel route requires one green integration gate"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "isolated_task_worktrees"
+              },
+              "second": {
+                "event": "task_verifications_complete"
+              },
+              "reason": "parallel isolation must precede task verification"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "task_verifications_complete"
+              },
+              "second": {
+                "event": "merge_gates_complete"
+              },
+              "reason": "parallel task verification must precede merge gates"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "merge_gates_complete"
+              },
+              "second": {
+                "event": "serial_merge"
+              },
+              "reason": "parallel merge gates must precede serial merge"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "serial_merge"
+              },
+              "second": {
+                "event": "regeneration"
+              },
+              "reason": "parallel serial merge must precede regeneration"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "regeneration"
+              },
+              "second": {
+                "event": "wiring"
+              },
+              "reason": "parallel regeneration must precede wiring"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "wiring"
+              },
+              "second": {
+                "event": "integration_gate"
+              },
+              "reason": "parallel wiring must precede integration gate"
+            }
+          ]
+        },
+        {
+          "name": "external",
+          "assertions": [
+            {
+              "op": "count",
+              "target": {
+                "event": "route_selected",
+                "route": "external"
+              },
+              "equals": 1,
+              "reason": "external route must be selected exactly once"
+            },
+            {
+              "op": "owner",
+              "target": {
+                "event": "external_action"
+              },
+              "equals": "implementer",
+              "reason": "external action must be implementer-owned"
+            },
+            {
+              "op": "forbid",
+              "target": {
+                "event": "worktree_created"
+              },
+              "reason": "external route forbids a task worktree"
+            },
+            {
+              "op": "forbid",
+              "target": {
+                "event": "isolated_task_worktrees"
+              },
+              "reason": "external route forbids isolated task worktrees"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "RUN-EXTERNAL-PROOF",
+      "kind": "external_proof",
+      "definition": "The external route always records captured external evidence, makes an unconditional base commit, and receives independent commit-history proof after the action.",
+      "cases": [
+        {
+          "name": "external",
+          "assertions": [
+            {
+              "op": "count",
+              "target": {
+                "event": "route_selected",
+                "route": "external"
+              },
+              "equals": 1,
+              "reason": "external proof applies only to the external route"
+            },
+            {
+              "op": "owner",
+              "target": {
+                "event": "external_action"
+              },
+              "equals": "implementer",
+              "reason": "external action must be base-pinned implementer-owned"
+            },
+            {
+              "op": "count",
+              "target": {
+                "event": "external_evidence",
+                "outcome": "green"
+              },
+              "equals": 1,
+              "reason": "external route requires captured green external evidence"
+            },
+            {
+              "op": "count",
+              "target": {
+                "event": "base_commit"
+              },
+              "equals": 1,
+              "reason": "external route requires an unconditional base commit"
+            },
+            {
+              "op": "forbid",
+              "target": {
+                "event": "conditional_base_commit"
+              },
+              "reason": "external base commit must not be conditional"
+            },
+            {
+              "op": "count",
+              "target": {
+                "event": "independent_commit_proof"
+              },
+              "equals": 1,
+              "reason": "external route requires independent commit proof"
+            },
+            {
+              "op": "owner",
+              "target": {
+                "event": "independent_commit_proof"
+              },
+              "equals": "orchestrator",
+              "reason": "external commit proof must be independently owned"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "external_action"
+              },
+              "second": {
+                "event": "external_evidence"
+              },
+              "reason": "external action must precede captured evidence"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "external_evidence"
+              },
+              "second": {
+                "event": "base_commit"
+              },
+              "reason": "external evidence must precede base commit"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "base_commit"
+              },
+              "second": {
+                "event": "independent_commit_proof"
+              },
+              "reason": "external base commit must precede independent proof"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "RUN-FAIL-CLOSED",
+      "kind": "failure_overlay",
+      "definition": "Every non-green or unevaluable verification, merge, integration, completion, runtime, review, or regeneration result enters the failure overlay before retry, merge, cleanup, downstream dispatch, or progress. Unevaluable is never green.",
+      "cases": [
+        {
+          "name": "verification_non_green",
+          "assertions": [
+            {
+              "op": "count",
+              "target": {
+                "event": "task_verification",
+                "outcome": "non_green"
+              },
+              "equals": 1,
+              "reason": "verification non_green result must be observed"
+            },
+            {
+              "op": "count",
+              "target": {
+                "event": "failure_overlay_entered",
+                "overlay": "failure"
+              },
+              "equals": 1,
+              "reason": "non_green verification result must enter failure overlay"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "task_verification"
+              },
+              "second": {
+                "event": "failure_overlay_entered"
+              },
+              "reason": "verification result must be observed before failure overlay"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "failure_overlay_entered"
+              },
+              "second": {
+                "event": "retry"
+              },
+              "reason": "failure overlay must precede retry"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "failure_overlay_entered"
+              },
+              "second": {
+                "event": "task_merged"
+              },
+              "reason": "failure overlay must precede merge"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "failure_overlay_entered"
+              },
+              "second": {
+                "event": "cleanup"
+              },
+              "reason": "failure overlay must precede cleanup"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "failure_overlay_entered"
+              },
+              "second": {
+                "event": "downstream_dispatch"
+              },
+              "reason": "failure overlay must precede downstream dispatch"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "failure_overlay_entered"
+              },
+              "second": {
+                "event": "progress"
+              },
+              "reason": "failure overlay must precede progress"
+            }
+          ]
+        },
+        {
+          "name": "verification_unevaluable",
+          "assertions": [
+            {
+              "op": "count",
+              "target": {
+                "event": "task_verification",
+                "outcome": "unevaluable"
+              },
+              "equals": 1,
+              "reason": "verification unevaluable result must be observed"
+            },
+            {
+              "op": "count",
+              "target": {
+                "event": "failure_overlay_entered",
+                "overlay": "failure"
+              },
+              "equals": 1,
+              "reason": "unevaluable verification result must enter failure overlay"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "task_verification"
+              },
+              "second": {
+                "event": "failure_overlay_entered"
+              },
+              "reason": "verification result must be observed before failure overlay"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "failure_overlay_entered"
+              },
+              "second": {
+                "event": "retry"
+              },
+              "reason": "failure overlay must precede retry"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "failure_overlay_entered"
+              },
+              "second": {
+                "event": "task_merged"
+              },
+              "reason": "failure overlay must precede merge"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "failure_overlay_entered"
+              },
+              "second": {
+                "event": "cleanup"
+              },
+              "reason": "failure overlay must precede cleanup"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "failure_overlay_entered"
+              },
+              "second": {
+                "event": "downstream_dispatch"
+              },
+              "reason": "failure overlay must precede downstream dispatch"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "failure_overlay_entered"
+              },
+              "second": {
+                "event": "progress"
+              },
+              "reason": "failure overlay must precede progress"
+            }
+          ]
+        },
+        {
+          "name": "merge_non_green",
+          "assertions": [
+            {
+              "op": "count",
+              "target": {
+                "event": "merge_gate",
+                "outcome": "non_green"
+              },
+              "equals": 1,
+              "reason": "merge non_green result must be observed"
+            },
+            {
+              "op": "count",
+              "target": {
+                "event": "failure_overlay_entered",
+                "overlay": "failure"
+              },
+              "equals": 1,
+              "reason": "non_green merge result must enter failure overlay"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "merge_gate"
+              },
+              "second": {
+                "event": "failure_overlay_entered"
+              },
+              "reason": "merge result must be observed before failure overlay"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "failure_overlay_entered"
+              },
+              "second": {
+                "event": "retry"
+              },
+              "reason": "failure overlay must precede retry"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "failure_overlay_entered"
+              },
+              "second": {
+                "event": "task_merged"
+              },
+              "reason": "failure overlay must precede merge"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "failure_overlay_entered"
+              },
+              "second": {
+                "event": "cleanup"
+              },
+              "reason": "failure overlay must precede cleanup"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "failure_overlay_entered"
+              },
+              "second": {
+                "event": "downstream_dispatch"
+              },
+              "reason": "failure overlay must precede downstream dispatch"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "failure_overlay_entered"
+              },
+              "second": {
+                "event": "progress"
+              },
+              "reason": "failure overlay must precede progress"
+            }
+          ]
+        },
+        {
+          "name": "merge_unevaluable",
+          "assertions": [
+            {
+              "op": "count",
+              "target": {
+                "event": "merge_gate",
+                "outcome": "unevaluable"
+              },
+              "equals": 1,
+              "reason": "merge unevaluable result must be observed"
+            },
+            {
+              "op": "count",
+              "target": {
+                "event": "failure_overlay_entered",
+                "overlay": "failure"
+              },
+              "equals": 1,
+              "reason": "unevaluable merge result must enter failure overlay"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "merge_gate"
+              },
+              "second": {
+                "event": "failure_overlay_entered"
+              },
+              "reason": "merge result must be observed before failure overlay"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "failure_overlay_entered"
+              },
+              "second": {
+                "event": "retry"
+              },
+              "reason": "failure overlay must precede retry"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "failure_overlay_entered"
+              },
+              "second": {
+                "event": "task_merged"
+              },
+              "reason": "failure overlay must precede merge"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "failure_overlay_entered"
+              },
+              "second": {
+                "event": "cleanup"
+              },
+              "reason": "failure overlay must precede cleanup"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "failure_overlay_entered"
+              },
+              "second": {
+                "event": "downstream_dispatch"
+              },
+              "reason": "failure overlay must precede downstream dispatch"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "failure_overlay_entered"
+              },
+              "second": {
+                "event": "progress"
+              },
+              "reason": "failure overlay must precede progress"
+            }
+          ]
+        },
+        {
+          "name": "integration_non_green",
+          "assertions": [
+            {
+              "op": "count",
+              "target": {
+                "event": "integration_gate",
+                "outcome": "non_green"
+              },
+              "equals": 1,
+              "reason": "integration non_green result must be observed"
+            },
+            {
+              "op": "count",
+              "target": {
+                "event": "failure_overlay_entered",
+                "overlay": "failure"
+              },
+              "equals": 1,
+              "reason": "non_green integration result must enter failure overlay"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "integration_gate"
+              },
+              "second": {
+                "event": "failure_overlay_entered"
+              },
+              "reason": "integration result must be observed before failure overlay"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "failure_overlay_entered"
+              },
+              "second": {
+                "event": "retry"
+              },
+              "reason": "failure overlay must precede retry"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "failure_overlay_entered"
+              },
+              "second": {
+                "event": "task_merged"
+              },
+              "reason": "failure overlay must precede merge"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "failure_overlay_entered"
+              },
+              "second": {
+                "event": "cleanup"
+              },
+              "reason": "failure overlay must precede cleanup"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "failure_overlay_entered"
+              },
+              "second": {
+                "event": "downstream_dispatch"
+              },
+              "reason": "failure overlay must precede downstream dispatch"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "failure_overlay_entered"
+              },
+              "second": {
+                "event": "progress"
+              },
+              "reason": "failure overlay must precede progress"
+            }
+          ]
+        },
+        {
+          "name": "integration_unevaluable",
+          "assertions": [
+            {
+              "op": "count",
+              "target": {
+                "event": "integration_gate",
+                "outcome": "unevaluable"
+              },
+              "equals": 1,
+              "reason": "integration unevaluable result must be observed"
+            },
+            {
+              "op": "count",
+              "target": {
+                "event": "failure_overlay_entered",
+                "overlay": "failure"
+              },
+              "equals": 1,
+              "reason": "unevaluable integration result must enter failure overlay"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "integration_gate"
+              },
+              "second": {
+                "event": "failure_overlay_entered"
+              },
+              "reason": "integration result must be observed before failure overlay"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "failure_overlay_entered"
+              },
+              "second": {
+                "event": "retry"
+              },
+              "reason": "failure overlay must precede retry"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "failure_overlay_entered"
+              },
+              "second": {
+                "event": "task_merged"
+              },
+              "reason": "failure overlay must precede merge"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "failure_overlay_entered"
+              },
+              "second": {
+                "event": "cleanup"
+              },
+              "reason": "failure overlay must precede cleanup"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "failure_overlay_entered"
+              },
+              "second": {
+                "event": "downstream_dispatch"
+              },
+              "reason": "failure overlay must precede downstream dispatch"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "failure_overlay_entered"
+              },
+              "second": {
+                "event": "progress"
+              },
+              "reason": "failure overlay must precede progress"
+            }
+          ]
+        },
+        {
+          "name": "completion_non_green",
+          "assertions": [
+            {
+              "op": "count",
+              "target": {
+                "event": "completion_gate",
+                "outcome": "non_green"
+              },
+              "equals": 1,
+              "reason": "completion non_green result must be observed"
+            },
+            {
+              "op": "count",
+              "target": {
+                "event": "failure_overlay_entered",
+                "overlay": "failure"
+              },
+              "equals": 1,
+              "reason": "non_green completion result must enter failure overlay"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "completion_gate"
+              },
+              "second": {
+                "event": "failure_overlay_entered"
+              },
+              "reason": "completion result must be observed before failure overlay"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "failure_overlay_entered"
+              },
+              "second": {
+                "event": "retry"
+              },
+              "reason": "failure overlay must precede retry"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "failure_overlay_entered"
+              },
+              "second": {
+                "event": "task_merged"
+              },
+              "reason": "failure overlay must precede merge"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "failure_overlay_entered"
+              },
+              "second": {
+                "event": "cleanup"
+              },
+              "reason": "failure overlay must precede cleanup"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "failure_overlay_entered"
+              },
+              "second": {
+                "event": "downstream_dispatch"
+              },
+              "reason": "failure overlay must precede downstream dispatch"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "failure_overlay_entered"
+              },
+              "second": {
+                "event": "progress"
+              },
+              "reason": "failure overlay must precede progress"
+            }
+          ]
+        },
+        {
+          "name": "completion_unevaluable",
+          "assertions": [
+            {
+              "op": "count",
+              "target": {
+                "event": "completion_gate",
+                "outcome": "unevaluable"
+              },
+              "equals": 1,
+              "reason": "completion unevaluable result must be observed"
+            },
+            {
+              "op": "count",
+              "target": {
+                "event": "failure_overlay_entered",
+                "overlay": "failure"
+              },
+              "equals": 1,
+              "reason": "unevaluable completion result must enter failure overlay"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "completion_gate"
+              },
+              "second": {
+                "event": "failure_overlay_entered"
+              },
+              "reason": "completion result must be observed before failure overlay"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "failure_overlay_entered"
+              },
+              "second": {
+                "event": "retry"
+              },
+              "reason": "failure overlay must precede retry"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "failure_overlay_entered"
+              },
+              "second": {
+                "event": "task_merged"
+              },
+              "reason": "failure overlay must precede merge"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "failure_overlay_entered"
+              },
+              "second": {
+                "event": "cleanup"
+              },
+              "reason": "failure overlay must precede cleanup"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "failure_overlay_entered"
+              },
+              "second": {
+                "event": "downstream_dispatch"
+              },
+              "reason": "failure overlay must precede downstream dispatch"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "failure_overlay_entered"
+              },
+              "second": {
+                "event": "progress"
+              },
+              "reason": "failure overlay must precede progress"
+            }
+          ]
+        },
+        {
+          "name": "runtime_non_green",
+          "assertions": [
+            {
+              "op": "count",
+              "target": {
+                "event": "runtime_result",
+                "outcome": "non_green"
+              },
+              "equals": 1,
+              "reason": "runtime non_green result must be observed"
+            },
+            {
+              "op": "count",
+              "target": {
+                "event": "failure_overlay_entered",
+                "overlay": "failure"
+              },
+              "equals": 1,
+              "reason": "non_green runtime result must enter failure overlay"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "runtime_result"
+              },
+              "second": {
+                "event": "failure_overlay_entered"
+              },
+              "reason": "runtime result must be observed before failure overlay"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "failure_overlay_entered"
+              },
+              "second": {
+                "event": "retry"
+              },
+              "reason": "failure overlay must precede retry"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "failure_overlay_entered"
+              },
+              "second": {
+                "event": "task_merged"
+              },
+              "reason": "failure overlay must precede merge"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "failure_overlay_entered"
+              },
+              "second": {
+                "event": "cleanup"
+              },
+              "reason": "failure overlay must precede cleanup"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "failure_overlay_entered"
+              },
+              "second": {
+                "event": "downstream_dispatch"
+              },
+              "reason": "failure overlay must precede downstream dispatch"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "failure_overlay_entered"
+              },
+              "second": {
+                "event": "progress"
+              },
+              "reason": "failure overlay must precede progress"
+            }
+          ]
+        },
+        {
+          "name": "runtime_unevaluable",
+          "assertions": [
+            {
+              "op": "count",
+              "target": {
+                "event": "runtime_result",
+                "outcome": "unevaluable"
+              },
+              "equals": 1,
+              "reason": "runtime unevaluable result must be observed"
+            },
+            {
+              "op": "count",
+              "target": {
+                "event": "failure_overlay_entered",
+                "overlay": "failure"
+              },
+              "equals": 1,
+              "reason": "unevaluable runtime result must enter failure overlay"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "runtime_result"
+              },
+              "second": {
+                "event": "failure_overlay_entered"
+              },
+              "reason": "runtime result must be observed before failure overlay"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "failure_overlay_entered"
+              },
+              "second": {
+                "event": "retry"
+              },
+              "reason": "failure overlay must precede retry"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "failure_overlay_entered"
+              },
+              "second": {
+                "event": "task_merged"
+              },
+              "reason": "failure overlay must precede merge"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "failure_overlay_entered"
+              },
+              "second": {
+                "event": "cleanup"
+              },
+              "reason": "failure overlay must precede cleanup"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "failure_overlay_entered"
+              },
+              "second": {
+                "event": "downstream_dispatch"
+              },
+              "reason": "failure overlay must precede downstream dispatch"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "failure_overlay_entered"
+              },
+              "second": {
+                "event": "progress"
+              },
+              "reason": "failure overlay must precede progress"
+            }
+          ]
+        },
+        {
+          "name": "review_non_green",
+          "assertions": [
+            {
+              "op": "count",
+              "target": {
+                "event": "review_result",
+                "outcome": "non_green"
+              },
+              "equals": 1,
+              "reason": "review non_green result must be observed"
+            },
+            {
+              "op": "count",
+              "target": {
+                "event": "failure_overlay_entered",
+                "overlay": "failure"
+              },
+              "equals": 1,
+              "reason": "non_green review result must enter failure overlay"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "review_result"
+              },
+              "second": {
+                "event": "failure_overlay_entered"
+              },
+              "reason": "review result must be observed before failure overlay"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "failure_overlay_entered"
+              },
+              "second": {
+                "event": "retry"
+              },
+              "reason": "failure overlay must precede retry"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "failure_overlay_entered"
+              },
+              "second": {
+                "event": "task_merged"
+              },
+              "reason": "failure overlay must precede merge"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "failure_overlay_entered"
+              },
+              "second": {
+                "event": "cleanup"
+              },
+              "reason": "failure overlay must precede cleanup"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "failure_overlay_entered"
+              },
+              "second": {
+                "event": "downstream_dispatch"
+              },
+              "reason": "failure overlay must precede downstream dispatch"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "failure_overlay_entered"
+              },
+              "second": {
+                "event": "progress"
+              },
+              "reason": "failure overlay must precede progress"
+            }
+          ]
+        },
+        {
+          "name": "review_unevaluable",
+          "assertions": [
+            {
+              "op": "count",
+              "target": {
+                "event": "review_result",
+                "outcome": "unevaluable"
+              },
+              "equals": 1,
+              "reason": "review unevaluable result must be observed"
+            },
+            {
+              "op": "count",
+              "target": {
+                "event": "failure_overlay_entered",
+                "overlay": "failure"
+              },
+              "equals": 1,
+              "reason": "unevaluable review result must enter failure overlay"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "review_result"
+              },
+              "second": {
+                "event": "failure_overlay_entered"
+              },
+              "reason": "review result must be observed before failure overlay"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "failure_overlay_entered"
+              },
+              "second": {
+                "event": "retry"
+              },
+              "reason": "failure overlay must precede retry"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "failure_overlay_entered"
+              },
+              "second": {
+                "event": "task_merged"
+              },
+              "reason": "failure overlay must precede merge"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "failure_overlay_entered"
+              },
+              "second": {
+                "event": "cleanup"
+              },
+              "reason": "failure overlay must precede cleanup"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "failure_overlay_entered"
+              },
+              "second": {
+                "event": "downstream_dispatch"
+              },
+              "reason": "failure overlay must precede downstream dispatch"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "failure_overlay_entered"
+              },
+              "second": {
+                "event": "progress"
+              },
+              "reason": "failure overlay must precede progress"
+            }
+          ]
+        },
+        {
+          "name": "regeneration_non_green",
+          "assertions": [
+            {
+              "op": "count",
+              "target": {
+                "event": "regeneration",
+                "outcome": "non_green"
+              },
+              "equals": 1,
+              "reason": "regeneration non_green result must be observed"
+            },
+            {
+              "op": "count",
+              "target": {
+                "event": "failure_overlay_entered",
+                "overlay": "failure"
+              },
+              "equals": 1,
+              "reason": "non_green regeneration result must enter failure overlay"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "regeneration"
+              },
+              "second": {
+                "event": "failure_overlay_entered"
+              },
+              "reason": "regeneration result must be observed before failure overlay"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "failure_overlay_entered"
+              },
+              "second": {
+                "event": "retry"
+              },
+              "reason": "failure overlay must precede retry"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "failure_overlay_entered"
+              },
+              "second": {
+                "event": "task_merged"
+              },
+              "reason": "failure overlay must precede merge"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "failure_overlay_entered"
+              },
+              "second": {
+                "event": "cleanup"
+              },
+              "reason": "failure overlay must precede cleanup"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "failure_overlay_entered"
+              },
+              "second": {
+                "event": "downstream_dispatch"
+              },
+              "reason": "failure overlay must precede downstream dispatch"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "failure_overlay_entered"
+              },
+              "second": {
+                "event": "progress"
+              },
+              "reason": "failure overlay must precede progress"
+            }
+          ]
+        },
+        {
+          "name": "regeneration_unevaluable",
+          "assertions": [
+            {
+              "op": "count",
+              "target": {
+                "event": "regeneration",
+                "outcome": "unevaluable"
+              },
+              "equals": 1,
+              "reason": "regeneration unevaluable result must be observed"
+            },
+            {
+              "op": "count",
+              "target": {
+                "event": "failure_overlay_entered",
+                "overlay": "failure"
+              },
+              "equals": 1,
+              "reason": "unevaluable regeneration result must enter failure overlay"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "regeneration"
+              },
+              "second": {
+                "event": "failure_overlay_entered"
+              },
+              "reason": "regeneration result must be observed before failure overlay"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "failure_overlay_entered"
+              },
+              "second": {
+                "event": "retry"
+              },
+              "reason": "failure overlay must precede retry"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "failure_overlay_entered"
+              },
+              "second": {
+                "event": "task_merged"
+              },
+              "reason": "failure overlay must precede merge"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "failure_overlay_entered"
+              },
+              "second": {
+                "event": "cleanup"
+              },
+              "reason": "failure overlay must precede cleanup"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "failure_overlay_entered"
+              },
+              "second": {
+                "event": "downstream_dispatch"
+              },
+              "reason": "failure overlay must precede downstream dispatch"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "failure_overlay_entered"
+              },
+              "second": {
+                "event": "progress"
+              },
+              "reason": "failure overlay must precede progress"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "RUN-COMPLETION-REUSE",
+      "kind": "completion_reuse",
+      "definition": "Completion reuses prior integration only when it is green, the verify set is identical, and the prior gate base-tip SHA equals the current base-tip SHA; every missing or changed condition reruns the full verify set.",
+      "cases": [
+        {
+          "name": "reuse",
+          "assertions": [
+            {
+              "op": "count",
+              "target": {
+                "event": "prior_integration",
+                "outcome": "green"
+              },
+              "equals": 1,
+              "reason": "completion reuse requires prior green integration"
+            },
+            {
+              "op": "count",
+              "target": {
+                "event": "prior_verify_set"
+              },
+              "equals": 1,
+              "reason": "completion reuse requires the prior verify set"
+            },
+            {
+              "op": "count",
+              "target": {
+                "event": "current_verify_set"
+              },
+              "equals": 1,
+              "reason": "completion reuse requires the current verify set"
+            },
+            {
+              "op": "same",
+              "first": {
+                "event": "prior_verify_set"
+              },
+              "second": {
+                "event": "current_verify_set"
+              },
+              "field": "value",
+              "reason": "completion reuse requires an identical verify set"
+            },
+            {
+              "op": "count",
+              "target": {
+                "event": "prior_gate_base_tip"
+              },
+              "equals": 1,
+              "reason": "completion reuse requires the prior gate base-tip SHA"
+            },
+            {
+              "op": "count",
+              "target": {
+                "event": "current_base_tip"
+              },
+              "equals": 1,
+              "reason": "completion reuse requires the current base-tip SHA"
+            },
+            {
+              "op": "same",
+              "first": {
+                "event": "prior_gate_base_tip"
+              },
+              "second": {
+                "event": "current_base_tip"
+              },
+              "field": "value",
+              "reason": "completion reuse requires the same gate and current base-tip SHA"
+            },
+            {
+              "op": "count",
+              "target": {
+                "event": "completion_reused"
+              },
+              "equals": 1,
+              "reason": "matching completion evidence must be reused"
+            },
+            {
+              "op": "forbid",
+              "target": {
+                "event": "completion_full_verify"
+              },
+              "reason": "matching completion evidence avoids a redundant full verify"
+            }
+          ]
+        },
+        {
+          "name": "prior_integration_non_green",
+          "assertions": [
+            {
+              "op": "count",
+              "target": {
+                "event": "prior_integration",
+                "outcome": "non_green"
+              },
+              "equals": 1,
+              "reason": "non-green prior integration must be observed"
+            },
+            {
+              "op": "count",
+              "target": {
+                "event": "completion_full_verify"
+              },
+              "equals": 1,
+              "reason": "non-green prior integration requires full verify"
+            },
+            {
+              "op": "forbid",
+              "target": {
+                "event": "completion_reused"
+              },
+              "reason": "non-green prior integration forbids completion reuse"
+            }
+          ]
+        },
+        {
+          "name": "prior_integration_unevaluable",
+          "assertions": [
+            {
+              "op": "count",
+              "target": {
+                "event": "prior_integration",
+                "outcome": "unevaluable"
+              },
+              "equals": 1,
+              "reason": "unevaluable prior integration must be observed"
+            },
+            {
+              "op": "count",
+              "target": {
+                "event": "completion_full_verify"
+              },
+              "equals": 1,
+              "reason": "unevaluable prior integration requires full verify"
+            },
+            {
+              "op": "forbid",
+              "target": {
+                "event": "completion_reused"
+              },
+              "reason": "unevaluable prior integration forbids completion reuse"
+            }
+          ]
+        },
+        {
+          "name": "verify_set_changed",
+          "assertions": [
+            {
+              "op": "count",
+              "target": {
+                "event": "verify_set_changed"
+              },
+              "equals": 1,
+              "reason": "changed verify set must be observed"
+            },
+            {
+              "op": "count",
+              "target": {
+                "event": "completion_full_verify"
+              },
+              "equals": 1,
+              "reason": "changed verify set requires full verify"
+            },
+            {
+              "op": "forbid",
+              "target": {
+                "event": "completion_reused"
+              },
+              "reason": "changed verify set forbids completion reuse"
+            }
+          ]
+        },
+        {
+          "name": "base_tip_changed",
+          "assertions": [
+            {
+              "op": "count",
+              "target": {
+                "event": "base_tip_changed"
+              },
+              "equals": 1,
+              "reason": "changed base tip must be observed"
+            },
+            {
+              "op": "count",
+              "target": {
+                "event": "completion_full_verify"
+              },
+              "equals": 1,
+              "reason": "changed base tip requires full verify"
+            },
+            {
+              "op": "forbid",
+              "target": {
+                "event": "completion_reused"
+              },
+              "reason": "changed base tip forbids completion reuse"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "RUN-CONCERN-DISPOSITION",
+      "kind": "concern_disposition",
+      "definition": "Concern dispositions are exactly resolved, explicitly_accepted, user_accepted, promoted_to_failure, and pending. Pending blocks completion and the user gate; user-owned requirement, compatibility, and safety concerns require user acceptance; the failure overlay wins every overlap.",
+      "cases": [
+        {
+          "name": "resolved",
+          "assertions": [
+            {
+              "op": "count",
+              "target": {
+                "event": "concern_disposition",
+                "disposition": "resolved"
+              },
+              "equals": 1,
+              "reason": "resolved concern requires resolved disposition"
+            },
+            {
+              "op": "count",
+              "target": {
+                "event": "completion"
+              },
+              "equals": 1,
+              "reason": "resolved concern permits completion"
+            }
+          ]
+        },
+        {
+          "name": "explicitly_accepted",
+          "assertions": [
+            {
+              "op": "count",
+              "target": {
+                "event": "concern_disposition",
+                "disposition": "explicitly_accepted"
+              },
+              "equals": 1,
+              "reason": "accepted concern requires explicit acceptance"
+            },
+            {
+              "op": "count",
+              "target": {
+                "event": "completion"
+              },
+              "equals": 1,
+              "reason": "explicitly accepted concern permits completion"
+            }
+          ]
+        },
+        {
+          "name": "user_accepted",
+          "assertions": [
+            {
+              "op": "count",
+              "target": {
+                "event": "concern_disposition",
+                "disposition": "user_accepted"
+              },
+              "equals": 1,
+              "reason": "user-accepted concern requires user acceptance"
+            },
+            {
+              "op": "owner",
+              "target": {
+                "event": "concern_disposition",
+                "disposition": "user_accepted"
+              },
+              "equals": "user",
+              "reason": "user acceptance must be user-owned"
+            },
+            {
+              "op": "count",
+              "target": {
+                "event": "completion"
+              },
+              "equals": 1,
+              "reason": "user-accepted concern permits completion"
+            }
+          ]
+        },
+        {
+          "name": "promoted_to_failure",
+          "assertions": [
+            {
+              "op": "count",
+              "target": {
+                "event": "concern_disposition",
+                "disposition": "promoted_to_failure"
+              },
+              "equals": 1,
+              "reason": "failure concern requires promoted-to-failure disposition"
+            },
+            {
+              "op": "count",
+              "target": {
+                "event": "failure_overlay_entered",
+                "overlay": "failure"
+              },
+              "equals": 1,
+              "reason": "promoted concern requires failure overlay"
+            },
+            {
+              "op": "forbid",
+              "target": {
+                "event": "completion"
+              },
+              "reason": "failure overlay blocks completion"
+            },
+            {
+              "op": "forbid",
+              "target": {
+                "event": "user_gate"
+              },
+              "reason": "failure overlay blocks user gate"
+            },
+            {
+              "op": "forbid",
+              "target": {
+                "event": "progress"
+              },
+              "reason": "failure overlay blocks progress"
+            }
+          ]
+        },
+        {
+          "name": "pending",
+          "assertions": [
+            {
+              "op": "count",
+              "target": {
+                "event": "concern_disposition",
+                "disposition": "pending"
+              },
+              "equals": 1,
+              "reason": "pending concern requires pending disposition"
+            },
+            {
+              "op": "forbid",
+              "target": {
+                "event": "completion"
+              },
+              "reason": "pending concern blocks completion"
+            },
+            {
+              "op": "forbid",
+              "target": {
+                "event": "user_gate"
+              },
+              "reason": "pending concern blocks user gate"
+            }
+          ]
+        },
+        {
+          "name": "user_requirement",
+          "assertions": [
+            {
+              "op": "count",
+              "target": {
+                "event": "user_owned_requirement_concern"
+              },
+              "equals": 1,
+              "reason": "user-owned requirement concern must be recorded"
+            },
+            {
+              "op": "count",
+              "target": {
+                "event": "concern_disposition",
+                "disposition": "user_accepted"
+              },
+              "equals": 1,
+              "reason": "user-owned requirement concern requires user acceptance"
+            },
+            {
+              "op": "owner",
+              "target": {
+                "event": "concern_disposition",
+                "disposition": "user_accepted"
+              },
+              "equals": "user",
+              "reason": "user-owned requirement acceptance must be user-owned"
+            }
+          ]
+        },
+        {
+          "name": "user_compatibility",
+          "assertions": [
+            {
+              "op": "count",
+              "target": {
+                "event": "user_owned_compatibility_concern"
+              },
+              "equals": 1,
+              "reason": "user-owned compatibility concern must be recorded"
+            },
+            {
+              "op": "count",
+              "target": {
+                "event": "concern_disposition",
+                "disposition": "user_accepted"
+              },
+              "equals": 1,
+              "reason": "user-owned compatibility concern requires user acceptance"
+            },
+            {
+              "op": "owner",
+              "target": {
+                "event": "concern_disposition",
+                "disposition": "user_accepted"
+              },
+              "equals": "user",
+              "reason": "user-owned compatibility acceptance must be user-owned"
+            }
+          ]
+        },
+        {
+          "name": "user_safety",
+          "assertions": [
+            {
+              "op": "count",
+              "target": {
+                "event": "user_owned_safety_concern"
+              },
+              "equals": 1,
+              "reason": "user-owned safety concern must be recorded"
+            },
+            {
+              "op": "count",
+              "target": {
+                "event": "concern_disposition",
+                "disposition": "user_accepted"
+              },
+              "equals": 1,
+              "reason": "user-owned safety concern requires user acceptance"
+            },
+            {
+              "op": "owner",
+              "target": {
+                "event": "concern_disposition",
+                "disposition": "user_accepted"
+              },
+              "equals": "user",
+              "reason": "user-owned safety acceptance must be user-owned"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "RUN-LIFECYCLE-OWNERSHIP",
+      "kind": "lifecycle_ownership",
+      "definition": "Harness lifecycle owns startup, interrupted-run recovery, archive, and migration decisions; the runtime failure overlay owns runtime task, gate, and review failures.",
+      "cases": [
+        {
+          "name": "startup",
+          "assertions": [
+            {
+              "op": "owner",
+              "target": {
+                "event": "startup"
+              },
+              "equals": "harness_lifecycle",
+              "reason": "startup ownership belongs to harness lifecycle"
+            }
+          ]
+        },
+        {
+          "name": "interrupted",
+          "assertions": [
+            {
+              "op": "owner",
+              "target": {
+                "event": "interrupted_run"
+              },
+              "equals": "harness_lifecycle",
+              "reason": "interrupted-run ownership belongs to harness lifecycle"
+            }
+          ]
+        },
+        {
+          "name": "archive",
+          "assertions": [
+            {
+              "op": "owner",
+              "target": {
+                "event": "archive"
+              },
+              "equals": "harness_lifecycle",
+              "reason": "archive ownership belongs to harness lifecycle"
+            }
+          ]
+        },
+        {
+          "name": "migration",
+          "assertions": [
+            {
+              "op": "owner",
+              "target": {
+                "event": "migration"
+              },
+              "equals": "harness_lifecycle",
+              "reason": "migration ownership belongs to harness lifecycle"
+            }
+          ]
+        },
+        {
+          "name": "runtime_task_failure",
+          "assertions": [
+            {
+              "op": "owner",
+              "target": {
+                "event": "runtime_task_failure"
+              },
+              "equals": "runtime_failure_overlay",
+              "reason": "runtime task failure ownership belongs to failure overlay"
+            }
+          ]
+        },
+        {
+          "name": "runtime_gate_failure",
+          "assertions": [
+            {
+              "op": "owner",
+              "target": {
+                "event": "runtime_gate_failure"
+              },
+              "equals": "runtime_failure_overlay",
+              "reason": "runtime gate failure ownership belongs to failure overlay"
+            }
+          ]
+        },
+        {
+          "name": "runtime_review_failure",
+          "assertions": [
+            {
+              "op": "owner",
+              "target": {
+                "event": "runtime_review_failure"
+              },
+              "equals": "runtime_failure_overlay",
+              "reason": "runtime review failure ownership belongs to failure overlay"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "RUN-REVIEW-TOPOLOGY",
+      "kind": "review_topology",
+      "definition": "Conditional spec review applies only to risky tasks with downstream cascade risk and never replaces final full-diff review. A clear final verdict has zero blocking findings.",
+      "cases": [
+        {
+          "name": "conditional_required",
+          "assertions": [
+            {
+              "op": "count",
+              "target": {
+                "event": "risky_task"
+              },
+              "equals": 1,
+              "reason": "conditional review requires a risky task"
+            },
+            {
+              "op": "count",
+              "target": {
+                "event": "downstream_cascade_risk"
+              },
+              "equals": 1,
+              "reason": "conditional review requires downstream cascade risk"
+            },
+            {
+              "op": "count",
+              "target": {
+                "event": "conditional_spec_review"
+              },
+              "equals": 1,
+              "reason": "risky downstream cascade requires conditional spec review"
+            },
+            {
+              "op": "count",
+              "target": {
+                "event": "final_full_diff_review"
+              },
+              "equals": 1,
+              "reason": "conditional review never replaces final full-diff review"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "conditional_spec_review"
+              },
+              "second": {
+                "event": "downstream_dispatch"
+              },
+              "reason": "conditional review must precede downstream dispatch"
+            },
+            {
+              "op": "before",
+              "first": {
+                "event": "conditional_spec_review"
+              },
+              "second": {
+                "event": "final_full_diff_review"
+              },
+              "reason": "conditional review must precede final full-diff review"
+            }
+          ]
+        },
+        {
+          "name": "non_risky",
+          "assertions": [
+            {
+              "op": "count",
+              "target": {
+                "event": "non_risky_task"
+              },
+              "equals": 1,
+              "reason": "non-risky task must be observed"
+            },
+            {
+              "op": "forbid",
+              "target": {
+                "event": "conditional_spec_review"
+              },
+              "reason": "non-risky task forbids conditional spec review"
+            }
+          ]
+        },
+        {
+          "name": "no_downstream_cascade",
+          "assertions": [
+            {
+              "op": "count",
+              "target": {
+                "event": "no_downstream_cascade_risk"
+              },
+              "equals": 1,
+              "reason": "absence of downstream cascade risk must be observed"
+            },
+            {
+              "op": "forbid",
+              "target": {
+                "event": "conditional_spec_review"
+              },
+              "reason": "task without downstream cascade risk forbids conditional spec review"
+            }
+          ]
+        },
+        {
+          "name": "final_clear",
+          "assertions": [
+            {
+              "op": "count",
+              "target": {
+                "event": "final_full_diff_review"
+              },
+              "equals": 1,
+              "reason": "final full-diff review is required"
+            },
+            {
+              "op": "count",
+              "target": {
+                "event": "review_verdict",
+                "outcome": "clear"
+              },
+              "equals": 1,
+              "reason": "clear final verdict must be explicit"
+            },
+            {
+              "op": "forbid",
+              "target": {
+                "event": "blocking_finding"
+              },
+              "reason": "clear final verdict requires zero blocking findings"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "RUN-OUTPUT-SEMANTICS",
+      "kind": "output_semantics",
+      "definition": "User output is limited to a needed question, an actual blocker, wave completion, the final result, or an approval request. Routine read, write, dispatch, merge, gate, and cleanup operations emit no user output.",
+      "cases": [
+        {
+          "name": "needed_question",
+          "assertions": [
+            {
+              "op": "count",
+              "target": {
+                "event": "user_output_needed_question"
+              },
+              "equals": 1,
+              "reason": "needed question is an allowed user output"
+            }
+          ]
+        },
+        {
+          "name": "actual_blocker",
+          "assertions": [
+            {
+              "op": "count",
+              "target": {
+                "event": "user_output_actual_blocker"
+              },
+              "equals": 1,
+              "reason": "actual blocker is an allowed user output"
+            }
+          ]
+        },
+        {
+          "name": "wave_completion",
+          "assertions": [
+            {
+              "op": "count",
+              "target": {
+                "event": "user_output_wave_completion"
+              },
+              "equals": 1,
+              "reason": "wave completion is an allowed user output"
+            }
+          ]
+        },
+        {
+          "name": "final_result",
+          "assertions": [
+            {
+              "op": "count",
+              "target": {
+                "event": "user_output_final_result"
+              },
+              "equals": 1,
+              "reason": "final result is an allowed user output"
+            }
+          ]
+        },
+        {
+          "name": "approval_request",
+          "assertions": [
+            {
+              "op": "count",
+              "target": {
+                "event": "user_output_approval_request"
+              },
+              "equals": 1,
+              "reason": "approval request is an allowed user output"
+            }
+          ]
+        },
+        {
+          "name": "routine_read",
+          "assertions": [
+            {
+              "op": "count",
+              "target": {
+                "event": "routine_read"
+              },
+              "equals": 1,
+              "reason": "routine read must be observed"
+            },
+            {
+              "op": "forbid",
+              "target": {
+                "event": "user_output_needed_question"
+              },
+              "reason": "routine read must not emit user output"
+            },
+            {
+              "op": "forbid",
+              "target": {
+                "event": "user_output_actual_blocker"
+              },
+              "reason": "routine read must not emit user output"
+            },
+            {
+              "op": "forbid",
+              "target": {
+                "event": "user_output_wave_completion"
+              },
+              "reason": "routine read must not emit user output"
+            },
+            {
+              "op": "forbid",
+              "target": {
+                "event": "user_output_final_result"
+              },
+              "reason": "routine read must not emit user output"
+            },
+            {
+              "op": "forbid",
+              "target": {
+                "event": "user_output_approval_request"
+              },
+              "reason": "routine read must not emit user output"
+            }
+          ]
+        },
+        {
+          "name": "routine_write",
+          "assertions": [
+            {
+              "op": "count",
+              "target": {
+                "event": "routine_write"
+              },
+              "equals": 1,
+              "reason": "routine write must be observed"
+            },
+            {
+              "op": "forbid",
+              "target": {
+                "event": "user_output_needed_question"
+              },
+              "reason": "routine write must not emit user output"
+            },
+            {
+              "op": "forbid",
+              "target": {
+                "event": "user_output_actual_blocker"
+              },
+              "reason": "routine write must not emit user output"
+            },
+            {
+              "op": "forbid",
+              "target": {
+                "event": "user_output_wave_completion"
+              },
+              "reason": "routine write must not emit user output"
+            },
+            {
+              "op": "forbid",
+              "target": {
+                "event": "user_output_final_result"
+              },
+              "reason": "routine write must not emit user output"
+            },
+            {
+              "op": "forbid",
+              "target": {
+                "event": "user_output_approval_request"
+              },
+              "reason": "routine write must not emit user output"
+            }
+          ]
+        },
+        {
+          "name": "routine_dispatch",
+          "assertions": [
+            {
+              "op": "count",
+              "target": {
+                "event": "routine_dispatch"
+              },
+              "equals": 1,
+              "reason": "routine dispatch must be observed"
+            },
+            {
+              "op": "forbid",
+              "target": {
+                "event": "user_output_needed_question"
+              },
+              "reason": "routine dispatch must not emit user output"
+            },
+            {
+              "op": "forbid",
+              "target": {
+                "event": "user_output_actual_blocker"
+              },
+              "reason": "routine dispatch must not emit user output"
+            },
+            {
+              "op": "forbid",
+              "target": {
+                "event": "user_output_wave_completion"
+              },
+              "reason": "routine dispatch must not emit user output"
+            },
+            {
+              "op": "forbid",
+              "target": {
+                "event": "user_output_final_result"
+              },
+              "reason": "routine dispatch must not emit user output"
+            },
+            {
+              "op": "forbid",
+              "target": {
+                "event": "user_output_approval_request"
+              },
+              "reason": "routine dispatch must not emit user output"
+            }
+          ]
+        },
+        {
+          "name": "routine_merge",
+          "assertions": [
+            {
+              "op": "count",
+              "target": {
+                "event": "routine_merge"
+              },
+              "equals": 1,
+              "reason": "routine merge must be observed"
+            },
+            {
+              "op": "forbid",
+              "target": {
+                "event": "user_output_needed_question"
+              },
+              "reason": "routine merge must not emit user output"
+            },
+            {
+              "op": "forbid",
+              "target": {
+                "event": "user_output_actual_blocker"
+              },
+              "reason": "routine merge must not emit user output"
+            },
+            {
+              "op": "forbid",
+              "target": {
+                "event": "user_output_wave_completion"
+              },
+              "reason": "routine merge must not emit user output"
+            },
+            {
+              "op": "forbid",
+              "target": {
+                "event": "user_output_final_result"
+              },
+              "reason": "routine merge must not emit user output"
+            },
+            {
+              "op": "forbid",
+              "target": {
+                "event": "user_output_approval_request"
+              },
+              "reason": "routine merge must not emit user output"
+            }
+          ]
+        },
+        {
+          "name": "routine_gate",
+          "assertions": [
+            {
+              "op": "count",
+              "target": {
+                "event": "routine_gate"
+              },
+              "equals": 1,
+              "reason": "routine gate must be observed"
+            },
+            {
+              "op": "forbid",
+              "target": {
+                "event": "user_output_needed_question"
+              },
+              "reason": "routine gate must not emit user output"
+            },
+            {
+              "op": "forbid",
+              "target": {
+                "event": "user_output_actual_blocker"
+              },
+              "reason": "routine gate must not emit user output"
+            },
+            {
+              "op": "forbid",
+              "target": {
+                "event": "user_output_wave_completion"
+              },
+              "reason": "routine gate must not emit user output"
+            },
+            {
+              "op": "forbid",
+              "target": {
+                "event": "user_output_final_result"
+              },
+              "reason": "routine gate must not emit user output"
+            },
+            {
+              "op": "forbid",
+              "target": {
+                "event": "user_output_approval_request"
+              },
+              "reason": "routine gate must not emit user output"
+            }
+          ]
+        },
+        {
+          "name": "routine_cleanup",
+          "assertions": [
+            {
+              "op": "count",
+              "target": {
+                "event": "routine_cleanup"
+              },
+              "equals": 1,
+              "reason": "routine cleanup must be observed"
+            },
+            {
+              "op": "forbid",
+              "target": {
+                "event": "user_output_needed_question"
+              },
+              "reason": "routine cleanup must not emit user output"
+            },
+            {
+              "op": "forbid",
+              "target": {
+                "event": "user_output_actual_blocker"
+              },
+              "reason": "routine cleanup must not emit user output"
+            },
+            {
+              "op": "forbid",
+              "target": {
+                "event": "user_output_wave_completion"
+              },
+              "reason": "routine cleanup must not emit user output"
+            },
+            {
+              "op": "forbid",
+              "target": {
+                "event": "user_output_final_result"
+              },
+              "reason": "routine cleanup must not emit user output"
+            },
+            {
+              "op": "forbid",
+              "target": {
+                "event": "user_output_approval_request"
+              },
+              "reason": "routine cleanup must not emit user output"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

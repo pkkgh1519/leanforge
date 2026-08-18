@@ -1,0 +1,2688 @@
+{
+  "schema_version": 1,
+  "behavior_origin_commit": "fb252b4236cc607002e131210f6161db72f6841e",
+  "assertion_language": [
+    "count",
+    "forbid",
+    "before",
+    "same",
+    "owner"
+  ],
+  "cardinality": {
+    "RUN-ROUTE-TOPOLOGY": {
+      "definitions": 1,
+      "blocks": 1,
+      "scenarios": 4,
+      "mutations": 2
+    },
+    "RUN-EXTERNAL-PROOF": {
+      "definitions": 1,
+      "blocks": 1,
+      "scenarios": 1,
+      "mutations": 2
+    },
+    "RUN-FAIL-CLOSED": {
+      "definitions": 1,
+      "blocks": 1,
+      "scenarios": 14,
+      "mutations": 1
+    },
+    "RUN-COMPLETION-REUSE": {
+      "definitions": 1,
+      "blocks": 1,
+      "scenarios": 5,
+      "mutations": 2
+    },
+    "RUN-CONCERN-DISPOSITION": {
+      "definitions": 1,
+      "blocks": 1,
+      "scenarios": 7,
+      "mutations": 2
+    },
+    "RUN-LIFECYCLE-OWNERSHIP": {
+      "definitions": 1,
+      "blocks": 1,
+      "scenarios": 1,
+      "mutations": 1
+    },
+    "RUN-REVIEW-TOPOLOGY": {
+      "definitions": 1,
+      "blocks": 1,
+      "scenarios": 3,
+      "mutations": 1
+    },
+    "RUN-OUTPUT-SEMANTICS": {
+      "definitions": 1,
+      "blocks": 1,
+      "scenarios": 2,
+      "mutations": 1
+    }
+  },
+  "scenarios": [
+    {
+      "id": "direct-success",
+      "contracts": [
+        {
+          "id": "RUN-ROUTE-TOPOLOGY",
+          "case": "direct"
+        }
+      ],
+      "trace": [
+        {
+          "event": "route_selected",
+          "route": "direct",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "task_implementation",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "evidence_captured",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "base_commit",
+          "owner": "orchestrator"
+        }
+      ],
+      "assertions": [
+        {
+          "op": "owner",
+          "target": {
+            "event": "task_implementation"
+          },
+          "equals": "orchestrator"
+        },
+        {
+          "op": "count",
+          "target": {
+            "event": "evidence_captured"
+          },
+          "equals": 1
+        },
+        {
+          "op": "forbid",
+          "target": {
+            "event": "worktree_created"
+          }
+        }
+      ]
+    },
+    {
+      "id": "single-risky-success",
+      "contracts": [
+        {
+          "id": "RUN-ROUTE-TOPOLOGY",
+          "case": "single_risky"
+        }
+      ],
+      "trace": [
+        {
+          "event": "route_selected",
+          "route": "single_risky",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "worktree_created",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "task_implementation",
+          "owner": "implementer"
+        },
+        {
+          "event": "task_verification",
+          "outcome": "green",
+          "owner": "implementer"
+        },
+        {
+          "event": "merge_precondition",
+          "outcome": "green",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "merge_gate",
+          "outcome": "green",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "task_merged",
+          "owner": "orchestrator"
+        }
+      ],
+      "assertions": [
+        {
+          "op": "owner",
+          "target": {
+            "event": "task_implementation"
+          },
+          "equals": "implementer"
+        },
+        {
+          "op": "before",
+          "first": {
+            "event": "task_verification"
+          },
+          "second": {
+            "event": "task_merged"
+          }
+        },
+        {
+          "op": "count",
+          "target": {
+            "event": "merge_gate",
+            "outcome": "green"
+          },
+          "equals": 1
+        }
+      ]
+    },
+    {
+      "id": "parallel-success",
+      "contracts": [
+        {
+          "id": "RUN-ROUTE-TOPOLOGY",
+          "case": "parallel"
+        }
+      ],
+      "trace": [
+        {
+          "event": "route_selected",
+          "route": "parallel",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "isolated_task_worktrees",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "task_implementation",
+          "owner": "implementer"
+        },
+        {
+          "event": "task_verifications_complete",
+          "outcome": "green",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "merge_gates_complete",
+          "outcome": "green",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "serial_merge",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "regeneration",
+          "outcome": "green",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "wiring",
+          "outcome": "green",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "integration_gate",
+          "outcome": "green",
+          "owner": "orchestrator"
+        }
+      ],
+      "assertions": [
+        {
+          "op": "count",
+          "target": {
+            "event": "isolated_task_worktrees"
+          },
+          "equals": 1
+        },
+        {
+          "op": "before",
+          "first": {
+            "event": "serial_merge"
+          },
+          "second": {
+            "event": "integration_gate"
+          }
+        },
+        {
+          "op": "count",
+          "target": {
+            "event": "integration_gate",
+            "outcome": "green"
+          },
+          "equals": 1
+        }
+      ]
+    },
+    {
+      "id": "external-success",
+      "contracts": [
+        {
+          "id": "RUN-ROUTE-TOPOLOGY",
+          "case": "external"
+        },
+        {
+          "id": "RUN-EXTERNAL-PROOF",
+          "case": "external"
+        }
+      ],
+      "trace": [
+        {
+          "event": "route_selected",
+          "route": "external",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "external_action",
+          "owner": "implementer"
+        },
+        {
+          "event": "external_evidence",
+          "outcome": "green",
+          "owner": "implementer"
+        },
+        {
+          "event": "base_commit",
+          "owner": "implementer"
+        },
+        {
+          "event": "independent_commit_proof",
+          "owner": "orchestrator"
+        }
+      ],
+      "assertions": [
+        {
+          "op": "owner",
+          "target": {
+            "event": "external_action"
+          },
+          "equals": "implementer"
+        },
+        {
+          "op": "count",
+          "target": {
+            "event": "base_commit"
+          },
+          "equals": 1
+        },
+        {
+          "op": "count",
+          "target": {
+            "event": "independent_commit_proof"
+          },
+          "equals": 1
+        },
+        {
+          "op": "forbid",
+          "target": {
+            "event": "worktree_created"
+          }
+        }
+      ]
+    },
+    {
+      "id": "failure-verification-non-green",
+      "contracts": [
+        {
+          "id": "RUN-FAIL-CLOSED",
+          "case": "verification_non_green"
+        }
+      ],
+      "trace": [
+        {
+          "event": "task_verification",
+          "outcome": "non_green",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "failure_overlay_entered",
+          "overlay": "failure",
+          "owner": "runtime_failure_overlay"
+        },
+        {
+          "event": "retry",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "task_merged",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "cleanup",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "downstream_dispatch",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "progress",
+          "owner": "orchestrator"
+        }
+      ],
+      "assertions": [
+        {
+          "op": "count",
+          "target": {
+            "event": "task_verification",
+            "outcome": "non_green"
+          },
+          "equals": 1
+        },
+        {
+          "op": "before",
+          "first": {
+            "event": "task_verification"
+          },
+          "second": {
+            "event": "failure_overlay_entered"
+          }
+        },
+        {
+          "op": "before",
+          "first": {
+            "event": "failure_overlay_entered"
+          },
+          "second": {
+            "event": "progress"
+          }
+        }
+      ]
+    },
+    {
+      "id": "failure-verification-unevaluable",
+      "contracts": [
+        {
+          "id": "RUN-FAIL-CLOSED",
+          "case": "verification_unevaluable"
+        }
+      ],
+      "trace": [
+        {
+          "event": "task_verification",
+          "outcome": "unevaluable",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "failure_overlay_entered",
+          "overlay": "failure",
+          "owner": "runtime_failure_overlay"
+        },
+        {
+          "event": "retry",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "task_merged",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "cleanup",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "downstream_dispatch",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "progress",
+          "owner": "orchestrator"
+        }
+      ],
+      "assertions": [
+        {
+          "op": "count",
+          "target": {
+            "event": "task_verification",
+            "outcome": "unevaluable"
+          },
+          "equals": 1
+        },
+        {
+          "op": "before",
+          "first": {
+            "event": "task_verification"
+          },
+          "second": {
+            "event": "failure_overlay_entered"
+          }
+        },
+        {
+          "op": "before",
+          "first": {
+            "event": "failure_overlay_entered"
+          },
+          "second": {
+            "event": "progress"
+          }
+        }
+      ]
+    },
+    {
+      "id": "failure-merge-non-green",
+      "contracts": [
+        {
+          "id": "RUN-FAIL-CLOSED",
+          "case": "merge_non_green"
+        }
+      ],
+      "trace": [
+        {
+          "event": "merge_gate",
+          "outcome": "non_green",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "failure_overlay_entered",
+          "overlay": "failure",
+          "owner": "runtime_failure_overlay"
+        },
+        {
+          "event": "retry",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "task_merged",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "cleanup",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "downstream_dispatch",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "progress",
+          "owner": "orchestrator"
+        }
+      ],
+      "assertions": [
+        {
+          "op": "count",
+          "target": {
+            "event": "merge_gate",
+            "outcome": "non_green"
+          },
+          "equals": 1
+        },
+        {
+          "op": "before",
+          "first": {
+            "event": "merge_gate"
+          },
+          "second": {
+            "event": "failure_overlay_entered"
+          }
+        },
+        {
+          "op": "before",
+          "first": {
+            "event": "failure_overlay_entered"
+          },
+          "second": {
+            "event": "progress"
+          }
+        }
+      ]
+    },
+    {
+      "id": "failure-merge-unevaluable",
+      "contracts": [
+        {
+          "id": "RUN-FAIL-CLOSED",
+          "case": "merge_unevaluable"
+        }
+      ],
+      "trace": [
+        {
+          "event": "merge_gate",
+          "outcome": "unevaluable",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "failure_overlay_entered",
+          "overlay": "failure",
+          "owner": "runtime_failure_overlay"
+        },
+        {
+          "event": "retry",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "task_merged",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "cleanup",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "downstream_dispatch",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "progress",
+          "owner": "orchestrator"
+        }
+      ],
+      "assertions": [
+        {
+          "op": "count",
+          "target": {
+            "event": "merge_gate",
+            "outcome": "unevaluable"
+          },
+          "equals": 1
+        },
+        {
+          "op": "before",
+          "first": {
+            "event": "merge_gate"
+          },
+          "second": {
+            "event": "failure_overlay_entered"
+          }
+        },
+        {
+          "op": "before",
+          "first": {
+            "event": "failure_overlay_entered"
+          },
+          "second": {
+            "event": "progress"
+          }
+        }
+      ]
+    },
+    {
+      "id": "failure-integration-non-green",
+      "contracts": [
+        {
+          "id": "RUN-FAIL-CLOSED",
+          "case": "integration_non_green"
+        }
+      ],
+      "trace": [
+        {
+          "event": "integration_gate",
+          "outcome": "non_green",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "failure_overlay_entered",
+          "overlay": "failure",
+          "owner": "runtime_failure_overlay"
+        },
+        {
+          "event": "retry",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "task_merged",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "cleanup",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "downstream_dispatch",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "progress",
+          "owner": "orchestrator"
+        }
+      ],
+      "assertions": [
+        {
+          "op": "count",
+          "target": {
+            "event": "integration_gate",
+            "outcome": "non_green"
+          },
+          "equals": 1
+        },
+        {
+          "op": "before",
+          "first": {
+            "event": "integration_gate"
+          },
+          "second": {
+            "event": "failure_overlay_entered"
+          }
+        },
+        {
+          "op": "before",
+          "first": {
+            "event": "failure_overlay_entered"
+          },
+          "second": {
+            "event": "progress"
+          }
+        }
+      ]
+    },
+    {
+      "id": "failure-integration-unevaluable",
+      "contracts": [
+        {
+          "id": "RUN-FAIL-CLOSED",
+          "case": "integration_unevaluable"
+        }
+      ],
+      "trace": [
+        {
+          "event": "integration_gate",
+          "outcome": "unevaluable",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "failure_overlay_entered",
+          "overlay": "failure",
+          "owner": "runtime_failure_overlay"
+        },
+        {
+          "event": "retry",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "task_merged",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "cleanup",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "downstream_dispatch",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "progress",
+          "owner": "orchestrator"
+        }
+      ],
+      "assertions": [
+        {
+          "op": "count",
+          "target": {
+            "event": "integration_gate",
+            "outcome": "unevaluable"
+          },
+          "equals": 1
+        },
+        {
+          "op": "before",
+          "first": {
+            "event": "integration_gate"
+          },
+          "second": {
+            "event": "failure_overlay_entered"
+          }
+        },
+        {
+          "op": "before",
+          "first": {
+            "event": "failure_overlay_entered"
+          },
+          "second": {
+            "event": "progress"
+          }
+        }
+      ]
+    },
+    {
+      "id": "failure-completion-non-green",
+      "contracts": [
+        {
+          "id": "RUN-FAIL-CLOSED",
+          "case": "completion_non_green"
+        }
+      ],
+      "trace": [
+        {
+          "event": "completion_gate",
+          "outcome": "non_green",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "failure_overlay_entered",
+          "overlay": "failure",
+          "owner": "runtime_failure_overlay"
+        },
+        {
+          "event": "retry",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "task_merged",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "cleanup",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "downstream_dispatch",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "progress",
+          "owner": "orchestrator"
+        }
+      ],
+      "assertions": [
+        {
+          "op": "count",
+          "target": {
+            "event": "completion_gate",
+            "outcome": "non_green"
+          },
+          "equals": 1
+        },
+        {
+          "op": "before",
+          "first": {
+            "event": "completion_gate"
+          },
+          "second": {
+            "event": "failure_overlay_entered"
+          }
+        },
+        {
+          "op": "before",
+          "first": {
+            "event": "failure_overlay_entered"
+          },
+          "second": {
+            "event": "progress"
+          }
+        }
+      ]
+    },
+    {
+      "id": "failure-completion-unevaluable",
+      "contracts": [
+        {
+          "id": "RUN-FAIL-CLOSED",
+          "case": "completion_unevaluable"
+        }
+      ],
+      "trace": [
+        {
+          "event": "completion_gate",
+          "outcome": "unevaluable",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "failure_overlay_entered",
+          "overlay": "failure",
+          "owner": "runtime_failure_overlay"
+        },
+        {
+          "event": "retry",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "task_merged",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "cleanup",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "downstream_dispatch",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "progress",
+          "owner": "orchestrator"
+        }
+      ],
+      "assertions": [
+        {
+          "op": "count",
+          "target": {
+            "event": "completion_gate",
+            "outcome": "unevaluable"
+          },
+          "equals": 1
+        },
+        {
+          "op": "before",
+          "first": {
+            "event": "completion_gate"
+          },
+          "second": {
+            "event": "failure_overlay_entered"
+          }
+        },
+        {
+          "op": "before",
+          "first": {
+            "event": "failure_overlay_entered"
+          },
+          "second": {
+            "event": "progress"
+          }
+        }
+      ]
+    },
+    {
+      "id": "failure-runtime-non-green",
+      "contracts": [
+        {
+          "id": "RUN-FAIL-CLOSED",
+          "case": "runtime_non_green"
+        }
+      ],
+      "trace": [
+        {
+          "event": "runtime_result",
+          "outcome": "non_green",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "failure_overlay_entered",
+          "overlay": "failure",
+          "owner": "runtime_failure_overlay"
+        },
+        {
+          "event": "retry",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "task_merged",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "cleanup",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "downstream_dispatch",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "progress",
+          "owner": "orchestrator"
+        }
+      ],
+      "assertions": [
+        {
+          "op": "count",
+          "target": {
+            "event": "runtime_result",
+            "outcome": "non_green"
+          },
+          "equals": 1
+        },
+        {
+          "op": "before",
+          "first": {
+            "event": "runtime_result"
+          },
+          "second": {
+            "event": "failure_overlay_entered"
+          }
+        },
+        {
+          "op": "before",
+          "first": {
+            "event": "failure_overlay_entered"
+          },
+          "second": {
+            "event": "progress"
+          }
+        }
+      ]
+    },
+    {
+      "id": "failure-runtime-unevaluable",
+      "contracts": [
+        {
+          "id": "RUN-FAIL-CLOSED",
+          "case": "runtime_unevaluable"
+        }
+      ],
+      "trace": [
+        {
+          "event": "runtime_result",
+          "outcome": "unevaluable",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "failure_overlay_entered",
+          "overlay": "failure",
+          "owner": "runtime_failure_overlay"
+        },
+        {
+          "event": "retry",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "task_merged",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "cleanup",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "downstream_dispatch",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "progress",
+          "owner": "orchestrator"
+        }
+      ],
+      "assertions": [
+        {
+          "op": "count",
+          "target": {
+            "event": "runtime_result",
+            "outcome": "unevaluable"
+          },
+          "equals": 1
+        },
+        {
+          "op": "before",
+          "first": {
+            "event": "runtime_result"
+          },
+          "second": {
+            "event": "failure_overlay_entered"
+          }
+        },
+        {
+          "op": "before",
+          "first": {
+            "event": "failure_overlay_entered"
+          },
+          "second": {
+            "event": "progress"
+          }
+        }
+      ]
+    },
+    {
+      "id": "failure-review-non-green",
+      "contracts": [
+        {
+          "id": "RUN-FAIL-CLOSED",
+          "case": "review_non_green"
+        }
+      ],
+      "trace": [
+        {
+          "event": "review_result",
+          "outcome": "non_green",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "failure_overlay_entered",
+          "overlay": "failure",
+          "owner": "runtime_failure_overlay"
+        },
+        {
+          "event": "retry",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "task_merged",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "cleanup",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "downstream_dispatch",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "progress",
+          "owner": "orchestrator"
+        }
+      ],
+      "assertions": [
+        {
+          "op": "count",
+          "target": {
+            "event": "review_result",
+            "outcome": "non_green"
+          },
+          "equals": 1
+        },
+        {
+          "op": "before",
+          "first": {
+            "event": "review_result"
+          },
+          "second": {
+            "event": "failure_overlay_entered"
+          }
+        },
+        {
+          "op": "before",
+          "first": {
+            "event": "failure_overlay_entered"
+          },
+          "second": {
+            "event": "progress"
+          }
+        }
+      ]
+    },
+    {
+      "id": "failure-review-unevaluable",
+      "contracts": [
+        {
+          "id": "RUN-FAIL-CLOSED",
+          "case": "review_unevaluable"
+        }
+      ],
+      "trace": [
+        {
+          "event": "review_result",
+          "outcome": "unevaluable",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "failure_overlay_entered",
+          "overlay": "failure",
+          "owner": "runtime_failure_overlay"
+        },
+        {
+          "event": "retry",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "task_merged",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "cleanup",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "downstream_dispatch",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "progress",
+          "owner": "orchestrator"
+        }
+      ],
+      "assertions": [
+        {
+          "op": "count",
+          "target": {
+            "event": "review_result",
+            "outcome": "unevaluable"
+          },
+          "equals": 1
+        },
+        {
+          "op": "before",
+          "first": {
+            "event": "review_result"
+          },
+          "second": {
+            "event": "failure_overlay_entered"
+          }
+        },
+        {
+          "op": "before",
+          "first": {
+            "event": "failure_overlay_entered"
+          },
+          "second": {
+            "event": "progress"
+          }
+        }
+      ]
+    },
+    {
+      "id": "failure-regeneration-non-green",
+      "contracts": [
+        {
+          "id": "RUN-FAIL-CLOSED",
+          "case": "regeneration_non_green"
+        }
+      ],
+      "trace": [
+        {
+          "event": "regeneration",
+          "outcome": "non_green",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "failure_overlay_entered",
+          "overlay": "failure",
+          "owner": "runtime_failure_overlay"
+        },
+        {
+          "event": "retry",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "task_merged",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "cleanup",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "downstream_dispatch",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "progress",
+          "owner": "orchestrator"
+        }
+      ],
+      "assertions": [
+        {
+          "op": "count",
+          "target": {
+            "event": "regeneration",
+            "outcome": "non_green"
+          },
+          "equals": 1
+        },
+        {
+          "op": "before",
+          "first": {
+            "event": "regeneration"
+          },
+          "second": {
+            "event": "failure_overlay_entered"
+          }
+        },
+        {
+          "op": "before",
+          "first": {
+            "event": "failure_overlay_entered"
+          },
+          "second": {
+            "event": "progress"
+          }
+        }
+      ]
+    },
+    {
+      "id": "failure-regeneration-unevaluable",
+      "contracts": [
+        {
+          "id": "RUN-FAIL-CLOSED",
+          "case": "regeneration_unevaluable"
+        }
+      ],
+      "trace": [
+        {
+          "event": "regeneration",
+          "outcome": "unevaluable",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "failure_overlay_entered",
+          "overlay": "failure",
+          "owner": "runtime_failure_overlay"
+        },
+        {
+          "event": "retry",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "task_merged",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "cleanup",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "downstream_dispatch",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "progress",
+          "owner": "orchestrator"
+        }
+      ],
+      "assertions": [
+        {
+          "op": "count",
+          "target": {
+            "event": "regeneration",
+            "outcome": "unevaluable"
+          },
+          "equals": 1
+        },
+        {
+          "op": "before",
+          "first": {
+            "event": "regeneration"
+          },
+          "second": {
+            "event": "failure_overlay_entered"
+          }
+        },
+        {
+          "op": "before",
+          "first": {
+            "event": "failure_overlay_entered"
+          },
+          "second": {
+            "event": "progress"
+          }
+        }
+      ]
+    },
+    {
+      "id": "completion-reuse",
+      "contracts": [
+        {
+          "id": "RUN-COMPLETION-REUSE",
+          "case": "reuse"
+        }
+      ],
+      "trace": [
+        {
+          "event": "prior_integration",
+          "outcome": "green"
+        },
+        {
+          "event": "prior_verify_set",
+          "value": "build,test,lint"
+        },
+        {
+          "event": "current_verify_set",
+          "value": "build,test,lint"
+        },
+        {
+          "event": "prior_gate_base_tip",
+          "value": "sha-A"
+        },
+        {
+          "event": "current_base_tip",
+          "value": "sha-A"
+        },
+        {
+          "event": "completion_reused",
+          "owner": "orchestrator"
+        }
+      ],
+      "assertions": [
+        {
+          "op": "same",
+          "first": {
+            "event": "prior_verify_set"
+          },
+          "second": {
+            "event": "current_verify_set"
+          },
+          "field": "value"
+        },
+        {
+          "op": "same",
+          "first": {
+            "event": "prior_gate_base_tip"
+          },
+          "second": {
+            "event": "current_base_tip"
+          },
+          "field": "value"
+        },
+        {
+          "op": "forbid",
+          "target": {
+            "event": "completion_full_verify"
+          }
+        }
+      ]
+    },
+    {
+      "id": "completion-rerun-after-non-green",
+      "contracts": [
+        {
+          "id": "RUN-COMPLETION-REUSE",
+          "case": "prior_integration_non_green"
+        }
+      ],
+      "trace": [
+        {
+          "event": "prior_integration",
+          "outcome": "non_green"
+        },
+        {
+          "event": "completion_full_verify",
+          "outcome": "green",
+          "owner": "orchestrator"
+        }
+      ],
+      "assertions": [
+        {
+          "op": "count",
+          "target": {
+            "event": "prior_integration",
+            "outcome": "non_green"
+          },
+          "equals": 1
+        },
+        {
+          "op": "count",
+          "target": {
+            "event": "completion_full_verify"
+          },
+          "equals": 1
+        }
+      ]
+    },
+    {
+      "id": "completion-rerun-after-unevaluable",
+      "contracts": [
+        {
+          "id": "RUN-COMPLETION-REUSE",
+          "case": "prior_integration_unevaluable"
+        }
+      ],
+      "trace": [
+        {
+          "event": "prior_integration",
+          "outcome": "unevaluable"
+        },
+        {
+          "event": "completion_full_verify",
+          "outcome": "green",
+          "owner": "orchestrator"
+        }
+      ],
+      "assertions": [
+        {
+          "op": "count",
+          "target": {
+            "event": "prior_integration",
+            "outcome": "unevaluable"
+          },
+          "equals": 1
+        },
+        {
+          "op": "forbid",
+          "target": {
+            "event": "completion_reused"
+          }
+        }
+      ]
+    },
+    {
+      "id": "completion-rerun-after-verify-set-change",
+      "contracts": [
+        {
+          "id": "RUN-COMPLETION-REUSE",
+          "case": "verify_set_changed"
+        }
+      ],
+      "trace": [
+        {
+          "event": "prior_verify_set",
+          "value": "build,test"
+        },
+        {
+          "event": "current_verify_set",
+          "value": "build,test,lint"
+        },
+        {
+          "event": "verify_set_changed"
+        },
+        {
+          "event": "completion_full_verify",
+          "outcome": "green",
+          "owner": "orchestrator"
+        }
+      ],
+      "assertions": [
+        {
+          "op": "count",
+          "target": {
+            "event": "verify_set_changed"
+          },
+          "equals": 1
+        },
+        {
+          "op": "count",
+          "target": {
+            "event": "completion_full_verify"
+          },
+          "equals": 1
+        }
+      ]
+    },
+    {
+      "id": "completion-rerun-after-base-tip-change",
+      "contracts": [
+        {
+          "id": "RUN-COMPLETION-REUSE",
+          "case": "base_tip_changed"
+        }
+      ],
+      "trace": [
+        {
+          "event": "prior_gate_base_tip",
+          "value": "sha-A"
+        },
+        {
+          "event": "current_base_tip",
+          "value": "sha-B"
+        },
+        {
+          "event": "base_tip_changed"
+        },
+        {
+          "event": "completion_full_verify",
+          "outcome": "green",
+          "owner": "orchestrator"
+        }
+      ],
+      "assertions": [
+        {
+          "op": "count",
+          "target": {
+            "event": "base_tip_changed"
+          },
+          "equals": 1
+        },
+        {
+          "op": "forbid",
+          "target": {
+            "event": "completion_reused"
+          }
+        }
+      ]
+    },
+    {
+      "id": "concern-resolved",
+      "contracts": [
+        {
+          "id": "RUN-CONCERN-DISPOSITION",
+          "case": "resolved"
+        }
+      ],
+      "trace": [
+        {
+          "event": "concern_recorded",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "concern_disposition",
+          "disposition": "resolved",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "completion",
+          "owner": "orchestrator"
+        }
+      ],
+      "assertions": [
+        {
+          "op": "owner",
+          "target": {
+            "event": "concern_disposition"
+          },
+          "equals": "orchestrator"
+        },
+        {
+          "op": "count",
+          "target": {
+            "event": "completion"
+          },
+          "equals": 1
+        }
+      ]
+    },
+    {
+      "id": "concern-explicitly-accepted",
+      "contracts": [
+        {
+          "id": "RUN-CONCERN-DISPOSITION",
+          "case": "explicitly_accepted"
+        }
+      ],
+      "trace": [
+        {
+          "event": "concern_recorded",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "concern_disposition",
+          "disposition": "explicitly_accepted",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "completion",
+          "owner": "orchestrator"
+        }
+      ],
+      "assertions": [
+        {
+          "op": "count",
+          "target": {
+            "event": "concern_disposition",
+            "disposition": "explicitly_accepted"
+          },
+          "equals": 1
+        },
+        {
+          "op": "owner",
+          "target": {
+            "event": "concern_disposition"
+          },
+          "equals": "orchestrator"
+        }
+      ]
+    },
+    {
+      "id": "concern-user-requirement-accepted",
+      "contracts": [
+        {
+          "id": "RUN-CONCERN-DISPOSITION",
+          "case": "user_accepted"
+        },
+        {
+          "id": "RUN-CONCERN-DISPOSITION",
+          "case": "user_requirement"
+        }
+      ],
+      "trace": [
+        {
+          "event": "user_owned_requirement_concern",
+          "owner": "user"
+        },
+        {
+          "event": "concern_disposition",
+          "disposition": "user_accepted",
+          "owner": "user"
+        },
+        {
+          "event": "completion",
+          "owner": "orchestrator"
+        }
+      ],
+      "assertions": [
+        {
+          "op": "owner",
+          "target": {
+            "event": "concern_disposition"
+          },
+          "equals": "user"
+        },
+        {
+          "op": "count",
+          "target": {
+            "event": "completion"
+          },
+          "equals": 1
+        }
+      ]
+    },
+    {
+      "id": "concern-user-compatibility-accepted",
+      "contracts": [
+        {
+          "id": "RUN-CONCERN-DISPOSITION",
+          "case": "user_compatibility"
+        }
+      ],
+      "trace": [
+        {
+          "event": "user_owned_compatibility_concern",
+          "owner": "user"
+        },
+        {
+          "event": "concern_disposition",
+          "disposition": "user_accepted",
+          "owner": "user"
+        }
+      ],
+      "assertions": [
+        {
+          "op": "count",
+          "target": {
+            "event": "user_owned_compatibility_concern"
+          },
+          "equals": 1
+        },
+        {
+          "op": "owner",
+          "target": {
+            "event": "concern_disposition"
+          },
+          "equals": "user"
+        }
+      ]
+    },
+    {
+      "id": "concern-user-safety-accepted",
+      "contracts": [
+        {
+          "id": "RUN-CONCERN-DISPOSITION",
+          "case": "user_safety"
+        }
+      ],
+      "trace": [
+        {
+          "event": "user_owned_safety_concern",
+          "owner": "user"
+        },
+        {
+          "event": "concern_disposition",
+          "disposition": "user_accepted",
+          "owner": "user"
+        }
+      ],
+      "assertions": [
+        {
+          "op": "count",
+          "target": {
+            "event": "user_owned_safety_concern"
+          },
+          "equals": 1
+        },
+        {
+          "op": "count",
+          "target": {
+            "event": "concern_disposition",
+            "disposition": "user_accepted"
+          },
+          "equals": 1
+        }
+      ]
+    },
+    {
+      "id": "concern-promoted-failure-wins",
+      "contracts": [
+        {
+          "id": "RUN-CONCERN-DISPOSITION",
+          "case": "promoted_to_failure"
+        }
+      ],
+      "trace": [
+        {
+          "event": "concern_recorded",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "concern_disposition",
+          "disposition": "promoted_to_failure",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "failure_overlay_entered",
+          "overlay": "failure",
+          "owner": "runtime_failure_overlay"
+        }
+      ],
+      "assertions": [
+        {
+          "op": "count",
+          "target": {
+            "event": "failure_overlay_entered",
+            "overlay": "failure"
+          },
+          "equals": 1
+        },
+        {
+          "op": "forbid",
+          "target": {
+            "event": "completion"
+          }
+        },
+        {
+          "op": "forbid",
+          "target": {
+            "event": "progress"
+          }
+        }
+      ]
+    },
+    {
+      "id": "concern-pending-blocks",
+      "contracts": [
+        {
+          "id": "RUN-CONCERN-DISPOSITION",
+          "case": "pending"
+        }
+      ],
+      "trace": [
+        {
+          "event": "concern_recorded",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "concern_disposition",
+          "disposition": "pending",
+          "owner": "orchestrator"
+        }
+      ],
+      "assertions": [
+        {
+          "op": "count",
+          "target": {
+            "event": "concern_disposition",
+            "disposition": "pending"
+          },
+          "equals": 1
+        },
+        {
+          "op": "forbid",
+          "target": {
+            "event": "completion"
+          }
+        }
+      ]
+    },
+    {
+      "id": "lifecycle-ownership-matrix",
+      "contracts": [
+        {
+          "id": "RUN-LIFECYCLE-OWNERSHIP",
+          "case": "startup"
+        },
+        {
+          "id": "RUN-LIFECYCLE-OWNERSHIP",
+          "case": "interrupted"
+        },
+        {
+          "id": "RUN-LIFECYCLE-OWNERSHIP",
+          "case": "archive"
+        },
+        {
+          "id": "RUN-LIFECYCLE-OWNERSHIP",
+          "case": "migration"
+        },
+        {
+          "id": "RUN-LIFECYCLE-OWNERSHIP",
+          "case": "runtime_task_failure"
+        },
+        {
+          "id": "RUN-LIFECYCLE-OWNERSHIP",
+          "case": "runtime_gate_failure"
+        },
+        {
+          "id": "RUN-LIFECYCLE-OWNERSHIP",
+          "case": "runtime_review_failure"
+        }
+      ],
+      "trace": [
+        {
+          "event": "startup",
+          "owner": "harness_lifecycle"
+        },
+        {
+          "event": "interrupted_run",
+          "owner": "harness_lifecycle"
+        },
+        {
+          "event": "archive",
+          "owner": "harness_lifecycle"
+        },
+        {
+          "event": "migration",
+          "owner": "harness_lifecycle"
+        },
+        {
+          "event": "runtime_task_failure",
+          "owner": "runtime_failure_overlay"
+        },
+        {
+          "event": "runtime_gate_failure",
+          "owner": "runtime_failure_overlay"
+        },
+        {
+          "event": "runtime_review_failure",
+          "owner": "runtime_failure_overlay"
+        }
+      ],
+      "assertions": [
+        {
+          "op": "owner",
+          "target": {
+            "event": "startup"
+          },
+          "equals": "harness_lifecycle"
+        },
+        {
+          "op": "owner",
+          "target": {
+            "event": "archive"
+          },
+          "equals": "harness_lifecycle"
+        },
+        {
+          "op": "owner",
+          "target": {
+            "event": "runtime_gate_failure"
+          },
+          "equals": "runtime_failure_overlay"
+        }
+      ]
+    },
+    {
+      "id": "review-conditional-and-final-clear",
+      "contracts": [
+        {
+          "id": "RUN-REVIEW-TOPOLOGY",
+          "case": "conditional_required"
+        },
+        {
+          "id": "RUN-REVIEW-TOPOLOGY",
+          "case": "final_clear"
+        }
+      ],
+      "trace": [
+        {
+          "event": "risky_task",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "downstream_cascade_risk",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "conditional_spec_review",
+          "outcome": "clear",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "downstream_dispatch",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "final_full_diff_review",
+          "outcome": "clear",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "review_verdict",
+          "outcome": "clear",
+          "owner": "orchestrator"
+        }
+      ],
+      "assertions": [
+        {
+          "op": "before",
+          "first": {
+            "event": "conditional_spec_review"
+          },
+          "second": {
+            "event": "downstream_dispatch"
+          }
+        },
+        {
+          "op": "count",
+          "target": {
+            "event": "final_full_diff_review"
+          },
+          "equals": 1
+        },
+        {
+          "op": "forbid",
+          "target": {
+            "event": "blocking_finding"
+          }
+        }
+      ]
+    },
+    {
+      "id": "review-non-risky-skips-conditional",
+      "contracts": [
+        {
+          "id": "RUN-REVIEW-TOPOLOGY",
+          "case": "non_risky"
+        }
+      ],
+      "trace": [
+        {
+          "event": "non_risky_task",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "final_full_diff_review",
+          "outcome": "clear",
+          "owner": "orchestrator"
+        }
+      ],
+      "assertions": [
+        {
+          "op": "forbid",
+          "target": {
+            "event": "conditional_spec_review"
+          }
+        },
+        {
+          "op": "count",
+          "target": {
+            "event": "final_full_diff_review"
+          },
+          "equals": 1
+        }
+      ]
+    },
+    {
+      "id": "review-no-cascade-skips-conditional",
+      "contracts": [
+        {
+          "id": "RUN-REVIEW-TOPOLOGY",
+          "case": "no_downstream_cascade"
+        }
+      ],
+      "trace": [
+        {
+          "event": "risky_task",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "no_downstream_cascade_risk",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "final_full_diff_review",
+          "outcome": "clear",
+          "owner": "orchestrator"
+        }
+      ],
+      "assertions": [
+        {
+          "op": "forbid",
+          "target": {
+            "event": "conditional_spec_review"
+          }
+        },
+        {
+          "op": "count",
+          "target": {
+            "event": "final_full_diff_review"
+          },
+          "equals": 1
+        }
+      ]
+    },
+    {
+      "id": "output-allowed-events",
+      "contracts": [
+        {
+          "id": "RUN-OUTPUT-SEMANTICS",
+          "case": "needed_question"
+        },
+        {
+          "id": "RUN-OUTPUT-SEMANTICS",
+          "case": "actual_blocker"
+        },
+        {
+          "id": "RUN-OUTPUT-SEMANTICS",
+          "case": "wave_completion"
+        },
+        {
+          "id": "RUN-OUTPUT-SEMANTICS",
+          "case": "final_result"
+        },
+        {
+          "id": "RUN-OUTPUT-SEMANTICS",
+          "case": "approval_request"
+        }
+      ],
+      "trace": [
+        {
+          "event": "user_output_needed_question",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "user_output_actual_blocker",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "user_output_wave_completion",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "user_output_final_result",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "user_output_approval_request",
+          "owner": "orchestrator"
+        }
+      ],
+      "assertions": [
+        {
+          "op": "count",
+          "target": {
+            "event": "user_output_needed_question"
+          },
+          "equals": 1
+        },
+        {
+          "op": "count",
+          "target": {
+            "event": "user_output_approval_request"
+          },
+          "equals": 1
+        }
+      ]
+    },
+    {
+      "id": "output-routine-silence",
+      "contracts": [
+        {
+          "id": "RUN-OUTPUT-SEMANTICS",
+          "case": "routine_read"
+        },
+        {
+          "id": "RUN-OUTPUT-SEMANTICS",
+          "case": "routine_write"
+        },
+        {
+          "id": "RUN-OUTPUT-SEMANTICS",
+          "case": "routine_dispatch"
+        },
+        {
+          "id": "RUN-OUTPUT-SEMANTICS",
+          "case": "routine_merge"
+        },
+        {
+          "id": "RUN-OUTPUT-SEMANTICS",
+          "case": "routine_gate"
+        },
+        {
+          "id": "RUN-OUTPUT-SEMANTICS",
+          "case": "routine_cleanup"
+        }
+      ],
+      "trace": [
+        {
+          "event": "routine_read",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "routine_write",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "routine_dispatch",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "routine_merge",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "routine_gate",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "routine_cleanup",
+          "owner": "orchestrator"
+        }
+      ],
+      "assertions": [
+        {
+          "op": "count",
+          "target": {
+            "event": "routine_read"
+          },
+          "equals": 1
+        },
+        {
+          "op": "count",
+          "target": {
+            "event": "routine_cleanup"
+          },
+          "equals": 1
+        },
+        {
+          "op": "forbid",
+          "target": {
+            "event": "user_output_actual_blocker"
+          }
+        }
+      ]
+    }
+  ],
+  "mutants": [
+    {
+      "id": "external-conditional-base-commit",
+      "contracts": [
+        {
+          "id": "RUN-EXTERNAL-PROOF",
+          "case": "external"
+        }
+      ],
+      "trace": [
+        {
+          "event": "route_selected",
+          "route": "external"
+        },
+        {
+          "event": "external_action",
+          "owner": "implementer"
+        },
+        {
+          "event": "external_evidence",
+          "outcome": "green",
+          "owner": "implementer"
+        },
+        {
+          "event": "conditional_base_commit",
+          "owner": "implementer"
+        },
+        {
+          "event": "independent_commit_proof",
+          "owner": "orchestrator"
+        }
+      ],
+      "assertions": [
+        {
+          "op": "count",
+          "target": {
+            "event": "conditional_base_commit"
+          },
+          "equals": 1
+        },
+        {
+          "op": "forbid",
+          "target": {
+            "event": "base_commit"
+          }
+        }
+      ],
+      "expected_contract_id": "RUN-EXTERNAL-PROOF",
+      "expected_reason": "external route requires an unconditional base commit"
+    },
+    {
+      "id": "external-missing-independent-proof",
+      "contracts": [
+        {
+          "id": "RUN-EXTERNAL-PROOF",
+          "case": "external"
+        }
+      ],
+      "trace": [
+        {
+          "event": "route_selected",
+          "route": "external"
+        },
+        {
+          "event": "external_action",
+          "owner": "implementer"
+        },
+        {
+          "event": "external_evidence",
+          "outcome": "green",
+          "owner": "implementer"
+        },
+        {
+          "event": "base_commit",
+          "owner": "implementer"
+        }
+      ],
+      "assertions": [
+        {
+          "op": "count",
+          "target": {
+            "event": "base_commit"
+          },
+          "equals": 1
+        },
+        {
+          "op": "forbid",
+          "target": {
+            "event": "independent_commit_proof"
+          }
+        }
+      ],
+      "expected_contract_id": "RUN-EXTERNAL-PROOF",
+      "expected_reason": "external route requires independent commit proof"
+    },
+    {
+      "id": "single-risky-merge-before-verification",
+      "contracts": [
+        {
+          "id": "RUN-ROUTE-TOPOLOGY",
+          "case": "single_risky"
+        }
+      ],
+      "trace": [
+        {
+          "event": "route_selected",
+          "route": "single_risky"
+        },
+        {
+          "event": "worktree_created",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "task_implementation",
+          "owner": "implementer"
+        },
+        {
+          "event": "task_merged",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "task_verification",
+          "outcome": "green",
+          "owner": "implementer"
+        },
+        {
+          "event": "merge_precondition",
+          "outcome": "green",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "merge_gate",
+          "outcome": "green",
+          "owner": "orchestrator"
+        }
+      ],
+      "assertions": [
+        {
+          "op": "before",
+          "first": {
+            "event": "task_merged"
+          },
+          "second": {
+            "event": "task_verification"
+          }
+        }
+      ],
+      "expected_contract_id": "RUN-ROUTE-TOPOLOGY",
+      "expected_reason": "single-risky verification must precede merge"
+    },
+    {
+      "id": "parallel-missing-integration-gate",
+      "contracts": [
+        {
+          "id": "RUN-ROUTE-TOPOLOGY",
+          "case": "parallel"
+        }
+      ],
+      "trace": [
+        {
+          "event": "route_selected",
+          "route": "parallel"
+        },
+        {
+          "event": "isolated_task_worktrees",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "task_implementation",
+          "owner": "implementer"
+        },
+        {
+          "event": "task_verifications_complete",
+          "outcome": "green",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "merge_gates_complete",
+          "outcome": "green",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "serial_merge",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "regeneration",
+          "outcome": "green",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "wiring",
+          "outcome": "green",
+          "owner": "orchestrator"
+        }
+      ],
+      "assertions": [
+        {
+          "op": "forbid",
+          "target": {
+            "event": "integration_gate"
+          }
+        }
+      ],
+      "expected_contract_id": "RUN-ROUTE-TOPOLOGY",
+      "expected_reason": "parallel route requires one green integration gate"
+    },
+    {
+      "id": "completion-reuse-missing-sha",
+      "contracts": [
+        {
+          "id": "RUN-COMPLETION-REUSE",
+          "case": "reuse"
+        }
+      ],
+      "trace": [
+        {
+          "event": "prior_integration",
+          "outcome": "green"
+        },
+        {
+          "event": "prior_verify_set",
+          "value": "build,test,lint"
+        },
+        {
+          "event": "current_verify_set",
+          "value": "build,test,lint"
+        },
+        {
+          "event": "completion_reused",
+          "owner": "orchestrator"
+        }
+      ],
+      "assertions": [
+        {
+          "op": "forbid",
+          "target": {
+            "event": "prior_gate_base_tip"
+          }
+        },
+        {
+          "op": "count",
+          "target": {
+            "event": "completion_reused"
+          },
+          "equals": 1
+        }
+      ],
+      "expected_contract_id": "RUN-COMPLETION-REUSE",
+      "expected_reason": "completion reuse requires the prior gate base-tip SHA"
+    },
+    {
+      "id": "completion-reuse-missing-verify-set",
+      "contracts": [
+        {
+          "id": "RUN-COMPLETION-REUSE",
+          "case": "reuse"
+        }
+      ],
+      "trace": [
+        {
+          "event": "prior_integration",
+          "outcome": "green"
+        },
+        {
+          "event": "prior_gate_base_tip",
+          "value": "sha-A"
+        },
+        {
+          "event": "current_base_tip",
+          "value": "sha-A"
+        },
+        {
+          "event": "completion_reused",
+          "owner": "orchestrator"
+        }
+      ],
+      "assertions": [
+        {
+          "op": "forbid",
+          "target": {
+            "event": "prior_verify_set"
+          }
+        },
+        {
+          "op": "count",
+          "target": {
+            "event": "completion_reused"
+          },
+          "equals": 1
+        }
+      ],
+      "expected_contract_id": "RUN-COMPLETION-REUSE",
+      "expected_reason": "completion reuse requires the prior verify set"
+    },
+    {
+      "id": "unevaluable-verification-treated-as-green",
+      "contracts": [
+        {
+          "id": "RUN-FAIL-CLOSED",
+          "case": "verification_unevaluable"
+        }
+      ],
+      "trace": [
+        {
+          "event": "task_verification",
+          "outcome": "unevaluable",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "progress",
+          "owner": "orchestrator"
+        }
+      ],
+      "assertions": [
+        {
+          "op": "count",
+          "target": {
+            "event": "task_verification",
+            "outcome": "unevaluable"
+          },
+          "equals": 1
+        },
+        {
+          "op": "forbid",
+          "target": {
+            "event": "failure_overlay_entered"
+          }
+        },
+        {
+          "op": "count",
+          "target": {
+            "event": "progress"
+          },
+          "equals": 1
+        }
+      ],
+      "expected_contract_id": "RUN-FAIL-CLOSED",
+      "expected_reason": "unevaluable verification result must enter failure overlay"
+    },
+    {
+      "id": "startup-wrong-owner",
+      "contracts": [
+        {
+          "id": "RUN-LIFECYCLE-OWNERSHIP",
+          "case": "startup"
+        }
+      ],
+      "trace": [
+        {
+          "event": "startup",
+          "owner": "runtime_failure_overlay"
+        }
+      ],
+      "assertions": [
+        {
+          "op": "owner",
+          "target": {
+            "event": "startup"
+          },
+          "equals": "runtime_failure_overlay"
+        }
+      ],
+      "expected_contract_id": "RUN-LIFECYCLE-OWNERSHIP",
+      "expected_reason": "startup ownership belongs to harness lifecycle"
+    },
+    {
+      "id": "pending-concern-completes",
+      "contracts": [
+        {
+          "id": "RUN-CONCERN-DISPOSITION",
+          "case": "pending"
+        }
+      ],
+      "trace": [
+        {
+          "event": "concern_disposition",
+          "disposition": "pending",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "completion",
+          "owner": "orchestrator"
+        }
+      ],
+      "assertions": [
+        {
+          "op": "count",
+          "target": {
+            "event": "concern_disposition",
+            "disposition": "pending"
+          },
+          "equals": 1
+        },
+        {
+          "op": "count",
+          "target": {
+            "event": "completion"
+          },
+          "equals": 1
+        }
+      ],
+      "expected_contract_id": "RUN-CONCERN-DISPOSITION",
+      "expected_reason": "pending concern blocks completion"
+    },
+    {
+      "id": "user-safety-non-user-acceptance",
+      "contracts": [
+        {
+          "id": "RUN-CONCERN-DISPOSITION",
+          "case": "user_safety"
+        }
+      ],
+      "trace": [
+        {
+          "event": "user_owned_safety_concern",
+          "owner": "user"
+        },
+        {
+          "event": "concern_disposition",
+          "disposition": "explicitly_accepted",
+          "owner": "orchestrator"
+        }
+      ],
+      "assertions": [
+        {
+          "op": "count",
+          "target": {
+            "event": "concern_disposition",
+            "disposition": "explicitly_accepted"
+          },
+          "equals": 1
+        },
+        {
+          "op": "owner",
+          "target": {
+            "event": "concern_disposition"
+          },
+          "equals": "orchestrator"
+        }
+      ],
+      "expected_contract_id": "RUN-CONCERN-DISPOSITION",
+      "expected_reason": "user-owned safety concern requires user acceptance"
+    },
+    {
+      "id": "conditional-review-replaces-final",
+      "contracts": [
+        {
+          "id": "RUN-REVIEW-TOPOLOGY",
+          "case": "conditional_required"
+        }
+      ],
+      "trace": [
+        {
+          "event": "risky_task",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "downstream_cascade_risk",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "conditional_spec_review",
+          "outcome": "clear",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "downstream_dispatch",
+          "owner": "orchestrator"
+        }
+      ],
+      "assertions": [
+        {
+          "op": "count",
+          "target": {
+            "event": "conditional_spec_review"
+          },
+          "equals": 1
+        },
+        {
+          "op": "forbid",
+          "target": {
+            "event": "final_full_diff_review"
+          }
+        }
+      ],
+      "expected_contract_id": "RUN-REVIEW-TOPOLOGY",
+      "expected_reason": "conditional review never replaces final full-diff review"
+    },
+    {
+      "id": "routine-read-emits-user-output",
+      "contracts": [
+        {
+          "id": "RUN-OUTPUT-SEMANTICS",
+          "case": "routine_read"
+        }
+      ],
+      "trace": [
+        {
+          "event": "routine_read",
+          "owner": "orchestrator"
+        },
+        {
+          "event": "user_output_actual_blocker",
+          "owner": "orchestrator"
+        }
+      ],
+      "assertions": [
+        {
+          "op": "count",
+          "target": {
+            "event": "routine_read"
+          },
+          "equals": 1
+        },
+        {
+          "op": "count",
+          "target": {
+            "event": "user_output_actual_blocker"
+          },
+          "equals": 1
+        }
+      ],
+      "expected_contract_id": "RUN-OUTPUT-SEMANTICS",
+      "expected_reason": "routine read must not emit user output"
+    }
+  ]
+}

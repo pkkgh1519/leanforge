@@ -146,6 +146,16 @@ A single-task wave runs in one of three modes (by `risk` + target type; see Wave
   not a file diff. (A worktree would isolate files, not the external runtime it mutates, and the
   file-diff merge-gate can't verify it.)
 
+<!-- leanforge:run-semantic:RUN-EXTERNAL-PROOF:start -->
+```json
+{
+  "id": "RUN-EXTERNAL-PROOF",
+  "kind": "external_proof",
+  "definition": "The external route always records captured external evidence, makes an unconditional base commit, and receives independent commit-history proof after the action."
+}
+```
+<!-- leanforge:run-semantic:RUN-EXTERNAL-PROOF:end -->
+
 **Both dispatched modes:** verify the commit after return (`git log`; for file-diff, the diff touches
 declared targets — never trust self-report); **restore the orchestrator's cwd** (subagent runs can
 drift it); **subagent output is bounded** (large results → file + digest). **No integration gate** for
@@ -329,6 +339,16 @@ also use the test runner's affected-only filter; the completion gate always runs
 **Advisory findings are recorded, never dropped.** Findings not fix-dispatched must be explicitly
 marked accepted — never silently dropped.
 
+<!-- leanforge:run-semantic:RUN-CONCERN-DISPOSITION:start -->
+```json
+{
+  "id": "RUN-CONCERN-DISPOSITION",
+  "kind": "concern_disposition",
+  "definition": "Concern dispositions are exactly resolved, explicitly_accepted, user_accepted, promoted_to_failure, and pending. Pending blocks completion and the user gate; user-owned requirement, compatibility, and safety concerns require user acceptance; the failure overlay wins every overlap."
+}
+```
+<!-- leanforge:run-semantic:RUN-CONCERN-DISPOSITION:end -->
+
 ### Fix-dispatch and lightweight fix
 
 **Substantive fix-dispatch** (bugs, review blocking findings): dispatched as a subagent on a branch
@@ -344,6 +364,16 @@ Do not skip advisories as "accepted" when a lightweight fix would take seconds. 
 non-behavioral changes only — substantive findings still go to an independent fix-dispatch.
 
 ## Failure handling
+
+<!-- leanforge:run-semantic:RUN-FAIL-CLOSED:start -->
+```json
+{
+  "id": "RUN-FAIL-CLOSED",
+  "kind": "failure_overlay",
+  "definition": "Every non-green or unevaluable verification, merge, integration, completion, runtime, review, or regeneration result enters the failure overlay before retry, merge, cleanup, downstream dispatch, or progress. Unevaluable is never green."
+}
+```
+<!-- leanforge:run-semantic:RUN-FAIL-CLOSED:end -->
 
 | Failure | Response |
 |---|---|
