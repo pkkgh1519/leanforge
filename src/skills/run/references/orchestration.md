@@ -151,7 +151,12 @@ A single-task wave runs in one of three modes (by `risk` + target type; see Wave
 {
   "id": "RUN-EXTERNAL-PROOF",
   "kind": "external_proof",
-  "definition": "The external route always records captured external evidence, makes an unconditional base commit, and receives independent commit-history proof after the action."
+  "definition": "The external implementer is mechanically pinned to the selected base before action; the route then captures green external evidence, makes an unconditional base commit, and receives independent git-log commit proof.",
+  "constraints": [
+    "The selected-base fact and implementer base-pin fact have the same value, and both precede external action.",
+    "Green external evidence follows the action and precedes one unconditional base commit.",
+    "Independent orchestrator-owned git-log commit proof follows the base commit."
+  ]
 }
 ```
 <!-- leanforge:run-semantic:RUN-EXTERNAL-PROOF:end -->
@@ -344,7 +349,12 @@ marked accepted — never silently dropped.
 {
   "id": "RUN-CONCERN-DISPOSITION",
   "kind": "concern_disposition",
-  "definition": "Concern dispositions are exactly resolved, explicitly_accepted, user_accepted, promoted_to_failure, and pending. Pending blocks completion and the user gate; user-owned requirement, compatibility, and safety concerns require user acceptance; the failure overlay wins every overlap."
+  "definition": "Concern dispositions are exactly resolved, explicitly_accepted, user_accepted, promoted_to_failure, and pending. Pending blocks completion and the user gate; user-owned requirement, compatibility, and safety concerns require user acceptance; the failure overlay wins every overlap.",
+  "constraints": [
+    "Every concern uses one of the five closed dispositions.",
+    "Pending blocks completion and the user gate, while promoted failure also blocks progress.",
+    "User-owned requirement, compatibility, and safety concerns require user-owned acceptance."
+  ]
 }
 ```
 <!-- leanforge:run-semantic:RUN-CONCERN-DISPOSITION:end -->
@@ -370,7 +380,12 @@ non-behavioral changes only — substantive findings still go to an independent 
 {
   "id": "RUN-FAIL-CLOSED",
   "kind": "failure_overlay",
-  "definition": "Every non-green or unevaluable verification, merge, integration, completion, runtime, review, or regeneration result enters the failure overlay before retry, merge, cleanup, downstream dispatch, or progress. Unevaluable is never green."
+  "definition": "Every non-green or unevaluable verification, merge-precondition, merge, integration, completion, runtime, review, or regeneration result enters the failure overlay before any retry, merge, cleanup, downstream dispatch, or progress that is present. A terminal failure may stop after entering the overlay. Unevaluable is never green.",
+  "constraints": [
+    "Non-green and unevaluable results enter the failure overlay.",
+    "The overlay precedes every retry, merge, cleanup, downstream dispatch, or progress action that follows a failed result.",
+    "No continuation event is required after a terminal failure enters the overlay."
+  ]
 }
 ```
 <!-- leanforge:run-semantic:RUN-FAIL-CLOSED:end -->

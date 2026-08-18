@@ -10,7 +10,11 @@ Load alongside `harness-format.md` (the harness spec) — this file is the *proc
 {
   "id": "RUN-LIFECYCLE-OWNERSHIP",
   "kind": "lifecycle_ownership",
-  "definition": "Harness lifecycle owns startup, interrupted-run recovery, archive, and migration decisions; the runtime failure overlay owns runtime task, gate, and review failures."
+  "definition": "Harness lifecycle owns startup, interrupted-run recovery, archive, and migration decisions; the runtime failure overlay owns runtime task, gate, and review failures.",
+  "constraints": [
+    "Harness lifecycle owns startup, interrupted-run recovery, archive, and migration.",
+    "The runtime failure overlay owns runtime task, gate, and review failures."
+  ]
 }
 ```
 <!-- leanforge:run-semantic:RUN-LIFECYCLE-OWNERSHIP:end -->

@@ -50,7 +50,12 @@ their dispatch steps.
 {
   "id": "RUN-OUTPUT-SEMANTICS",
   "kind": "output_semantics",
-  "definition": "User output is limited to a needed question, an actual blocker, wave completion, the final result, or an approval request. Routine read, write, dispatch, merge, gate, and cleanup operations emit no user output."
+  "definition": "User output is limited to a needed question, an actual blocker, wave completion, the final result, or an approval request. Routine operations do not emit routine-progress narration, but they do not suppress a later actual blocker or final result.",
+  "constraints": [
+    "Needed questions, actual blockers, wave completion, final results, and approval requests are allowed output.",
+    "A distinct routine-progress narration output is forbidden.",
+    "An actual blocker or final result remains allowed after any routine operation."
+  ]
 }
 ```
 <!-- leanforge:run-semantic:RUN-OUTPUT-SEMANTICS:end -->
@@ -113,7 +118,15 @@ merge gates, wiring, verification, context budget, cleanup, and failure handling
 {
   "id": "RUN-ROUTE-TOPOLOGY",
   "kind": "route_topology",
-  "definition": "Run has exactly four success routes: direct is orchestrator-owned on the base with captured evidence, single_risky uses one isolated implementer worktree with verification and merge gates, parallel uses isolated task worktrees with serial merge, regeneration, wiring, and a green wave integration gate, and external is a base-pinned implementer route without a file diff. Failure is an overlay, not a success route."
+  "definition": "Run has exactly four success routes: direct is orchestrator-owned on the base with captured evidence, single_risky uses one isolated implementer worktree with verification and merge gates, parallel uses isolated task worktrees with serial merge, regeneration, wiring, and a green wave integration gate, and external is a base-pinned implementer route without a file diff. Failure is an overlay, not a success route.",
+  "constraints": [
+    "The closed success-route set is direct, single_risky, parallel, and external.",
+    "Direct work remains on the base under orchestrator ownership and captures evidence.",
+    "Single-risky work uses one isolated implementer worktree and verifies before merge gates and merge.",
+    "Parallel work uses isolated task worktrees, serial merge, regeneration, wiring, and a green integration gate in that order.",
+    "External work is performed by a base-pinned implementer without a task worktree or file diff.",
+    "Failure is an overlay and never a fifth success route."
+  ]
 }
 ```
 <!-- leanforge:run-semantic:RUN-ROUTE-TOPOLOGY:end -->
@@ -144,7 +157,12 @@ merge gates, wiring, verification, context budget, cleanup, and failure handling
 {
   "id": "RUN-REVIEW-TOPOLOGY",
   "kind": "review_topology",
-  "definition": "Conditional spec review applies only to risky tasks with downstream cascade risk and never replaces final full-diff review. A clear final verdict has zero blocking findings."
+  "definition": "Conditional spec review applies only to risky tasks with downstream cascade risk and never replaces final full-diff review. A clear final verdict has zero blocking findings.",
+  "constraints": [
+    "Risky downstream cascade requires conditional spec review before dispatch and final review.",
+    "Conditional review never replaces final full-diff review.",
+    "A clear final verdict has no blocking findings."
+  ]
 }
 ```
 <!-- leanforge:run-semantic:RUN-REVIEW-TOPOLOGY:end -->
@@ -199,7 +217,11 @@ Done only when all hold on evidence:
 {
   "id": "RUN-COMPLETION-REUSE",
   "kind": "completion_reuse",
-  "definition": "Completion reuses prior integration only when it is green, the verify set is identical, and the prior gate base-tip SHA equals the current base-tip SHA; every missing or changed condition reruns the full verify set."
+  "definition": "Completion reuses prior integration only when it is green, the verify set is identical, and the prior gate base-tip SHA equals the current base-tip SHA; every missing or changed condition reruns the full verify set.",
+  "constraints": [
+    "Reuse requires prior green integration, identical verify-set facts, and identical prior-gate and current base-tip facts.",
+    "Missing, non-green, unevaluable, or changed evidence requires full verification and forbids reuse."
+  ]
 }
 ```
 <!-- leanforge:run-semantic:RUN-COMPLETION-REUSE:end -->
