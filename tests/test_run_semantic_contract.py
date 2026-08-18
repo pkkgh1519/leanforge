@@ -966,6 +966,16 @@ def validate_route_topology(trace):
     remedial_reason = validate_direct_remedial_topology(trace, selected[0])
     if remedial_reason is not None:
         return remedial_reason
+    if route == "direct":
+        direct_owner_reasons = {
+            "task_implementation": "direct implementation must be orchestrator-owned",
+            "evidence_captured": "direct evidence must be orchestrator-owned",
+            "base_commit": "direct base commit must be orchestrator-owned",
+        }
+        for event, reason in direct_owner_reasons.items():
+            indexes = matching_indexes(trace, event)
+            if indexes and any(trace[index].get("owner") != "orchestrator" for index in indexes):
+                return reason
     for occurrence in trace:
         event = occurrence.get("event")
         if event in ROUTE_SPECIFIC_EVENTS and event not in ROUTE_ALLOWED_EVENTS[route]:
@@ -1322,9 +1332,26 @@ def validate_completion_reuse(trace):
             if not passed:
                 return reason
         return None
+    endpoints = sorted(
+        matching_indexes(trace, "completion") + matching_indexes(trace, "user_gate")
+    )
     if full_verify:
+        for endpoint_index in endpoints:
+            applicable_verifies = [
+                index
+                for index in matching_indexes(trace, "completion_full_verify")
+                if index < endpoint_index
+            ]
+            if (
+                not applicable_verifies
+                or trace[applicable_verifies[-1]].get("outcome") != "green"
+            ):
+                return (
+                    "completion or user gate requires the latest preceding full verify "
+                    "to be green"
+                )
         return None
-    if has_event(trace, "completion") or has_event(trace, "user_gate"):
+    if endpoints:
         if not has_fact_context:
             return "completion endpoint without reusable facts requires full verify"
     if has_fact_context:
@@ -1491,6 +1518,10 @@ def validate_review_topology(trace):
         if has_event(trace, "review_verdict", outcome="blocking"):
             if final_outcome == "green":
                 return "blocking review verdict cannot follow a green final full-diff review"
+            if final_outcome != "blocking":
+                return (
+                    "blocking review verdict requires one blocking final full-diff review"
+                )
             if not ordered(trace, "final_full_diff_review", "review_verdict"):
                 return "final full-diff review must precede blocking review verdict"
     if clear_verdicts:
@@ -1572,19 +1603,21 @@ def render_protected_block(invariant):
 
 
 def protected_block_mismatches(contract, markdown_blobs):
-    combined_markdown = b"\n".join(markdown_blobs.values())
+    markdown_files = tuple(markdown_blobs.values())
     expected_ids = {invariant["id"] for invariant in contract["invariants"]}
     marker_ids = {
         match.decode("ascii")
+        for raw in markdown_files
         for match in re.findall(
-            rb"<!-- leanforge:run-semantic:([^:]+):start -->",
-            combined_markdown,
+            rb"<!-- leanforge:run-semantic:([^:]+):(?:start|end) -->",
+            raw,
         )
     }
     mismatches = expected_ids.symmetric_difference(marker_ids)
     for invariant in contract["invariants"]:
         invariant_id = invariant["id"]
-        escaped_id = re.escape(invariant_id.encode("ascii"))
+        encoded_id = invariant_id.encode("ascii")
+        escaped_id = re.escape(encoded_id)
         marker = re.compile(
             rb"(?ms)<!-- leanforge:run-semantic:"
             + escaped_id
@@ -1592,9 +1625,18 @@ def protected_block_mismatches(contract, markdown_blobs):
             + escaped_id
             + rb":end -->"
         )
-        blocks = marker.findall(combined_markdown)
+        blocks = [block for raw in markdown_files for block in marker.findall(raw)]
+        start_marker = b"<!-- leanforge:run-semantic:" + encoded_id + b":start -->"
+        end_marker = b"<!-- leanforge:run-semantic:" + encoded_id + b":end -->"
+        start_count = sum(raw.count(start_marker) for raw in markdown_files)
+        end_count = sum(raw.count(end_marker) for raw in markdown_files)
         expected = render_protected_block(invariant).encode("utf-8")
-        if len(blocks) != 1 or blocks[0] != expected:
+        if (
+            start_count != 1
+            or end_count != 1
+            or len(blocks) != 1
+            or blocks[0] != expected
+        ):
             mismatches.add(invariant_id)
     return mismatches
 
@@ -2218,6 +2260,171 @@ class RunSemanticContractTests(unittest.TestCase):
         self.assertEqual(
             validate_review_topology(conflicting_verdicts),
             "review verdict must occur exactly once",
+        )
+
+    def test_completion_endpoint_requires_latest_preceding_full_verify_green(self):
+        reason = "completion or user gate requires the latest preceding full verify to be green"
+        for outcome, endpoint in (
+            ("non_green", "completion"),
+            ("unevaluable", "user_gate"),
+        ):
+            trace = [
+                {"event": "completion_full_verify", "outcome": "green", "owner": "orchestrator"},
+                {"event": "completion_full_verify", "outcome": outcome, "owner": "orchestrator"},
+                {
+                    "event": "failure_overlay_entered",
+                    "overlay": "failure",
+                    "owner": "runtime_failure_overlay",
+                },
+                {"event": endpoint, "owner": "orchestrator"},
+            ]
+            with self.subTest(outcome=outcome, endpoint=endpoint):
+                result = validate_semantics(self.contract, trace)
+                self.assertEqual(result["contract_id"], "RUN-COMPLETION-REUSE")
+                self.assertEqual(result["reason"], reason)
+
+        recovered = [
+            {"event": "completion_full_verify", "outcome": "non_green", "owner": "orchestrator"},
+            {
+                "event": "failure_overlay_entered",
+                "overlay": "failure",
+                "owner": "runtime_failure_overlay",
+            },
+            {"event": "completion_full_verify", "outcome": "green", "owner": "orchestrator"},
+            {"event": "final_full_diff_review", "outcome": "green", "owner": "orchestrator"},
+            {"event": "review_verdict", "outcome": "clear", "owner": "orchestrator"},
+            {"event": "completion", "owner": "orchestrator"},
+        ]
+        self.assertTrue(validate_semantics(self.contract, recovered)["valid"])
+        self.assertEqual(
+            validate_completion_reuse(
+                [
+                    {"event": "completion", "owner": "orchestrator"},
+                    {
+                        "event": "completion_full_verify",
+                        "outcome": "green",
+                        "owner": "orchestrator",
+                    },
+                ]
+            ),
+            reason,
+        )
+
+    def test_direct_route_owns_implementation_evidence_and_base_commit(self):
+        direct = [
+            {"event": "route_selected", "route": "direct", "owner": "orchestrator"},
+            {"event": "task_implementation", "owner": "orchestrator"},
+            {"event": "evidence_captured", "owner": "orchestrator"},
+            {"event": "base_commit", "owner": "orchestrator"},
+        ]
+        wrong_owner_reasons = {
+            "task_implementation": "direct implementation must be orchestrator-owned",
+            "evidence_captured": "direct evidence must be orchestrator-owned",
+            "base_commit": "direct base commit must be orchestrator-owned",
+        }
+        for event, reason in wrong_owner_reasons.items():
+            mutation = copy.deepcopy(direct)
+            next(item for item in mutation if item["event"] == event)["owner"] = "implementer"
+            with self.subTest(event=event):
+                result = validate_semantics(self.contract, mutation)
+                self.assertEqual(result["contract_id"], "RUN-ROUTE-TOPOLOGY")
+                self.assertEqual(result["reason"], reason)
+
+        external = [
+            {"event": "route_selected", "route": "external", "owner": "orchestrator"},
+            {"event": "selected_base", "value": "sha-A", "owner": "orchestrator"},
+            {"event": "external_base_pin", "value": "sha-A", "owner": "implementer"},
+            {"event": "external_action", "owner": "implementer"},
+            {"event": "external_evidence", "outcome": "green", "owner": "implementer"},
+            {"event": "base_commit", "owner": "implementer"},
+            {"event": "independent_commit_proof", "owner": "orchestrator"},
+        ]
+        self.assertTrue(validate_semantics(self.contract, external)["valid"])
+
+    def test_review_outcome_and_verdict_pairs_are_exact_and_cardinal(self):
+        reason = "blocking review verdict requires one blocking final full-diff review"
+        for final_outcome in ("clear", "non_green", "unevaluable"):
+            trace = [
+                {"event": "final_full_diff_review", "outcome": final_outcome},
+                {"event": "review_verdict", "outcome": "blocking"},
+            ]
+            with self.subTest(final_outcome=final_outcome):
+                self.assertEqual(validate_review_topology(trace), reason)
+
+        self.assertIsNone(
+            validate_review_topology(
+                [
+                    {"event": "final_full_diff_review", "outcome": "green"},
+                    {"event": "review_verdict", "outcome": "clear"},
+                ]
+            )
+        )
+        self.assertIsNone(
+            validate_review_topology(
+                [
+                    {"event": "final_full_diff_review", "outcome": "blocking"},
+                    {"event": "review_verdict", "outcome": "blocking"},
+                ]
+            )
+        )
+        blocking_with_overlays = [
+            {"event": "final_full_diff_review", "outcome": "blocking"},
+            {
+                "event": "failure_overlay_entered",
+                "overlay": "failure",
+                "owner": "runtime_failure_overlay",
+            },
+            {"event": "review_verdict", "outcome": "blocking"},
+            {
+                "event": "failure_overlay_entered",
+                "overlay": "failure",
+                "owner": "runtime_failure_overlay",
+            },
+        ]
+        self.assertTrue(validate_semantics(self.contract, blocking_with_overlays)["valid"])
+        without_overlays = [
+            item for item in blocking_with_overlays if item["event"] != "failure_overlay_entered"
+        ]
+        self.assertEqual(
+            validate_semantics(self.contract, without_overlays)["contract_id"],
+            "RUN-FAIL-CLOSED",
+        )
+        self.assertEqual(
+            validate_review_topology(
+                [
+                    {"event": "final_full_diff_review", "outcome": "blocking"},
+                    {"event": "final_full_diff_review", "outcome": "blocking"},
+                    {"event": "review_verdict", "outcome": "blocking"},
+                ]
+            ),
+            "final full-diff review must occur exactly once",
+        )
+        self.assertEqual(
+            validate_review_topology(
+                [
+                    {"event": "final_full_diff_review", "outcome": "blocking"},
+                    {"event": "review_verdict", "outcome": "blocking"},
+                    {"event": "review_verdict", "outcome": "blocking"},
+                ]
+            ),
+            "review verdict must occur exactly once",
+        )
+
+    def test_protected_block_must_be_wholly_present_in_one_markdown_file(self):
+        invariant = self.contract["invariants"][0]
+        expected = render_protected_block(invariant).encode("utf-8")
+        left, right = expected.split(b"\n", 1)
+        single_invariant_contract = {
+            **self.contract,
+            "invariants": [invariant],
+        }
+        split_blobs = {
+            Path("first.md"): left,
+            Path("second.md"): right,
+        }
+        self.assertEqual(
+            protected_block_mismatches(single_invariant_contract, split_blobs),
+            {invariant["id"]},
         )
 
     def test_trace_metadata_is_event_specific(self):
