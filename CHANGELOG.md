@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.9.0 (2026-08-19)
+
+- add a small machine-readable Run semantic kernel with stable protected Markdown bindings for route topology, external proof, failure precedence, completion reuse, concern disposition, lifecycle and review ownership, and user output
+- add a separate instruction load graph with deterministic recursive closure validation across routes, overlays, phases, and profiles
+- add independent hand-authored scenarios, known-opposite mutation checks, and exact raw-byte baselines across canonical and generated skill surfaces
+
 ## v1.8.2 (2026-08-18)
 
 - align the README release titles, changelog, canonical plugin manifests, and generated plugin manifests on v1.8.2
