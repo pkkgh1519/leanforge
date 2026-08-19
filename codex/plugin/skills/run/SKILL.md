@@ -13,10 +13,11 @@ description: >
 
 Consume the **approved 3-doc** produced by `Prime` and realize the spec through dependency-aware
 waves, right-sized verification, spec-first review, and integration gates. Run in the same session as
-Prime when possible; the self-contained 3-doc—not dialogue—is execution authority. Force-load
-`references/orchestration.md`. Force-load `references/harness-lifecycle.md` before any state-directory
-compatibility or interrupted-run decision and reuse it at the harness step; load prompt references at
-their dispatch steps.
+Prime when possible; the self-contained 3-doc—not dialogue—is execution authority. Follow the structured startup directives below; prompt references load only at their bound dispatch phases.
+
+<!-- leanforge:run-load {"from":"run/SKILL.md","to":"run/references/orchestration.md","kind":"force_load","phase":"startup","activation_contract_id":"RUN-ROUTE-TOPOLOGY","optional":false} -->
+<!-- leanforge:run-load {"from":"run/SKILL.md","to":"run/references/harness-lifecycle.md","kind":"force_load","phase":"preflight","activation_contract_id":"RUN-LIFECYCLE-OWNERSHIP","optional":false} -->
+Compatibility-only (non-operative legacy assertion): ~~Force-load `references/harness-lifecycle.md` before any state-directory~~
 
 ## Core principles
 
@@ -39,6 +40,8 @@ their dispatch steps.
   never a plan-only or search-only role; reviewer prompts still impose read-only behavior where required.
 - **Repo-local lenses are optional aids.** Use matching harness-generated artifacts only as
   review/explore/checklist lenses under `repo-lens-routing.md`; they never replace Run or implement.
+
+<!-- leanforge:run-load {"from":"run/SKILL.md","to":"run/references/repo-lens-routing.md","kind":"optional_load","phase":"review","activation_contract_id":"RUN-REVIEW-TOPOLOGY","optional":true} -->
 - **Own conformance upstream.** Implement and verify as if the final review did not exist. The final
   review is independent insurance for rare residuals, not permission for shallow work.
 - **Report results, not plumbing.** Speak only for a needed question, real blocker, wave completion,
@@ -96,11 +99,13 @@ Before branch/worktree mutation, parse the Execution Graph under `references/gra
 Require an acyclic graph, valid `depends`/`after` task IDs, and an exact plan-body/graph task-ID match.
 Report the offending ID, cycle, or mismatch and require a corrected plan; leave no partial state.
 
+<!-- leanforge:run-load {"from":"run/SKILL.md","to":"run/references/graph-contract.md","kind":"force_load","phase":"graph_preflight","activation_contract_id":"RUN-ROUTE-TOPOLOGY","optional":false} -->
+
 ## Flow
 
-Force-load `references/orchestration.md`. Topologically derive waves and recalculate action-local live
-capacity immediately before every dispatch. Follow that reference for scheduling, worktrees, status,
-merge gates, wiring, verification, context budget, cleanup, and failure handling.
+Apply the structured startup orchestration directive. Topologically derive waves and recalculate
+action-local live capacity immediately before every dispatch. Follow the bound reference for scheduling,
+worktrees, status, merge gates, wiring, verification, context budget, cleanup, and failure handling.
 
 1. **Set up the base.** Create the feature branch when required, commit state-directory ignore setup,
    and keep active 3-doc files local. Only the orchestrator reads them; children receive the relevant
@@ -156,8 +161,8 @@ merge gates, wiring, verification, context budget, cleanup, and failure handling
     intermediate gate uses
     affected-only filtering, record what it skipped; the completion gate still runs the full set.
 6. **Review policy.** Default to one final full-diff review. Add a conditional spec-review only when a
-   `RISKY` task has downstream dependents and deviation could cascade. Use `spec-review-prompt.md` and
-   `reviewer-prompt.md`; both remain independent leaves admitted through the live-slot contract.
+   `RISKY` task has downstream dependents and deviation could cascade. Apply the structured conditional
+   review prompt bindings; both remain independent leaves admitted through the live-slot contract.
 
 <!-- leanforge:run-semantic:RUN-REVIEW-TOPOLOGY:start -->
 ```json
@@ -188,13 +193,16 @@ merge gates, wiring, verification, context budget, cleanup, and failure handling
    only when it ran the same full set successfully and the base-tip SHA has not changed. After the gate
    passes, batch-remove eligible successful worktrees and merged task branches only after proving their
    commits are ancestors of the base; preserve failed or ambiguous worktrees and branches.
-9. **Create or update the project harness.** Force-load `harness-lifecycle.md` and
-   `harness-format.md`, then re-read the 3-doc. First cycle creates the full harness from Foundation,
-   spec, and code; delta updates only changed-scope documentation and navigation. Apply clobber guards,
-   back up/rework an existing entry file only with user approval, and keep file generation silent.
+9. **Create or update the project harness.** Apply the structured harness binding, then re-read the
+   3-doc. First cycle creates the full harness from Foundation, spec, and code; delta updates only
+   changed-scope documentation and navigation. Apply clobber guards, back up/rework an existing entry
+   file only with user approval, and keep file generation silent.
 10. **Final review.** One fresh leaf reviews the full base diff for spec conformance, code quality,
-    evidence integrity, ceremony budget, and the harness when changed, using `harness-review.md` and
-    `reviewer-prompt.md`. A clear verdict means zero blocking findings.
+    evidence integrity, ceremony budget, and the harness when changed, using the structured final-review
+    bindings. A clear verdict means zero blocking findings.
+
+<!-- leanforge:run-load {"from":"run/SKILL.md","to":"run/references/harness-review.md","kind":"optional_load","phase":"review","activation_contract_id":"RUN-REVIEW-TOPOLOGY","optional":true} -->
+
 11. **Fix if needed.** Triage every advisory. Fix trivial non-behavioral items directly; dispatch
     substantive behavioral or structural fixes. Code changes rerun completion, harness changes rerun
     harness review, and combined changes rerun both. Record an out-of-scope mismatch rather than

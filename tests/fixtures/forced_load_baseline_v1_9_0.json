@@ -1,0 +1,1274 @@
+{
+  "behavior_origin_commit": "fb252b4236cc607002e131210f6161db72f6841e",
+  "byte_baseline_commit": "6f28b044cb2eeee2e1eac94c495450ee8542862b",
+  "fixture_id": "leanforge.run.forced-load-baseline",
+  "measurement": {
+    "identity": "surface plus surface-relative POSIX path; no content or path dedupe",
+    "raw_bytes": "exact Git blob bytes; no newline or frontmatter normalization",
+    "route_union": "forced-load projection from one recursive activation traversal",
+    "words": "UTF-8 decode followed by Python str.split() Unicode whitespace counting"
+  },
+  "schema_version": 1,
+  "surfaces": {
+    "claude/skills": {
+      "closures": [
+        {
+          "forced_load_nodes": [
+            "run/SKILL.md",
+            "run/references/graph-contract.md",
+            "run/references/harness-lifecycle.md",
+            "run/references/orchestration.md"
+          ],
+          "instruction_nodes": [
+            "run/SKILL.md",
+            "run/references/graph-contract.md",
+            "run/references/harness-lifecycle.md",
+            "run/references/orchestration.md"
+          ],
+          "name": "entry_execution.direct",
+          "overlay": null,
+          "phase": "entry_execution",
+          "profile": "default",
+          "raw_bytes": 60686,
+          "root": "run",
+          "route": "direct",
+          "words": 8638
+        },
+        {
+          "forced_load_nodes": [
+            "run/SKILL.md",
+            "run/references/graph-contract.md",
+            "run/references/harness-format.md",
+            "run/references/harness-lifecycle.md",
+            "run/references/orchestration.md"
+          ],
+          "instruction_nodes": [
+            "run/SKILL.md",
+            "run/references/graph-contract.md",
+            "run/references/harness-format.md",
+            "run/references/harness-lifecycle.md",
+            "run/references/orchestration.md",
+            "run/references/reviewer-prompt.md"
+          ],
+          "name": "route_union.direct",
+          "overlay": null,
+          "phase": "route_union",
+          "profile": "default",
+          "raw_bytes": 92151,
+          "root": "run",
+          "route": "direct",
+          "words": 13216
+        },
+        {
+          "forced_load_nodes": [
+            "run/SKILL.md",
+            "run/references/graph-contract.md",
+            "run/references/harness-format.md",
+            "run/references/harness-lifecycle.md",
+            "run/references/orchestration.md"
+          ],
+          "instruction_nodes": [
+            "run/SKILL.md",
+            "run/references/graph-contract.md",
+            "run/references/harness-format.md",
+            "run/references/harness-lifecycle.md",
+            "run/references/implementer-prompt.md",
+            "run/references/orchestration.md",
+            "run/references/reviewer-prompt.md"
+          ],
+          "name": "failure_route_union.direct",
+          "overlay": "failure",
+          "phase": "failure_route_union",
+          "profile": "default",
+          "raw_bytes": 92151,
+          "root": "run",
+          "route": "direct",
+          "words": 13216
+        },
+        {
+          "forced_load_nodes": [
+            "run/SKILL.md",
+            "run/references/graph-contract.md",
+            "run/references/harness-lifecycle.md",
+            "run/references/orchestration.md"
+          ],
+          "instruction_nodes": [
+            "run/SKILL.md",
+            "run/references/graph-contract.md",
+            "run/references/harness-lifecycle.md",
+            "run/references/implementer-prompt.md",
+            "run/references/orchestration.md"
+          ],
+          "name": "entry_execution.single_risky",
+          "overlay": null,
+          "phase": "entry_execution",
+          "profile": "default",
+          "raw_bytes": 60686,
+          "root": "run",
+          "route": "single_risky",
+          "words": 8638
+        },
+        {
+          "forced_load_nodes": [
+            "run/SKILL.md",
+            "run/references/graph-contract.md",
+            "run/references/harness-format.md",
+            "run/references/harness-lifecycle.md",
+            "run/references/orchestration.md"
+          ],
+          "instruction_nodes": [
+            "run/SKILL.md",
+            "run/references/graph-contract.md",
+            "run/references/harness-format.md",
+            "run/references/harness-lifecycle.md",
+            "run/references/implementer-prompt.md",
+            "run/references/orchestration.md",
+            "run/references/reviewer-prompt.md"
+          ],
+          "name": "route_union.single_risky",
+          "overlay": null,
+          "phase": "route_union",
+          "profile": "default",
+          "raw_bytes": 92151,
+          "root": "run",
+          "route": "single_risky",
+          "words": 13216
+        },
+        {
+          "forced_load_nodes": [
+            "run/SKILL.md",
+            "run/references/graph-contract.md",
+            "run/references/harness-format.md",
+            "run/references/harness-lifecycle.md",
+            "run/references/orchestration.md"
+          ],
+          "instruction_nodes": [
+            "run/SKILL.md",
+            "run/references/graph-contract.md",
+            "run/references/harness-format.md",
+            "run/references/harness-lifecycle.md",
+            "run/references/implementer-prompt.md",
+            "run/references/orchestration.md",
+            "run/references/reviewer-prompt.md"
+          ],
+          "name": "failure_route_union.single_risky",
+          "overlay": "failure",
+          "phase": "failure_route_union",
+          "profile": "default",
+          "raw_bytes": 92151,
+          "root": "run",
+          "route": "single_risky",
+          "words": 13216
+        },
+        {
+          "forced_load_nodes": [
+            "run/SKILL.md",
+            "run/references/graph-contract.md",
+            "run/references/harness-lifecycle.md",
+            "run/references/orchestration.md"
+          ],
+          "instruction_nodes": [
+            "run/SKILL.md",
+            "run/references/graph-contract.md",
+            "run/references/harness-lifecycle.md",
+            "run/references/implementer-prompt.md",
+            "run/references/orchestration.md"
+          ],
+          "name": "entry_execution.parallel",
+          "overlay": null,
+          "phase": "entry_execution",
+          "profile": "default",
+          "raw_bytes": 60686,
+          "root": "run",
+          "route": "parallel",
+          "words": 8638
+        },
+        {
+          "forced_load_nodes": [
+            "run/SKILL.md",
+            "run/references/graph-contract.md",
+            "run/references/harness-format.md",
+            "run/references/harness-lifecycle.md",
+            "run/references/orchestration.md"
+          ],
+          "instruction_nodes": [
+            "run/SKILL.md",
+            "run/references/graph-contract.md",
+            "run/references/harness-format.md",
+            "run/references/harness-lifecycle.md",
+            "run/references/implementer-prompt.md",
+            "run/references/orchestration.md",
+            "run/references/reviewer-prompt.md"
+          ],
+          "name": "route_union.parallel",
+          "overlay": null,
+          "phase": "route_union",
+          "profile": "default",
+          "raw_bytes": 92151,
+          "root": "run",
+          "route": "parallel",
+          "words": 13216
+        },
+        {
+          "forced_load_nodes": [
+            "run/SKILL.md",
+            "run/references/graph-contract.md",
+            "run/references/harness-format.md",
+            "run/references/harness-lifecycle.md",
+            "run/references/orchestration.md"
+          ],
+          "instruction_nodes": [
+            "run/SKILL.md",
+            "run/references/graph-contract.md",
+            "run/references/harness-format.md",
+            "run/references/harness-lifecycle.md",
+            "run/references/implementer-prompt.md",
+            "run/references/orchestration.md",
+            "run/references/reviewer-prompt.md"
+          ],
+          "name": "failure_route_union.parallel",
+          "overlay": "failure",
+          "phase": "failure_route_union",
+          "profile": "default",
+          "raw_bytes": 92151,
+          "root": "run",
+          "route": "parallel",
+          "words": 13216
+        },
+        {
+          "forced_load_nodes": [
+            "run/SKILL.md",
+            "run/references/graph-contract.md",
+            "run/references/harness-lifecycle.md",
+            "run/references/orchestration.md"
+          ],
+          "instruction_nodes": [
+            "run/SKILL.md",
+            "run/references/graph-contract.md",
+            "run/references/harness-lifecycle.md",
+            "run/references/implementer-prompt.md",
+            "run/references/orchestration.md"
+          ],
+          "name": "entry_execution.external",
+          "overlay": null,
+          "phase": "entry_execution",
+          "profile": "default",
+          "raw_bytes": 60686,
+          "root": "run",
+          "route": "external",
+          "words": 8638
+        },
+        {
+          "forced_load_nodes": [
+            "run/SKILL.md",
+            "run/references/graph-contract.md",
+            "run/references/harness-format.md",
+            "run/references/harness-lifecycle.md",
+            "run/references/orchestration.md"
+          ],
+          "instruction_nodes": [
+            "run/SKILL.md",
+            "run/references/graph-contract.md",
+            "run/references/harness-format.md",
+            "run/references/harness-lifecycle.md",
+            "run/references/implementer-prompt.md",
+            "run/references/orchestration.md",
+            "run/references/reviewer-prompt.md"
+          ],
+          "name": "route_union.external",
+          "overlay": null,
+          "phase": "route_union",
+          "profile": "default",
+          "raw_bytes": 92151,
+          "root": "run",
+          "route": "external",
+          "words": 13216
+        },
+        {
+          "forced_load_nodes": [
+            "run/SKILL.md",
+            "run/references/graph-contract.md",
+            "run/references/harness-format.md",
+            "run/references/harness-lifecycle.md",
+            "run/references/orchestration.md"
+          ],
+          "instruction_nodes": [
+            "run/SKILL.md",
+            "run/references/graph-contract.md",
+            "run/references/harness-format.md",
+            "run/references/harness-lifecycle.md",
+            "run/references/implementer-prompt.md",
+            "run/references/orchestration.md",
+            "run/references/reviewer-prompt.md"
+          ],
+          "name": "failure_route_union.external",
+          "overlay": "failure",
+          "phase": "failure_route_union",
+          "profile": "default",
+          "raw_bytes": 92151,
+          "root": "run",
+          "route": "external",
+          "words": 13216
+        },
+        {
+          "derived_from": [
+            "route_union.direct",
+            "failure_route_union.direct"
+          ],
+          "forced_load_nodes": [],
+          "instruction_nodes": [
+            "run/references/implementer-prompt.md"
+          ],
+          "name": "failure_overlay_report.direct",
+          "raw_bytes": 0,
+          "words": 0
+        },
+        {
+          "derived_from": [
+            "route_union.single_risky",
+            "failure_route_union.single_risky"
+          ],
+          "forced_load_nodes": [],
+          "instruction_nodes": [],
+          "name": "failure_overlay_report.single_risky",
+          "raw_bytes": 0,
+          "words": 0
+        },
+        {
+          "derived_from": [
+            "route_union.parallel",
+            "failure_route_union.parallel"
+          ],
+          "forced_load_nodes": [],
+          "instruction_nodes": [],
+          "name": "failure_overlay_report.parallel",
+          "raw_bytes": 0,
+          "words": 0
+        },
+        {
+          "derived_from": [
+            "route_union.external",
+            "failure_route_union.external"
+          ],
+          "forced_load_nodes": [],
+          "instruction_nodes": [],
+          "name": "failure_overlay_report.external",
+          "raw_bytes": 0,
+          "words": 0
+        }
+      ],
+      "nodes": [
+        {
+          "git_blob_oid": "525cc153ceb88a57ae9cec6fae313115873d2d38",
+          "path": "run/SKILL.md",
+          "raw_bytes": 13234,
+          "sha256": "77f92e78f80e872a2ac87300b1ee71df4d570532df89d67cd531a4c368d445c9",
+          "words": 1784
+        },
+        {
+          "git_blob_oid": "43df2702ba97c4e5684597f706eae2b269407a5c",
+          "path": "run/references/graph-contract.md",
+          "raw_bytes": 4500,
+          "sha256": "0801da35e0263859706a8d7f5bb03d0bbea75e4795a2c940cdd7f3df5e2f8d6f",
+          "words": 686
+        },
+        {
+          "git_blob_oid": "d1bfc5171d994bffa2c72c96a3c06b456f77a68c",
+          "path": "run/references/harness-format.md",
+          "raw_bytes": 31465,
+          "sha256": "bae43d56fb7b4899d0446be3de9b70a806ea287f5fd86f1d11ac8c3260bf8d63",
+          "words": 4578
+        },
+        {
+          "git_blob_oid": "0e5377c14bb7c5b729892bb813d2795741ce36f1",
+          "path": "run/references/harness-lifecycle.md",
+          "raw_bytes": 13448,
+          "sha256": "28c55d6c756b008057055ea2ac6fdc780cb0d801180744199430b3f2027043ac",
+          "words": 1911
+        },
+        {
+          "git_blob_oid": "7c661664c726b58d5d83acc8fb8cd3ed0557412b",
+          "path": "run/references/harness-review.md",
+          "raw_bytes": 8140,
+          "sha256": "cb4a1b1ffa23b6d90371afbcd0410b6c54993d1c2ae5061fa78c0566852eab57",
+          "words": 1196
+        },
+        {
+          "git_blob_oid": "6a97f088752d4872a144fc05f6693bcc029ba675",
+          "path": "run/references/implementer-prompt.md",
+          "raw_bytes": 6750,
+          "sha256": "cf064a26940b5839a9a36bd8efec1d874dbc62b8c6f0af041d5e72f5524fd3a3",
+          "words": 1016
+        },
+        {
+          "git_blob_oid": "743c8b031880fe8ba4012e1f10ad465844576c76",
+          "path": "run/references/orchestration.md",
+          "raw_bytes": 29504,
+          "sha256": "e85848f3750c81ddabdc3a9571c91de64f4b390b47a137d706ea5a452eb8c0ff",
+          "words": 4257
+        },
+        {
+          "git_blob_oid": "a2f1125bedd2f9d682d251dd6830ff5c8ac8802e",
+          "path": "run/references/repo-lens-routing.md",
+          "raw_bytes": 3070,
+          "sha256": "9cd6457b2d69298877070db5347a56b4468acadff851b55ce2ee9ec32266018f",
+          "words": 462
+        },
+        {
+          "git_blob_oid": "31d0f8a2ae8f1ae15e590c7ac10591541c6aca2a",
+          "path": "run/references/reviewer-prompt.md",
+          "raw_bytes": 5045,
+          "sha256": "90a268284f5db041d8bb20e0be0c9d52f1e8177c0a38632b2efd8725dc317a6d",
+          "words": 712
+        },
+        {
+          "git_blob_oid": "b819ba4163a07b55420ed81f09b90d875c0bd8d7",
+          "path": "run/references/spec-review-prompt.md",
+          "raw_bytes": 3079,
+          "sha256": "40dabf6718c5c242b54863937b61cf775a283dcfb339bb05d4168267740f2f0d",
+          "words": 475
+        }
+      ]
+    },
+    "codex/plugin/skills": {
+      "closures": [
+        {
+          "forced_load_nodes": [
+            "run/SKILL.md",
+            "run/references/graph-contract.md",
+            "run/references/harness-lifecycle.md",
+            "run/references/orchestration.md"
+          ],
+          "instruction_nodes": [
+            "run/SKILL.md",
+            "run/references/graph-contract.md",
+            "run/references/harness-lifecycle.md",
+            "run/references/orchestration.md"
+          ],
+          "name": "entry_execution.direct",
+          "overlay": null,
+          "phase": "entry_execution",
+          "profile": "default",
+          "raw_bytes": 60567,
+          "root": "run",
+          "route": "direct",
+          "words": 8626
+        },
+        {
+          "forced_load_nodes": [
+            "run/SKILL.md",
+            "run/references/graph-contract.md",
+            "run/references/harness-format.md",
+            "run/references/harness-lifecycle.md",
+            "run/references/orchestration.md"
+          ],
+          "instruction_nodes": [
+            "run/SKILL.md",
+            "run/references/graph-contract.md",
+            "run/references/harness-format.md",
+            "run/references/harness-lifecycle.md",
+            "run/references/orchestration.md",
+            "run/references/reviewer-prompt.md"
+          ],
+          "name": "route_union.direct",
+          "overlay": null,
+          "phase": "route_union",
+          "profile": "default",
+          "raw_bytes": 92032,
+          "root": "run",
+          "route": "direct",
+          "words": 13204
+        },
+        {
+          "forced_load_nodes": [
+            "run/SKILL.md",
+            "run/references/graph-contract.md",
+            "run/references/harness-format.md",
+            "run/references/harness-lifecycle.md",
+            "run/references/orchestration.md"
+          ],
+          "instruction_nodes": [
+            "run/SKILL.md",
+            "run/references/graph-contract.md",
+            "run/references/harness-format.md",
+            "run/references/harness-lifecycle.md",
+            "run/references/implementer-prompt.md",
+            "run/references/orchestration.md",
+            "run/references/reviewer-prompt.md"
+          ],
+          "name": "failure_route_union.direct",
+          "overlay": "failure",
+          "phase": "failure_route_union",
+          "profile": "default",
+          "raw_bytes": 92032,
+          "root": "run",
+          "route": "direct",
+          "words": 13204
+        },
+        {
+          "forced_load_nodes": [
+            "run/SKILL.md",
+            "run/references/graph-contract.md",
+            "run/references/harness-lifecycle.md",
+            "run/references/orchestration.md"
+          ],
+          "instruction_nodes": [
+            "run/SKILL.md",
+            "run/references/graph-contract.md",
+            "run/references/harness-lifecycle.md",
+            "run/references/implementer-prompt.md",
+            "run/references/orchestration.md"
+          ],
+          "name": "entry_execution.single_risky",
+          "overlay": null,
+          "phase": "entry_execution",
+          "profile": "default",
+          "raw_bytes": 60567,
+          "root": "run",
+          "route": "single_risky",
+          "words": 8626
+        },
+        {
+          "forced_load_nodes": [
+            "run/SKILL.md",
+            "run/references/graph-contract.md",
+            "run/references/harness-format.md",
+            "run/references/harness-lifecycle.md",
+            "run/references/orchestration.md"
+          ],
+          "instruction_nodes": [
+            "run/SKILL.md",
+            "run/references/graph-contract.md",
+            "run/references/harness-format.md",
+            "run/references/harness-lifecycle.md",
+            "run/references/implementer-prompt.md",
+            "run/references/orchestration.md",
+            "run/references/reviewer-prompt.md"
+          ],
+          "name": "route_union.single_risky",
+          "overlay": null,
+          "phase": "route_union",
+          "profile": "default",
+          "raw_bytes": 92032,
+          "root": "run",
+          "route": "single_risky",
+          "words": 13204
+        },
+        {
+          "forced_load_nodes": [
+            "run/SKILL.md",
+            "run/references/graph-contract.md",
+            "run/references/harness-format.md",
+            "run/references/harness-lifecycle.md",
+            "run/references/orchestration.md"
+          ],
+          "instruction_nodes": [
+            "run/SKILL.md",
+            "run/references/graph-contract.md",
+            "run/references/harness-format.md",
+            "run/references/harness-lifecycle.md",
+            "run/references/implementer-prompt.md",
+            "run/references/orchestration.md",
+            "run/references/reviewer-prompt.md"
+          ],
+          "name": "failure_route_union.single_risky",
+          "overlay": "failure",
+          "phase": "failure_route_union",
+          "profile": "default",
+          "raw_bytes": 92032,
+          "root": "run",
+          "route": "single_risky",
+          "words": 13204
+        },
+        {
+          "forced_load_nodes": [
+            "run/SKILL.md",
+            "run/references/graph-contract.md",
+            "run/references/harness-lifecycle.md",
+            "run/references/orchestration.md"
+          ],
+          "instruction_nodes": [
+            "run/SKILL.md",
+            "run/references/graph-contract.md",
+            "run/references/harness-lifecycle.md",
+            "run/references/implementer-prompt.md",
+            "run/references/orchestration.md"
+          ],
+          "name": "entry_execution.parallel",
+          "overlay": null,
+          "phase": "entry_execution",
+          "profile": "default",
+          "raw_bytes": 60567,
+          "root": "run",
+          "route": "parallel",
+          "words": 8626
+        },
+        {
+          "forced_load_nodes": [
+            "run/SKILL.md",
+            "run/references/graph-contract.md",
+            "run/references/harness-format.md",
+            "run/references/harness-lifecycle.md",
+            "run/references/orchestration.md"
+          ],
+          "instruction_nodes": [
+            "run/SKILL.md",
+            "run/references/graph-contract.md",
+            "run/references/harness-format.md",
+            "run/references/harness-lifecycle.md",
+            "run/references/implementer-prompt.md",
+            "run/references/orchestration.md",
+            "run/references/reviewer-prompt.md"
+          ],
+          "name": "route_union.parallel",
+          "overlay": null,
+          "phase": "route_union",
+          "profile": "default",
+          "raw_bytes": 92032,
+          "root": "run",
+          "route": "parallel",
+          "words": 13204
+        },
+        {
+          "forced_load_nodes": [
+            "run/SKILL.md",
+            "run/references/graph-contract.md",
+            "run/references/harness-format.md",
+            "run/references/harness-lifecycle.md",
+            "run/references/orchestration.md"
+          ],
+          "instruction_nodes": [
+            "run/SKILL.md",
+            "run/references/graph-contract.md",
+            "run/references/harness-format.md",
+            "run/references/harness-lifecycle.md",
+            "run/references/implementer-prompt.md",
+            "run/references/orchestration.md",
+            "run/references/reviewer-prompt.md"
+          ],
+          "name": "failure_route_union.parallel",
+          "overlay": "failure",
+          "phase": "failure_route_union",
+          "profile": "default",
+          "raw_bytes": 92032,
+          "root": "run",
+          "route": "parallel",
+          "words": 13204
+        },
+        {
+          "forced_load_nodes": [
+            "run/SKILL.md",
+            "run/references/graph-contract.md",
+            "run/references/harness-lifecycle.md",
+            "run/references/orchestration.md"
+          ],
+          "instruction_nodes": [
+            "run/SKILL.md",
+            "run/references/graph-contract.md",
+            "run/references/harness-lifecycle.md",
+            "run/references/implementer-prompt.md",
+            "run/references/orchestration.md"
+          ],
+          "name": "entry_execution.external",
+          "overlay": null,
+          "phase": "entry_execution",
+          "profile": "default",
+          "raw_bytes": 60567,
+          "root": "run",
+          "route": "external",
+          "words": 8626
+        },
+        {
+          "forced_load_nodes": [
+            "run/SKILL.md",
+            "run/references/graph-contract.md",
+            "run/references/harness-format.md",
+            "run/references/harness-lifecycle.md",
+            "run/references/orchestration.md"
+          ],
+          "instruction_nodes": [
+            "run/SKILL.md",
+            "run/references/graph-contract.md",
+            "run/references/harness-format.md",
+            "run/references/harness-lifecycle.md",
+            "run/references/implementer-prompt.md",
+            "run/references/orchestration.md",
+            "run/references/reviewer-prompt.md"
+          ],
+          "name": "route_union.external",
+          "overlay": null,
+          "phase": "route_union",
+          "profile": "default",
+          "raw_bytes": 92032,
+          "root": "run",
+          "route": "external",
+          "words": 13204
+        },
+        {
+          "forced_load_nodes": [
+            "run/SKILL.md",
+            "run/references/graph-contract.md",
+            "run/references/harness-format.md",
+            "run/references/harness-lifecycle.md",
+            "run/references/orchestration.md"
+          ],
+          "instruction_nodes": [
+            "run/SKILL.md",
+            "run/references/graph-contract.md",
+            "run/references/harness-format.md",
+            "run/references/harness-lifecycle.md",
+            "run/references/implementer-prompt.md",
+            "run/references/orchestration.md",
+            "run/references/reviewer-prompt.md"
+          ],
+          "name": "failure_route_union.external",
+          "overlay": "failure",
+          "phase": "failure_route_union",
+          "profile": "default",
+          "raw_bytes": 92032,
+          "root": "run",
+          "route": "external",
+          "words": 13204
+        },
+        {
+          "derived_from": [
+            "route_union.direct",
+            "failure_route_union.direct"
+          ],
+          "forced_load_nodes": [],
+          "instruction_nodes": [
+            "run/references/implementer-prompt.md"
+          ],
+          "name": "failure_overlay_report.direct",
+          "raw_bytes": 0,
+          "words": 0
+        },
+        {
+          "derived_from": [
+            "route_union.single_risky",
+            "failure_route_union.single_risky"
+          ],
+          "forced_load_nodes": [],
+          "instruction_nodes": [],
+          "name": "failure_overlay_report.single_risky",
+          "raw_bytes": 0,
+          "words": 0
+        },
+        {
+          "derived_from": [
+            "route_union.parallel",
+            "failure_route_union.parallel"
+          ],
+          "forced_load_nodes": [],
+          "instruction_nodes": [],
+          "name": "failure_overlay_report.parallel",
+          "raw_bytes": 0,
+          "words": 0
+        },
+        {
+          "derived_from": [
+            "route_union.external",
+            "failure_route_union.external"
+          ],
+          "forced_load_nodes": [],
+          "instruction_nodes": [],
+          "name": "failure_overlay_report.external",
+          "raw_bytes": 0,
+          "words": 0
+        }
+      ],
+      "nodes": [
+        {
+          "git_blob_oid": "1544b1ca782b6bd63b6410cafcb672ec53e4384e",
+          "path": "run/SKILL.md",
+          "raw_bytes": 13115,
+          "sha256": "df4f3f052fd8b72b528b9260d5af1700685aa8269626b3cb37af3379962f33f3",
+          "words": 1772
+        },
+        {
+          "git_blob_oid": "43df2702ba97c4e5684597f706eae2b269407a5c",
+          "path": "run/references/graph-contract.md",
+          "raw_bytes": 4500,
+          "sha256": "0801da35e0263859706a8d7f5bb03d0bbea75e4795a2c940cdd7f3df5e2f8d6f",
+          "words": 686
+        },
+        {
+          "git_blob_oid": "d1bfc5171d994bffa2c72c96a3c06b456f77a68c",
+          "path": "run/references/harness-format.md",
+          "raw_bytes": 31465,
+          "sha256": "bae43d56fb7b4899d0446be3de9b70a806ea287f5fd86f1d11ac8c3260bf8d63",
+          "words": 4578
+        },
+        {
+          "git_blob_oid": "0e5377c14bb7c5b729892bb813d2795741ce36f1",
+          "path": "run/references/harness-lifecycle.md",
+          "raw_bytes": 13448,
+          "sha256": "28c55d6c756b008057055ea2ac6fdc780cb0d801180744199430b3f2027043ac",
+          "words": 1911
+        },
+        {
+          "git_blob_oid": "7c661664c726b58d5d83acc8fb8cd3ed0557412b",
+          "path": "run/references/harness-review.md",
+          "raw_bytes": 8140,
+          "sha256": "cb4a1b1ffa23b6d90371afbcd0410b6c54993d1c2ae5061fa78c0566852eab57",
+          "words": 1196
+        },
+        {
+          "git_blob_oid": "6a97f088752d4872a144fc05f6693bcc029ba675",
+          "path": "run/references/implementer-prompt.md",
+          "raw_bytes": 6750,
+          "sha256": "cf064a26940b5839a9a36bd8efec1d874dbc62b8c6f0af041d5e72f5524fd3a3",
+          "words": 1016
+        },
+        {
+          "git_blob_oid": "743c8b031880fe8ba4012e1f10ad465844576c76",
+          "path": "run/references/orchestration.md",
+          "raw_bytes": 29504,
+          "sha256": "e85848f3750c81ddabdc3a9571c91de64f4b390b47a137d706ea5a452eb8c0ff",
+          "words": 4257
+        },
+        {
+          "git_blob_oid": "a2f1125bedd2f9d682d251dd6830ff5c8ac8802e",
+          "path": "run/references/repo-lens-routing.md",
+          "raw_bytes": 3070,
+          "sha256": "9cd6457b2d69298877070db5347a56b4468acadff851b55ce2ee9ec32266018f",
+          "words": 462
+        },
+        {
+          "git_blob_oid": "31d0f8a2ae8f1ae15e590c7ac10591541c6aca2a",
+          "path": "run/references/reviewer-prompt.md",
+          "raw_bytes": 5045,
+          "sha256": "90a268284f5db041d8bb20e0be0c9d52f1e8177c0a38632b2efd8725dc317a6d",
+          "words": 712
+        },
+        {
+          "git_blob_oid": "b819ba4163a07b55420ed81f09b90d875c0bd8d7",
+          "path": "run/references/spec-review-prompt.md",
+          "raw_bytes": 3079,
+          "sha256": "40dabf6718c5c242b54863937b61cf775a283dcfb339bb05d4168267740f2f0d",
+          "words": 475
+        }
+      ]
+    },
+    "src/skills": {
+      "closures": [
+        {
+          "forced_load_nodes": [
+            "run/SKILL.md",
+            "run/references/graph-contract.md",
+            "run/references/harness-lifecycle.md",
+            "run/references/orchestration.md"
+          ],
+          "instruction_nodes": [
+            "run/SKILL.md",
+            "run/references/graph-contract.md",
+            "run/references/harness-lifecycle.md",
+            "run/references/orchestration.md"
+          ],
+          "name": "entry_execution.direct",
+          "overlay": null,
+          "phase": "entry_execution",
+          "profile": "default",
+          "raw_bytes": 60567,
+          "root": "run",
+          "route": "direct",
+          "words": 8626
+        },
+        {
+          "forced_load_nodes": [
+            "run/SKILL.md",
+            "run/references/graph-contract.md",
+            "run/references/harness-format.md",
+            "run/references/harness-lifecycle.md",
+            "run/references/orchestration.md"
+          ],
+          "instruction_nodes": [
+            "run/SKILL.md",
+            "run/references/graph-contract.md",
+            "run/references/harness-format.md",
+            "run/references/harness-lifecycle.md",
+            "run/references/orchestration.md",
+            "run/references/reviewer-prompt.md"
+          ],
+          "name": "route_union.direct",
+          "overlay": null,
+          "phase": "route_union",
+          "profile": "default",
+          "raw_bytes": 92032,
+          "root": "run",
+          "route": "direct",
+          "words": 13204
+        },
+        {
+          "forced_load_nodes": [
+            "run/SKILL.md",
+            "run/references/graph-contract.md",
+            "run/references/harness-format.md",
+            "run/references/harness-lifecycle.md",
+            "run/references/orchestration.md"
+          ],
+          "instruction_nodes": [
+            "run/SKILL.md",
+            "run/references/graph-contract.md",
+            "run/references/harness-format.md",
+            "run/references/harness-lifecycle.md",
+            "run/references/implementer-prompt.md",
+            "run/references/orchestration.md",
+            "run/references/reviewer-prompt.md"
+          ],
+          "name": "failure_route_union.direct",
+          "overlay": "failure",
+          "phase": "failure_route_union",
+          "profile": "default",
+          "raw_bytes": 92032,
+          "root": "run",
+          "route": "direct",
+          "words": 13204
+        },
+        {
+          "forced_load_nodes": [
+            "run/SKILL.md",
+            "run/references/graph-contract.md",
+            "run/references/harness-lifecycle.md",
+            "run/references/orchestration.md"
+          ],
+          "instruction_nodes": [
+            "run/SKILL.md",
+            "run/references/graph-contract.md",
+            "run/references/harness-lifecycle.md",
+            "run/references/implementer-prompt.md",
+            "run/references/orchestration.md"
+          ],
+          "name": "entry_execution.single_risky",
+          "overlay": null,
+          "phase": "entry_execution",
+          "profile": "default",
+          "raw_bytes": 60567,
+          "root": "run",
+          "route": "single_risky",
+          "words": 8626
+        },
+        {
+          "forced_load_nodes": [
+            "run/SKILL.md",
+            "run/references/graph-contract.md",
+            "run/references/harness-format.md",
+            "run/references/harness-lifecycle.md",
+            "run/references/orchestration.md"
+          ],
+          "instruction_nodes": [
+            "run/SKILL.md",
+            "run/references/graph-contract.md",
+            "run/references/harness-format.md",
+            "run/references/harness-lifecycle.md",
+            "run/references/implementer-prompt.md",
+            "run/references/orchestration.md",
+            "run/references/reviewer-prompt.md"
+          ],
+          "name": "route_union.single_risky",
+          "overlay": null,
+          "phase": "route_union",
+          "profile": "default",
+          "raw_bytes": 92032,
+          "root": "run",
+          "route": "single_risky",
+          "words": 13204
+        },
+        {
+          "forced_load_nodes": [
+            "run/SKILL.md",
+            "run/references/graph-contract.md",
+            "run/references/harness-format.md",
+            "run/references/harness-lifecycle.md",
+            "run/references/orchestration.md"
+          ],
+          "instruction_nodes": [
+            "run/SKILL.md",
+            "run/references/graph-contract.md",
+            "run/references/harness-format.md",
+            "run/references/harness-lifecycle.md",
+            "run/references/implementer-prompt.md",
+            "run/references/orchestration.md",
+            "run/references/reviewer-prompt.md"
+          ],
+          "name": "failure_route_union.single_risky",
+          "overlay": "failure",
+          "phase": "failure_route_union",
+          "profile": "default",
+          "raw_bytes": 92032,
+          "root": "run",
+          "route": "single_risky",
+          "words": 13204
+        },
+        {
+          "forced_load_nodes": [
+            "run/SKILL.md",
+            "run/references/graph-contract.md",
+            "run/references/harness-lifecycle.md",
+            "run/references/orchestration.md"
+          ],
+          "instruction_nodes": [
+            "run/SKILL.md",
+            "run/references/graph-contract.md",
+            "run/references/harness-lifecycle.md",
+            "run/references/implementer-prompt.md",
+            "run/references/orchestration.md"
+          ],
+          "name": "entry_execution.parallel",
+          "overlay": null,
+          "phase": "entry_execution",
+          "profile": "default",
+          "raw_bytes": 60567,
+          "root": "run",
+          "route": "parallel",
+          "words": 8626
+        },
+        {
+          "forced_load_nodes": [
+            "run/SKILL.md",
+            "run/references/graph-contract.md",
+            "run/references/harness-format.md",
+            "run/references/harness-lifecycle.md",
+            "run/references/orchestration.md"
+          ],
+          "instruction_nodes": [
+            "run/SKILL.md",
+            "run/references/graph-contract.md",
+            "run/references/harness-format.md",
+            "run/references/harness-lifecycle.md",
+            "run/references/implementer-prompt.md",
+            "run/references/orchestration.md",
+            "run/references/reviewer-prompt.md"
+          ],
+          "name": "route_union.parallel",
+          "overlay": null,
+          "phase": "route_union",
+          "profile": "default",
+          "raw_bytes": 92032,
+          "root": "run",
+          "route": "parallel",
+          "words": 13204
+        },
+        {
+          "forced_load_nodes": [
+            "run/SKILL.md",
+            "run/references/graph-contract.md",
+            "run/references/harness-format.md",
+            "run/references/harness-lifecycle.md",
+            "run/references/orchestration.md"
+          ],
+          "instruction_nodes": [
+            "run/SKILL.md",
+            "run/references/graph-contract.md",
+            "run/references/harness-format.md",
+            "run/references/harness-lifecycle.md",
+            "run/references/implementer-prompt.md",
+            "run/references/orchestration.md",
+            "run/references/reviewer-prompt.md"
+          ],
+          "name": "failure_route_union.parallel",
+          "overlay": "failure",
+          "phase": "failure_route_union",
+          "profile": "default",
+          "raw_bytes": 92032,
+          "root": "run",
+          "route": "parallel",
+          "words": 13204
+        },
+        {
+          "forced_load_nodes": [
+            "run/SKILL.md",
+            "run/references/graph-contract.md",
+            "run/references/harness-lifecycle.md",
+            "run/references/orchestration.md"
+          ],
+          "instruction_nodes": [
+            "run/SKILL.md",
+            "run/references/graph-contract.md",
+            "run/references/harness-lifecycle.md",
+            "run/references/implementer-prompt.md",
+            "run/references/orchestration.md"
+          ],
+          "name": "entry_execution.external",
+          "overlay": null,
+          "phase": "entry_execution",
+          "profile": "default",
+          "raw_bytes": 60567,
+          "root": "run",
+          "route": "external",
+          "words": 8626
+        },
+        {
+          "forced_load_nodes": [
+            "run/SKILL.md",
+            "run/references/graph-contract.md",
+            "run/references/harness-format.md",
+            "run/references/harness-lifecycle.md",
+            "run/references/orchestration.md"
+          ],
+          "instruction_nodes": [
+            "run/SKILL.md",
+            "run/references/graph-contract.md",
+            "run/references/harness-format.md",
+            "run/references/harness-lifecycle.md",
+            "run/references/implementer-prompt.md",
+            "run/references/orchestration.md",
+            "run/references/reviewer-prompt.md"
+          ],
+          "name": "route_union.external",
+          "overlay": null,
+          "phase": "route_union",
+          "profile": "default",
+          "raw_bytes": 92032,
+          "root": "run",
+          "route": "external",
+          "words": 13204
+        },
+        {
+          "forced_load_nodes": [
+            "run/SKILL.md",
+            "run/references/graph-contract.md",
+            "run/references/harness-format.md",
+            "run/references/harness-lifecycle.md",
+            "run/references/orchestration.md"
+          ],
+          "instruction_nodes": [
+            "run/SKILL.md",
+            "run/references/graph-contract.md",
+            "run/references/harness-format.md",
+            "run/references/harness-lifecycle.md",
+            "run/references/implementer-prompt.md",
+            "run/references/orchestration.md",
+            "run/references/reviewer-prompt.md"
+          ],
+          "name": "failure_route_union.external",
+          "overlay": "failure",
+          "phase": "failure_route_union",
+          "profile": "default",
+          "raw_bytes": 92032,
+          "root": "run",
+          "route": "external",
+          "words": 13204
+        },
+        {
+          "derived_from": [
+            "route_union.direct",
+            "failure_route_union.direct"
+          ],
+          "forced_load_nodes": [],
+          "instruction_nodes": [
+            "run/references/implementer-prompt.md"
+          ],
+          "name": "failure_overlay_report.direct",
+          "raw_bytes": 0,
+          "words": 0
+        },
+        {
+          "derived_from": [
+            "route_union.single_risky",
+            "failure_route_union.single_risky"
+          ],
+          "forced_load_nodes": [],
+          "instruction_nodes": [],
+          "name": "failure_overlay_report.single_risky",
+          "raw_bytes": 0,
+          "words": 0
+        },
+        {
+          "derived_from": [
+            "route_union.parallel",
+            "failure_route_union.parallel"
+          ],
+          "forced_load_nodes": [],
+          "instruction_nodes": [],
+          "name": "failure_overlay_report.parallel",
+          "raw_bytes": 0,
+          "words": 0
+        },
+        {
+          "derived_from": [
+            "route_union.external",
+            "failure_route_union.external"
+          ],
+          "forced_load_nodes": [],
+          "instruction_nodes": [],
+          "name": "failure_overlay_report.external",
+          "raw_bytes": 0,
+          "words": 0
+        }
+      ],
+      "nodes": [
+        {
+          "git_blob_oid": "1544b1ca782b6bd63b6410cafcb672ec53e4384e",
+          "path": "run/SKILL.md",
+          "raw_bytes": 13115,
+          "sha256": "df4f3f052fd8b72b528b9260d5af1700685aa8269626b3cb37af3379962f33f3",
+          "words": 1772
+        },
+        {
+          "git_blob_oid": "43df2702ba97c4e5684597f706eae2b269407a5c",
+          "path": "run/references/graph-contract.md",
+          "raw_bytes": 4500,
+          "sha256": "0801da35e0263859706a8d7f5bb03d0bbea75e4795a2c940cdd7f3df5e2f8d6f",
+          "words": 686
+        },
+        {
+          "git_blob_oid": "d1bfc5171d994bffa2c72c96a3c06b456f77a68c",
+          "path": "run/references/harness-format.md",
+          "raw_bytes": 31465,
+          "sha256": "bae43d56fb7b4899d0446be3de9b70a806ea287f5fd86f1d11ac8c3260bf8d63",
+          "words": 4578
+        },
+        {
+          "git_blob_oid": "0e5377c14bb7c5b729892bb813d2795741ce36f1",
+          "path": "run/references/harness-lifecycle.md",
+          "raw_bytes": 13448,
+          "sha256": "28c55d6c756b008057055ea2ac6fdc780cb0d801180744199430b3f2027043ac",
+          "words": 1911
+        },
+        {
+          "git_blob_oid": "7c661664c726b58d5d83acc8fb8cd3ed0557412b",
+          "path": "run/references/harness-review.md",
+          "raw_bytes": 8140,
+          "sha256": "cb4a1b1ffa23b6d90371afbcd0410b6c54993d1c2ae5061fa78c0566852eab57",
+          "words": 1196
+        },
+        {
+          "git_blob_oid": "6a97f088752d4872a144fc05f6693bcc029ba675",
+          "path": "run/references/implementer-prompt.md",
+          "raw_bytes": 6750,
+          "sha256": "cf064a26940b5839a9a36bd8efec1d874dbc62b8c6f0af041d5e72f5524fd3a3",
+          "words": 1016
+        },
+        {
+          "git_blob_oid": "743c8b031880fe8ba4012e1f10ad465844576c76",
+          "path": "run/references/orchestration.md",
+          "raw_bytes": 29504,
+          "sha256": "e85848f3750c81ddabdc3a9571c91de64f4b390b47a137d706ea5a452eb8c0ff",
+          "words": 4257
+        },
+        {
+          "git_blob_oid": "a2f1125bedd2f9d682d251dd6830ff5c8ac8802e",
+          "path": "run/references/repo-lens-routing.md",
+          "raw_bytes": 3070,
+          "sha256": "9cd6457b2d69298877070db5347a56b4468acadff851b55ce2ee9ec32266018f",
+          "words": 462
+        },
+        {
+          "git_blob_oid": "31d0f8a2ae8f1ae15e590c7ac10591541c6aca2a",
+          "path": "run/references/reviewer-prompt.md",
+          "raw_bytes": 5045,
+          "sha256": "90a268284f5db041d8bb20e0be0c9d52f1e8177c0a38632b2efd8725dc317a6d",
+          "words": 712
+        },
+        {
+          "git_blob_oid": "b819ba4163a07b55420ed81f09b90d875c0bd8d7",
+          "path": "run/references/spec-review-prompt.md",
+          "raw_bytes": 3079,
+          "sha256": "40dabf6718c5c242b54863937b61cf775a283dcfb339bb05d4168267740f2f0d",
+          "words": 475
+        }
+      ]
+    }
+  }
+}

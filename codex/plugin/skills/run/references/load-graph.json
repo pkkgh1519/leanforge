@@ -1,0 +1,150 @@
+{
+  "schema_version": 1,
+  "graph_id": "leanforge.run.instruction-loads",
+  "nodes": [
+    {
+      "path": "run/SKILL.md"
+    },
+    {
+      "path": "run/references/graph-contract.md"
+    },
+    {
+      "path": "run/references/harness-format.md"
+    },
+    {
+      "path": "run/references/harness-lifecycle.md"
+    },
+    {
+      "path": "run/references/harness-review.md"
+    },
+    {
+      "path": "run/references/implementer-prompt.md"
+    },
+    {
+      "path": "run/references/orchestration.md"
+    },
+    {
+      "path": "run/references/repo-lens-routing.md"
+    },
+    {
+      "path": "run/references/reviewer-prompt.md"
+    },
+    {
+      "path": "run/references/spec-review-prompt.md"
+    }
+  ],
+  "edges": [
+    {
+      "from": "run/SKILL.md",
+      "to": "run/references/orchestration.md",
+      "kind": "force_load",
+      "phase": "startup",
+      "activation_contract_id": "RUN-ROUTE-TOPOLOGY",
+      "optional": false
+    },
+    {
+      "from": "run/SKILL.md",
+      "to": "run/references/harness-lifecycle.md",
+      "kind": "force_load",
+      "phase": "preflight",
+      "activation_contract_id": "RUN-LIFECYCLE-OWNERSHIP",
+      "optional": false
+    },
+    {
+      "from": "run/SKILL.md",
+      "to": "run/references/graph-contract.md",
+      "kind": "force_load",
+      "phase": "graph_preflight",
+      "activation_contract_id": "RUN-ROUTE-TOPOLOGY",
+      "optional": false
+    },
+    {
+      "from": "run/references/harness-lifecycle.md",
+      "to": "run/references/harness-format.md",
+      "kind": "force_load",
+      "phase": "harness",
+      "activation_contract_id": "RUN-LIFECYCLE-OWNERSHIP",
+      "optional": false
+    },
+    {
+      "from": "run/references/orchestration.md",
+      "to": "run/references/implementer-prompt.md",
+      "kind": "prompt_load",
+      "phase": "dispatch",
+      "activation_contract_id": "RUN-FAIL-CLOSED",
+      "optional": false
+    },
+    {
+      "from": "run/references/orchestration.md",
+      "to": "run/references/spec-review-prompt.md",
+      "kind": "prompt_load",
+      "phase": "conditional_review",
+      "activation_contract_id": "RUN-REVIEW-TOPOLOGY",
+      "optional": false
+    },
+    {
+      "from": "run/references/orchestration.md",
+      "to": "run/references/reviewer-prompt.md",
+      "kind": "prompt_load",
+      "phase": "conditional_review",
+      "activation_contract_id": "RUN-REVIEW-TOPOLOGY",
+      "optional": false
+    },
+    {
+      "from": "run/references/orchestration.md",
+      "to": "run/references/reviewer-prompt.md",
+      "kind": "prompt_load",
+      "phase": "final_review",
+      "activation_contract_id": "RUN-REVIEW-TOPOLOGY",
+      "optional": false
+    },
+    {
+      "from": "run/SKILL.md",
+      "to": "run/references/harness-review.md",
+      "kind": "optional_load",
+      "phase": "review",
+      "activation_contract_id": "RUN-REVIEW-TOPOLOGY",
+      "optional": true
+    },
+    {
+      "from": "run/SKILL.md",
+      "to": "run/references/repo-lens-routing.md",
+      "kind": "optional_load",
+      "phase": "review",
+      "activation_contract_id": "RUN-REVIEW-TOPOLOGY",
+      "optional": true
+    }
+  ],
+  "named_roots": [
+    {
+      "name": "run",
+      "path": "run/SKILL.md"
+    }
+  ],
+  "profiles": [
+    {
+      "name": "default",
+      "optional_edges": []
+    },
+    {
+      "name": "harness_changed",
+      "optional_edges": [
+        {
+          "from": "run/SKILL.md",
+          "to": "run/references/harness-review.md",
+          "phase": "review"
+        }
+      ]
+    },
+    {
+      "name": "repo_lens",
+      "optional_edges": [
+        {
+          "from": "run/SKILL.md",
+          "to": "run/references/repo-lens-routing.md",
+          "phase": "review"
+        }
+      ]
+    }
+  ]
+}
