@@ -2,8 +2,10 @@
 
 The operational rules for Run's harness step: detecting first-vs-delta, generating or updating the
 harness, and archiving the 3-doc. Runs **after the completion gate, before the final review**.
-Load alongside `harness-format.md` (the harness spec) — this file is the *process*, that one is the
+Use the structured harness binding below; this file is the *process*, the bound reference is the
 *spec*.
+
+<!-- leanforge:run-load {"from":"run/references/harness-lifecycle.md","to":"run/references/harness-format.md","kind":"force_load","phase":"harness","activation_contract_id":"RUN-LIFECYCLE-OWNERSHIP","optional":false} -->
 
 <!-- leanforge:run-semantic:RUN-LIFECYCLE-OWNERSHIP:start -->
 ```json
