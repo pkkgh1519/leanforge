@@ -366,6 +366,34 @@ class RunLoadContractTests(unittest.TestCase):
             failed["instruction_nodes"],
         )
 
+    def test_implementer_prompt_uses_route_topology_binding(self):
+        prompt = "run/references/implementer-prompt.md"
+        edge = next(
+            item for item in self.graph["edges"]
+            if item["to"] == prompt
+        )
+        self.assertEqual(
+            "RUN-ROUTE-TOPOLOGY",
+            edge["activation_contract_id"],
+        )
+
+        graph = copy.deepcopy(self.graph)
+        mutant_edge = next(
+            item for item in graph["edges"]
+            if item["to"] == prompt
+        )
+        mutant_edge["activation_contract_id"] = "RUN-FAIL-CLOSED"
+        directives = copy.deepcopy(self.directives)
+        mutant_directive = next(
+            item for item in directives
+            if item["to"] == prompt
+        )
+        mutant_directive["activation_contract_id"] = "RUN-FAIL-CLOSED"
+        self.assert_contract_error(
+            "unsupported load edge binding",
+            lambda: self.validate(graph, directives=directives),
+        )
+
     def test_dispatched_routes_and_conditional_review_use_prompts(self):
         prompt = "run/references/implementer-prompt.md"
         for route in ("single_risky", "parallel", "external"):

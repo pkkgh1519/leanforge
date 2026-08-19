@@ -49,7 +49,7 @@ PHASES = {
     "conditional_review", "harness", "final_review", "review",
 }
 ALLOWED_PHASES_BY_INVARIANT_KIND = {
-    "route_topology": {"startup", "graph_preflight"},
+    "route_topology": {"startup", "graph_preflight", "dispatch"},
     "lifecycle_ownership": {"preflight", "harness"},
     "failure_overlay": {"dispatch"},
     "review_topology": {"conditional_review", "final_review", "review"},
@@ -87,7 +87,7 @@ EXACT_PHASES_BY_EDGE_BINDING = {
         "run/references/orchestration.md",
         "run/references/implementer-prompt.md",
         "prompt_load",
-        "RUN-FAIL-CLOSED",
+        "RUN-ROUTE-TOPOLOGY",
         False,
     ): {"dispatch"},
     (
@@ -644,10 +644,15 @@ def activation_is_active(
         return False
 
     invariant_kind = invariant.get("kind")
-    if invariant_kind in {"route_topology", "lifecycle_ownership"}:
+    if invariant_kind == "route_topology":
+        if edge["to"] == "run/references/implementer-prompt.md":
+            dispatched_routes = set(routes) - {"direct"}
+            return route in dispatched_routes or overlay == "failure"
+        return True
+    if invariant_kind == "lifecycle_ownership":
         return True
     if invariant_kind == "failure_overlay":
-        return route != "direct" or overlay == "failure"
+        return overlay == "failure"
     if invariant_kind == "review_topology":
         return True
     raise LoadContractError(

@@ -4,7 +4,7 @@ The mechanics behind the SKILL's per-wave flow: scheduling, dispatch constraints
 context budget, and failure handling. Loaded for the whole run. The wave lifecycle is a proven
 scaffold — keep its structure and the safety constraints; use judgment inside each step.
 
-<!-- leanforge:run-load {"from":"run/references/orchestration.md","to":"run/references/implementer-prompt.md","kind":"prompt_load","phase":"dispatch","activation_contract_id":"RUN-FAIL-CLOSED","optional":false} -->
+<!-- leanforge:run-load {"from":"run/references/orchestration.md","to":"run/references/implementer-prompt.md","kind":"prompt_load","phase":"dispatch","activation_contract_id":"RUN-ROUTE-TOPOLOGY","optional":false} -->
 <!-- leanforge:run-load {"from":"run/references/orchestration.md","to":"run/references/spec-review-prompt.md","kind":"prompt_load","phase":"conditional_review","activation_contract_id":"RUN-REVIEW-TOPOLOGY","optional":false} -->
 <!-- leanforge:run-load {"from":"run/references/orchestration.md","to":"run/references/reviewer-prompt.md","kind":"prompt_load","phase":"conditional_review","activation_contract_id":"RUN-REVIEW-TOPOLOGY","optional":false} -->
 <!-- leanforge:run-load {"from":"run/references/orchestration.md","to":"run/references/reviewer-prompt.md","kind":"prompt_load","phase":"final_review","activation_contract_id":"RUN-REVIEW-TOPOLOGY","optional":false} -->

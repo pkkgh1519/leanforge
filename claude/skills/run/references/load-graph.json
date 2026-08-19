@@ -71,7 +71,7 @@
       "to": "run/references/implementer-prompt.md",
       "kind": "prompt_load",
       "phase": "dispatch",
-      "activation_contract_id": "RUN-FAIL-CLOSED",
+      "activation_contract_id": "RUN-ROUTE-TOPOLOGY",
       "optional": false
     },
     {
