@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import posixpath
 import re
 import subprocess
 from collections import Counter, deque
@@ -138,7 +139,7 @@ MARKER_RE = re.compile(
     r"<!--\s*leanforge:run-load\s+(\{.*?\})\s*-->", re.DOTALL
 )
 PLAIN_LOAD_RE = re.compile(
-    r"\b(?:force[- ]load|preload|load)\b(?!-)"
+    r"\b(?:force[- ]load|preload|load|read|consult)\b(?!-)"
     r"(?:(?!\r?\n[ \t]*\r?\n).){0,160}?"
     r"`?((?:references/)?[A-Za-z0-9._/-]+\.md)`?",
     re.IGNORECASE | re.DOTALL,
@@ -235,14 +236,14 @@ def discover_directives_from_documents(
     documents: Mapping[str, str], graph_node_paths: Iterable[str]
 ) -> list[dict]:
     node_paths = set(graph_node_paths)
-    node_basenames = {
-        PurePosixPath(path).name: path
-        for path in node_paths
-        if PurePosixPath(path).name != "SKILL.md"
+    packaged_paths = node_paths | set(documents)
+    packaged_basenames = {
+        PurePosixPath(path).name for path in packaged_paths
     }
     directives: list[dict] = []
     for document_path, text in sorted(documents.items()):
         matches = list(MARKER_RE.finditer(text))
+        marker_spans = [match.span() for match in matches]
         _require(
             text.count(MARKER_PREFIX) == len(matches),
             f"malformed structured load marker in {document_path}",
@@ -269,17 +270,36 @@ def discover_directives_from_documents(
             directives.append(directive)
 
         for match in PLAIN_LOAD_RE.finditer(text):
+            if any(
+                start <= match.start() and match.end() <= end
+                for start, end in marker_spans
+            ):
+                continue
             if _is_closed_legacy_compatibility_literal(
                 document_path, text, match
             ):
                 continue
             named_path = match.group(1)
-            logical_path = None
-            if named_path.startswith("references/"):
-                logical_path = f"run/{named_path}"
-            elif named_path in node_basenames:
-                logical_path = node_basenames[named_path]
-            if logical_path in node_paths:
+            if named_path.startswith(("./", "../")):
+                logical_path = posixpath.normpath(
+                    posixpath.join(
+                        posixpath.dirname(document_path), named_path
+                    )
+                )
+            elif named_path.startswith("references/"):
+                logical_path = posixpath.normpath(
+                    posixpath.join("run", named_path)
+                )
+            else:
+                logical_path = posixpath.normpath(named_path)
+            if (
+                logical_path in packaged_paths
+                or logical_path.startswith("run/references/")
+                or (
+                    "/" not in logical_path
+                    and logical_path in packaged_basenames
+                )
+            ):
                 raise LoadContractError(
                     f"plain imperative preload is forbidden in {document_path}: "
                     f"{named_path}"
@@ -1306,11 +1326,15 @@ def _overlay_reports(
 
 def scoped_product_hash(root: Path) -> str:
     paths = [root / FIXTURE_RELATIVE_PATH]
-    paths.extend(
-        path
-        for path in (root / "src/skills/run").rglob("*")
-        if path.is_file()
-    )
+    for surface in SURFACES:
+        run_root = root / surface / "run"
+        _require(
+            run_root.is_dir(),
+            f"read-only hash surface is missing: {run_root}",
+        )
+        paths.extend(
+            path for path in run_root.rglob("*") if path.is_file()
+        )
     digest = hashlib.sha256()
     for path in sorted(paths):
         relative = (

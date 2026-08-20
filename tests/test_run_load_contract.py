@@ -147,6 +147,41 @@ class RunLoadContractTests(unittest.TestCase):
             {directive["from"] for directive in self.directives},
         )
 
+    def test_lifecycle_header_preserves_each_runtime_phase_boundary(self):
+        lifecycle = self.documents["run/references/harness-lifecycle.md"]
+        header = lifecycle.split(
+            "<!-- leanforge:run-load", 1
+        )[0]
+        normalized_header = " ".join(header.split())
+        for required_boundary in (
+            "loaded at preflight",
+            "before mutation",
+            "after the completion gate and before final review",
+            "after user approval",
+        ):
+            with self.subTest(boundary=required_boundary):
+                self.assertIn(required_boundary, normalized_header)
+
+    def test_foundation_format_is_producer_provenance_not_a_hidden_run_load(self):
+        run_foundation = (
+            ROOT / "src/skills/run/references/foundation-format.md"
+        ).read_text(encoding="utf-8")
+        prime_foundation = (
+            ROOT / "src/skills/prime/references/foundation-format.md"
+        ).read_text(encoding="utf-8")
+        lifecycle = " ".join(
+            self.documents["run/references/harness-lifecycle.md"].split()
+        )
+
+        self.assertEqual(prime_foundation, run_foundation)
+        self.assertIn("Run does not load this reference", run_foundation)
+        self.assertIn("embedded Project Foundation", lifecycle)
+        self.assertIn(
+            "Map the embedded Foundation to files as follows",
+            lifecycle,
+        )
+        self.assertNotIn("per `foundation-format.md`", lifecycle)
+
     def test_unknown_top_level_or_graph_local_conditions_fail_closed(self):
         for mutation in (
             lambda graph: graph.update({"totals": {}}),
@@ -340,6 +375,45 @@ class RunLoadContractTests(unittest.TestCase):
             ),
         )
 
+    def test_read_and_consult_imperatives_cannot_bypass_the_graph(self):
+        cases = (
+            ("run/SKILL.md", "Read", "references/harness-review.md"),
+            ("run/SKILL.md", "Consult", "references/foundation-format.md"),
+            ("run/SKILL.md", "Read", "run/references/harness-review.md"),
+            ("run/SKILL.md", "Consult", "run/references/foundation-format.md"),
+            ("run/SKILL.md", "Read", "foundation-format.md"),
+            ("run/SKILL.md", "Consult", "./references/harness-review.md"),
+            (
+                "run/SKILL.md",
+                "Read",
+                "run/../run/references/harness-review.md",
+            ),
+            (
+                "run/references/orchestration.md",
+                "Read",
+                "../references/harness-review.md",
+            ),
+            (
+                "run/references/orchestration.md",
+                "Consult",
+                "../references/foundation-format.md",
+            ),
+        )
+        for document_path, verb, path in cases:
+            with self.subTest(document=document_path, verb=verb, path=path):
+                documents = dict(self.documents)
+                documents[document_path] += (
+                    f"\n{verb} `{path}` before continuing.\n"
+                )
+                self.assert_contract_error(
+                    "plain imperative preload",
+                    lambda documents=documents: (
+                        support.discover_directives_from_documents(
+                            documents, self.node_paths
+                        )
+                    ),
+                )
+
     def test_direct_failure_recurses_to_implementer_prompt(self):
         happy = self.closure()
         failed = self.closure(
@@ -443,6 +517,18 @@ class RunLoadContractTests(unittest.TestCase):
         self.assertNotIn(
             "run/references/harness-review.md",
             lens["instruction_nodes"],
+        )
+
+    def test_harness_changed_repo_lens_profile_composes_both_optional_edges(self):
+        default = self.closure()
+        combined = self.closure(profile="harness_changed_repo_lens")
+        self.assertEqual(
+            {
+                "run/references/harness-review.md",
+                "run/references/repo-lens-routing.md",
+            },
+            set(combined["instruction_nodes"])
+            - set(default["instruction_nodes"]),
         )
 
     def test_content_identical_paths_keep_distinct_identity(self):
@@ -713,6 +799,35 @@ class RunLoadContractTests(unittest.TestCase):
         )
         self.assertTrue(result["read_only"]["unchanged"])
         self.assertEqual(before, after)
+
+    def test_read_only_hash_covers_canonical_and_both_generated_run_surfaces(self):
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            temporary_root = Path(temporary_directory)
+            fixture_target = temporary_root / support.FIXTURE_RELATIVE_PATH
+            fixture_target.parent.mkdir(parents=True)
+            shutil.copy2(FIXTURE_PATH, fixture_target)
+            for relative in (
+                "src/skills/run",
+                "claude/skills/run",
+                "codex/plugin/skills/run",
+            ):
+                shutil.copytree(ROOT / relative, temporary_root / relative)
+
+            baseline = support.scoped_product_hash(temporary_root)
+            for relative in (
+                "src/skills/run/references/orchestration.md",
+                "claude/skills/run/references/orchestration.md",
+                "codex/plugin/skills/run/references/orchestration.md",
+            ):
+                with self.subTest(relative=relative):
+                    target = temporary_root / relative
+                    original = target.read_bytes()
+                    target.write_bytes(original + b"\nread-only-hash-mutation\n")
+                    self.assertNotEqual(
+                        baseline,
+                        support.scoped_product_hash(temporary_root),
+                    )
+                    target.write_bytes(original)
 
     def test_capture_and_verify_are_runnable_as_separate_direct_entry_points(self):
         verify = subprocess.run(

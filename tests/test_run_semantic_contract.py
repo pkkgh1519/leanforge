@@ -4446,6 +4446,27 @@ class RunSemanticContractTests(unittest.TestCase):
                     [f"assertions[0] {operator} failed"],
                 )
 
+    def test_exact_byte_surfaces_are_declared_lf_in_gitattributes(self):
+        declarations = {
+            line.strip()
+            for line in (ROOT / ".gitattributes").read_text(
+                encoding="utf-8"
+            ).splitlines()
+            if line.strip() and not line.lstrip().startswith("#")
+        }
+        required = {
+            ".gitattributes text eol=lf",
+            "src/skills/run/** text eol=lf",
+            "src/skills/prime/references/foundation-format.md text eol=lf",
+            "claude/skills/run/** text eol=lf",
+            "codex/plugin/skills/run/** text eol=lf",
+            "claude/skills/prime/references/foundation-format.md text eol=lf",
+            "codex/plugin/skills/prime/references/foundation-format.md text eol=lf",
+            "tests/fixtures/forced_load_baseline_v1_9_0.json text eol=lf",
+            "tests/fixtures/run_semantic_scenarios_v1_9_0.json text eol=lf",
+        }
+        self.assertEqual(set(), required - declarations)
+
     def test_protected_block_comparison_rejects_crlf_byte_drift(self):
         markdown_blobs = {path: path.read_bytes() for path in MARKDOWN_PATHS}
         self.assertEqual(protected_block_mismatches(self.contract, markdown_blobs), set())
@@ -5531,6 +5552,30 @@ class RunSemanticContractTests(unittest.TestCase):
             "Children never ask directly.",
             (ROOT / "src/skills/run/SKILL.md").read_text(encoding="utf-8"),
         )
+
+    def test_reporting_prose_delegates_to_the_output_semantics_contract(self):
+        skill = (ROOT / "src/skills/run/SKILL.md").read_text(encoding="utf-8")
+        skill_reporting = skill.split(
+            "<!-- leanforge:run-semantic:RUN-OUTPUT-SEMANTICS:start -->",
+            1,
+        )[0].rsplit("- **Report results, not plumbing.**", 1)[1]
+        orchestration = (
+            ROOT / "src/skills/run/references/orchestration.md"
+        ).read_text(encoding="utf-8")
+        orchestration_reporting = orchestration.split(
+            "## Reporting principle", 1
+        )[1].split("## Verification Plan", 1)[0]
+
+        for surface, reporting in (
+            ("SKILL", skill_reporting),
+            ("orchestration", orchestration_reporting),
+        ):
+            with self.subTest(surface=surface):
+                self.assertIn("RUN-OUTPUT-SEMANTICS", reporting)
+                self.assertNotRegex(
+                    reporting,
+                    r"(?i)speak only for|user-facing text\s*=",
+                )
 
     def test_output_owner_mutants_are_isolated_and_independently_repaired(self):
         expected = {

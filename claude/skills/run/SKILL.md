@@ -46,9 +46,9 @@ Compatibility-only (non-operative legacy assertion): ~~Force-load `references/ha
 <!-- leanforge:run-load {"from":"run/SKILL.md","to":"run/references/repo-lens-routing.md","kind":"optional_load","phase":"review","activation_contract_id":"RUN-REVIEW-TOPOLOGY","optional":true} -->
 - **Own conformance upstream.** Implement and verify as if the final review did not exist. The final
   review is independent insurance for rare residuals, not permission for shallow work.
-- **Report results, not plumbing.** Speak only for a needed question, real blocker, wave completion,
-  or final result. Keep routine reading, writing, dispatch, merge, gates, and cleanup silent and use
-  plain language without internal labels or tool narration.
+- **Report results, not plumbing.** User-facing output follows `RUN-OUTPUT-SEMANTICS` below. Keep
+  routine reading, writing, dispatch, merge, gates, and cleanup silent and use plain language without
+  internal labels or tool narration.
 
 <!-- leanforge:run-semantic:RUN-OUTPUT-SEMANTICS:start -->
 ```json

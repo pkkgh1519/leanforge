@@ -11,9 +11,9 @@ scaffold — keep its structure and the safety constraints; use judgment inside 
 
 ## Reporting principle
 
-User-facing text = wave completion, blockers, final results. Internal operations (merge, gate,
-worktree lifecycle, branch cleanup, dependency install) produce **no text output**. Output tokens
-are direct cost.
+User-facing output follows `RUN-OUTPUT-SEMANTICS` in `SKILL.md`. Internal operations (merge, gate,
+worktree lifecycle, branch cleanup, dependency install) produce **no text output**. Output tokens are
+direct cost.
 
 ## Verification Plan
 

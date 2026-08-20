@@ -1,8 +1,9 @@
 # foundation-format.md — the Project Foundation section (handoff, first cycle only)
 
-The format contract for the **Project Foundation** section of the handoff: the authoring form when
-`Prime` writes it, and the reading rules when `Run` consumes it. Used **only in the first cycle** (no
-harness exists yet). Shared byte-identical between `Prime` and `Run`.
+The format contract for the **Project Foundation** section of the handoff: the authoring and fidelity
+review form when `Prime` writes it. `Run` consumes the section embedded in `handoff.md` according to
+`harness-lifecycle.md`; Run does not load this reference. Used **only in the first cycle** (no harness
+exists yet). Shared byte-identical between `Prime` and `Run`.
 
 **When it is written.** `Prime` writes the Foundation into `handoff.md`'s Foundation section **at the
 SPEC step — together with `spec.md`, not deferred to HANDOFF** — so the inline fidelity review can

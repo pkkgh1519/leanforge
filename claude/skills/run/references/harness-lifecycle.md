@@ -1,9 +1,9 @@
 # harness-lifecycle.md — Run's harness create / update / archive (force-load)
 
-The operational rules for Run's harness step: detecting first-vs-delta, generating or updating the
-harness, and archiving the 3-doc. Runs **after the completion gate, before the final review**.
-Use the structured harness binding below; this file is the *process*, the bound reference is the
-*spec*.
+The operational rules for Run's state recovery, harness step, and 3-doc archive. This file is loaded
+at preflight: recovery and migration run before mutation, harness creation or update runs after the
+completion gate and before final review, and archive runs only after user approval. Use the structured
+harness binding below; this file is the *process*, the bound reference is the *spec*.
 
 <!-- leanforge:run-load {"from":"run/references/harness-lifecycle.md","to":"run/references/harness-format.md","kind":"force_load","phase":"harness","activation_contract_id":"RUN-LIFECYCLE-OWNERSHIP","optional":false} -->
 
@@ -143,11 +143,11 @@ reflects the *intended* project, not just the code as written.
 
 ## First cycle — create the whole harness
 
-Sources, in priority: the handoff's **Project Foundation** (`foundation-format.md`) → spec (design
-intent) → code (implementation fact). The Foundation's richness sets the harness's richness.
+Sources, in priority: the handoff's embedded Project Foundation → spec (design intent) → code
+(implementation fact). The Foundation's richness sets the harness's richness.
 
 - **Foundation is a first-cycle invariant — fail-fast if absent.** `Prime` always writes the
-  Foundation in a first cycle (`foundation-format.md`, "First-cycle precondition"). So a first-cycle
+  Foundation in a first cycle. So a first-cycle
   handoff with **no Foundation section** is a **precondition violation, not a degrade case** — do
   **not** guess a Foundation from spec + code. **Stop and ask the user to regenerate the 3-doc via
   `Prime`** (escalate-don't-guess). This is a one-line precondition check, not a fallback mode.
@@ -159,8 +159,8 @@ Generate to `harness-format.md`:
 3. CLAUDE.md / AGENTS.md (identical content).
 4. A module AGENTS.md per implemented module.
 
-Map the Foundation to files per `foundation-format.md` (domain → business-rules; technical →
-architecture + security + standards + operations; identity → the CLAUDE.md overview; concrete
+Map the embedded Foundation to files as follows: domain → business-rules; technical → architecture +
+security + standards + operations; identity → the CLAUDE.md overview; concrete
 remaining outcomes → status.md's "Remaining"; durable future directions → status.md's "Future
 directions"). Both future-scope meanings are non-executable, and their lack of code is expected, not a
 hallucination. Do not infer tasks, constraints, or abstractions from them. Preserve priority or

@@ -145,6 +145,21 @@
           "phase": "review"
         }
       ]
+    },
+    {
+      "name": "harness_changed_repo_lens",
+      "optional_edges": [
+        {
+          "from": "run/SKILL.md",
+          "to": "run/references/harness-review.md",
+          "phase": "review"
+        },
+        {
+          "from": "run/SKILL.md",
+          "to": "run/references/repo-lens-routing.md",
+          "phase": "review"
+        }
+      ]
     }
   ]
 }

@@ -1,3 +1,12 @@
 build/*.sh text eol=lf
 *.sh text eol=lf
 claude/skills/*/SKILL.md text eol=lf
+.gitattributes text eol=lf
+src/skills/run/** text eol=lf
+src/skills/prime/references/foundation-format.md text eol=lf
+claude/skills/run/** text eol=lf
+codex/plugin/skills/run/** text eol=lf
+claude/skills/prime/references/foundation-format.md text eol=lf
+codex/plugin/skills/prime/references/foundation-format.md text eol=lf
+tests/fixtures/forced_load_baseline_v1_9_0.json text eol=lf
+tests/fixtures/run_semantic_scenarios_v1_9_0.json text eol=lf
