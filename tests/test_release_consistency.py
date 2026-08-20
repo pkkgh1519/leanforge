@@ -81,7 +81,7 @@ class ReleaseConsistencyTests(unittest.TestCase):
         cls.current_release = changelog_top_version()
         cls.changelog_heading = changelog_top_heading()
 
-    def run_isolated_build(self, mutate=None):
+    def run_isolated_build(self, mutate=None, inspect=None):
         with tempfile.TemporaryDirectory(prefix="leanforge-release-guard-") as temp:
             fixture = Path(temp) / "repo"
             fixture.mkdir()
@@ -106,7 +106,7 @@ class ReleaseConsistencyTests(unittest.TestCase):
                     )
                 )
 
-            return subprocess.run(
+            completed = subprocess.run(
                 [self.bash, "build/build.sh"],
                 cwd=fixture,
                 capture_output=True,
@@ -116,6 +116,9 @@ class ReleaseConsistencyTests(unittest.TestCase):
                 timeout=30,
                 check=False,
             )
+            if inspect is not None:
+                inspect(fixture, completed)
+            return completed
 
     def test_release_surfaces_share_current_version(self):
         versions = {
@@ -152,6 +155,29 @@ class ReleaseConsistencyTests(unittest.TestCase):
 
         self.assertEqual(0, completed.returncode, completed.stderr)
         self.assertIn(f"version OK: v{self.current_release}", completed.stdout)
+
+    def test_build_normalizes_codex_run_agent_overlay_to_lf(self):
+        observed = {}
+
+        def force_crlf_overlay(fixture: Path) -> None:
+            overlay = fixture / "platform/codex/skills/run/agents/openai.yaml"
+            overlay.write_bytes(
+                overlay.read_bytes().replace(b"\r\n", b"\n").replace(
+                    b"\n", b"\r\n"
+                )
+            )
+
+        def inspect_generated(fixture: Path, completed) -> None:
+            generated = fixture / "codex/plugin/skills/run/agents/openai.yaml"
+            observed["generated"] = generated.read_bytes()
+
+        completed = self.run_isolated_build(
+            mutate=force_crlf_overlay,
+            inspect=inspect_generated,
+        )
+
+        self.assertEqual(0, completed.returncode, completed.stderr)
+        self.assertNotIn(b"\r", observed["generated"])
 
     def test_build_release_guard_ignores_non_label_versions(self):
         def add_unrelated_versions(fixture: Path) -> None:

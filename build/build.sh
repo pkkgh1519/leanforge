@@ -47,6 +47,7 @@ rm -rf "$ROOT/codex"
 mkdir -p "$ROOT/codex/plugin/.codex-plugin"
 cp -R "$SRC" "$ROOT/codex/plugin/skills"
 cp -R "$PLAT/codex/skills/." "$ROOT/codex/plugin/skills/"   # agents/openai.yaml overlay
+perl -0777 -i -pe 's/\r\n?/\n/g' "$ROOT/codex/plugin/skills/run/agents/openai.yaml"
 cp "$PLAT/codex/plugin.json" "$ROOT/codex/plugin/.codex-plugin/plugin.json"
 cp "$PLAT/codex/LICENSE" "$ROOT/codex/plugin/"
 
