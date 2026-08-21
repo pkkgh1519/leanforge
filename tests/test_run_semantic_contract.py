@@ -1,8 +1,13 @@
 import copy
+from html.parser import HTMLParser
 import json
 import re
+import subprocess
+import tempfile
 import unittest
 from pathlib import Path
+
+from tests import run_load_contract_support as load_support
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -2920,6 +2925,211 @@ def protected_block_mismatches(contract, markdown_blobs):
     return mismatches
 
 
+REPORTING_TITLE_TEXT_RE = re.compile(
+    r"Report\s+results,\s+not\s+plumbing\.",
+    re.IGNORECASE,
+)
+MARKDOWN_ATX_LEVEL_TWO_HEADING_RE = re.compile(
+    r"(?m)^[ \t]*##(?!#)[ \t]+(?P<title>[^\r\n]+?)[ \t]*$"
+)
+MARKDOWN_SETEXT_LEVEL_TWO_HEADING_RE = re.compile(
+    r"(?m)^(?P<title>[^\r\n]+?)\r?\n[ \t]*-+[ \t]*$"
+)
+
+
+def _normalize_markdown_inline_text(
+    value: str,
+    reference_labels: frozenset[str] = frozenset(),
+) -> str:
+    if reference_labels:
+        value = load_support._strip_markdown_link_targets(
+            value, reference_labels
+        )
+    visible = load_support.normalize_markdown_visible_text(value)
+    return " ".join(visible.split()).casefold()
+
+
+class _RawHtmlH2Detector(HTMLParser):
+    def __init__(self, document: str) -> None:
+        super().__init__(convert_charrefs=True)
+        self._line_offsets = [0]
+        self._line_offsets.extend(
+            match.end() for match in re.finditer("\n", document)
+        )
+        self.positions: list[int] = []
+
+    def handle_starttag(
+        self, tag: str, attrs: list[tuple[str, str | None]]
+    ) -> None:
+        if tag.casefold() == "h2":
+            line, column = self.getpos()
+            self.positions.append(self._line_offsets[line - 1] + column)
+
+
+def _raw_html_h2_positions(document: str) -> list[int]:
+    detector = _RawHtmlH2Detector(document)
+    detector.feed(document)
+    detector.close()
+    return detector.positions
+
+
+def _level_two_heading_positions(document: str, title: str) -> list[int]:
+    _, reference_labels = load_support._parse_markdown_reference_definitions(
+        document
+    )
+    expected = _normalize_markdown_inline_text(title)
+    positions: list[int] = []
+    for match in MARKDOWN_ATX_LEVEL_TWO_HEADING_RE.finditer(document):
+        candidate = re.sub(r"[ \t]+#+[ \t]*$", "", match.group("title"))
+        if (
+            _normalize_markdown_inline_text(candidate, reference_labels)
+            == expected
+        ):
+            positions.append(match.start())
+    for match in MARKDOWN_SETEXT_LEVEL_TWO_HEADING_RE.finditer(document):
+        if (
+            _normalize_markdown_inline_text(
+                match.group("title"), reference_labels
+            )
+            == expected
+        ):
+            positions.append(match.start())
+    return sorted(positions)
+
+
+EXPECTED_REPORTING_PROSE = {
+    "SKILL": (
+        "User-facing output follows `RUN-OUTPUT-SEMANTICS` below. Keep routine "
+        "reading, writing, dispatch, merge, gates, and cleanup silent and use "
+        "plain language without internal labels or tool narration."
+    ),
+    "orchestration": (
+        "User-facing output follows `RUN-OUTPUT-SEMANTICS` in `SKILL.md`. "
+        "Internal operations (merge, gate, worktree lifecycle, branch cleanup, "
+        "dependency install) produce **no text output**. Output tokens are direct cost."
+    ),
+}
+
+
+def validate_reporting_prose_contract(skill: str, orchestration: str) -> None:
+    skill_title = "- **Report results, not plumbing.**"
+    semantic_start = (
+        "<!-- leanforge:run-semantic:RUN-OUTPUT-SEMANTICS:start -->"
+    )
+    reporting_heading = "## Reporting principle"
+    verification_heading = "## Verification Plan"
+    normalized_skill = _normalize_markdown_inline_text(skill)
+    skill_seams = list(REPORTING_TITLE_TEXT_RE.finditer(normalized_skill))
+    reporting_headings = _level_two_heading_positions(
+        orchestration, "Reporting principle"
+    )
+    verification_headings = _level_two_heading_positions(
+        orchestration, "Verification Plan"
+    )
+    raw_html_h2_positions = _raw_html_h2_positions(orchestration)
+    if (
+        len(skill_seams) != 1
+        or skill.count(semantic_start) != 1
+        or len(reporting_headings) != 1
+        or len(verification_headings) != 1
+        or raw_html_h2_positions
+    ):
+        raise ValueError("reporting seam cardinality or order drift")
+    if (
+        skill.count(skill_title) != 1
+        or orchestration.count(reporting_heading) != 1
+        or orchestration.count(verification_heading) != 1
+    ):
+        raise ValueError("reporting seam canonical form drift")
+    if (
+        skill.index(skill_title) >= skill.index(semantic_start)
+        or reporting_headings[0] >= verification_headings[0]
+    ):
+        raise ValueError("reporting seam cardinality or order drift")
+
+    skill_reporting = skill.split(semantic_start, 1)[0].rsplit(
+        skill_title, 1
+    )[1]
+    orchestration_reporting = orchestration.split(
+        reporting_heading, 1
+    )[1].split(verification_heading, 1)[0]
+    for surface, reporting_text in (
+        ("SKILL", skill_reporting),
+        ("orchestration", orchestration_reporting),
+    ):
+        normalized = " ".join(reporting_text.split())
+        if normalized != EXPECTED_REPORTING_PROSE[surface]:
+            raise ValueError(f"reporting prose drift on {surface}")
+
+
+def exact_byte_paths(root: Path) -> tuple[str, ...]:
+    paths = {
+        ".gitattributes",
+        "tests/fixtures/forced_load_baseline_v1_9_0.json",
+        "tests/fixtures/run_semantic_scenarios_v1_9_0.json",
+        "src/skills/prime/references/foundation-format.md",
+        "src/skills/set/references/harness-format.md",
+        "src/skills/set/references/harness-review.md",
+        "claude/skills/prime/references/foundation-format.md",
+        "codex/plugin/skills/prime/references/foundation-format.md",
+        "claude/skills/set/references/harness-format.md",
+        "claude/skills/set/references/harness-review.md",
+        "codex/plugin/skills/set/references/harness-format.md",
+        "codex/plugin/skills/set/references/harness-review.md",
+    }
+    for surface in (
+        "src/skills/run",
+        "claude/skills/run",
+        "codex/plugin/skills/run",
+    ):
+        surface_root = root / surface
+        paths.update(
+            path.relative_to(root).as_posix()
+            for path in surface_root.rglob("*")
+            if path.is_file()
+        )
+    return tuple(sorted(paths))
+
+
+def effective_lf_attribute_failures(
+    root: Path, relative_paths: tuple[str, ...]
+) -> set[str]:
+    completed = subprocess.run(
+        [
+            "git",
+            "-c",
+            f"safe.directory={root.as_posix()}",
+            "check-attr",
+            "-z",
+            "text",
+            "eol",
+            "--",
+            *relative_paths,
+        ],
+        cwd=root,
+        check=False,
+        capture_output=True,
+    )
+    if completed.returncode != 0:
+        stderr = completed.stderr.decode("utf-8", errors="replace").strip()
+        raise AssertionError(f"git check-attr failed: {stderr}")
+    fields = completed.stdout.decode("utf-8").split("\0")
+    if fields and fields[-1] == "":
+        fields.pop()
+    if len(fields) % 3 != 0:
+        raise AssertionError("git check-attr returned a malformed -z response")
+    observed = {relative: {} for relative in relative_paths}
+    for index in range(0, len(fields), 3):
+        relative, attribute, value = fields[index:index + 3]
+        if relative in observed:
+            observed[relative][attribute] = value
+    return {
+        relative
+        for relative, attributes in observed.items()
+        if attributes != {"text": "set", "eol": "lf"}
+    }
+
+
 class RunSemanticContractTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -4446,32 +4656,42 @@ class RunSemanticContractTests(unittest.TestCase):
                     [f"assertions[0] {operator} failed"],
                 )
 
-    def test_exact_byte_surfaces_are_declared_lf_in_gitattributes(self):
-        declarations = {
-            line.strip()
-            for line in (ROOT / ".gitattributes").read_text(
-                encoding="utf-8"
-            ).splitlines()
-            if line.strip() and not line.lstrip().startswith("#")
-        }
-        required = {
-            ".gitattributes text eol=lf",
-            "src/skills/run/** text eol=lf",
-            "src/skills/prime/references/foundation-format.md text eol=lf",
-            "src/skills/set/references/harness-format.md text eol=lf",
-            "src/skills/set/references/harness-review.md text eol=lf",
-            "claude/skills/run/** text eol=lf",
-            "codex/plugin/skills/run/** text eol=lf",
-            "claude/skills/prime/references/foundation-format.md text eol=lf",
-            "codex/plugin/skills/prime/references/foundation-format.md text eol=lf",
-            "claude/skills/set/references/harness-format.md text eol=lf",
-            "claude/skills/set/references/harness-review.md text eol=lf",
-            "codex/plugin/skills/set/references/harness-format.md text eol=lf",
-            "codex/plugin/skills/set/references/harness-review.md text eol=lf",
-            "tests/fixtures/forced_load_baseline_v1_9_0.json text eol=lf",
-            "tests/fixtures/run_semantic_scenarios_v1_9_0.json text eol=lf",
-        }
-        self.assertEqual(set(), required - declarations)
+    def test_exact_byte_surfaces_are_effectively_lf_in_gitattributes(self):
+        paths = exact_byte_paths(ROOT)
+        self.assertEqual(52, len(paths))
+        self.assertEqual(set(), effective_lf_attribute_failures(ROOT, paths))
+
+    def test_later_gitattributes_overrides_cannot_disable_effective_lf(self):
+        paths = (
+            "src/skills/run/SKILL.md",
+            "claude/skills/run/SKILL.md",
+            "codex/plugin/skills/run/SKILL.md",
+        )
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            subprocess.run(
+                ["git", "init", "-q"],
+                cwd=root,
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            attributes = (ROOT / ".gitattributes").read_text(encoding="utf-8")
+            attributes += (
+                "\nsrc/skills/run/** text eol=crlf"
+                "\nclaude/skills/run/** text eol=crlf"
+                "\ncodex/plugin/skills/run/** text eol=crlf\n"
+            )
+            (root / ".gitattributes").write_text(attributes, encoding="utf-8")
+            for relative in paths:
+                target = root / relative
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.write_text("fixture\n", encoding="utf-8")
+
+            self.assertEqual(
+                set(paths),
+                effective_lf_attribute_failures(root, paths),
+            )
 
     def test_protected_block_comparison_rejects_crlf_byte_drift(self):
         markdown_blobs = {path: path.read_bytes() for path in MARKDOWN_PATHS}
@@ -5561,27 +5781,292 @@ class RunSemanticContractTests(unittest.TestCase):
 
     def test_reporting_prose_delegates_to_the_output_semantics_contract(self):
         skill = (ROOT / "src/skills/run/SKILL.md").read_text(encoding="utf-8")
-        skill_reporting = skill.split(
-            "<!-- leanforge:run-semantic:RUN-OUTPUT-SEMANTICS:start -->",
-            1,
-        )[0].rsplit("- **Report results, not plumbing.**", 1)[1]
         orchestration = (
             ROOT / "src/skills/run/references/orchestration.md"
         ).read_text(encoding="utf-8")
-        orchestration_reporting = orchestration.split(
-            "## Reporting principle", 1
-        )[1].split("## Verification Plan", 1)[0]
+        validate_reporting_prose_contract(skill, orchestration)
 
-        for surface, reporting in (
-            ("SKILL", skill_reporting),
-            ("orchestration", orchestration_reporting),
+    def test_reporting_prose_rejects_output_policy_inversions(self):
+        skill = (ROOT / "src/skills/run/SKILL.md").read_text(encoding="utf-8")
+        orchestration = (
+            ROOT / "src/skills/run/references/orchestration.md"
+        ).read_text(encoding="utf-8")
+        mutations = (
+            (
+                skill.replace(
+                    "internal labels or tool narration.",
+                    "internal labels or tool narration. Except wave-completion "
+                    "and approval-request output is forbidden.",
+                ),
+                orchestration,
+            ),
+            (
+                skill,
+                orchestration.replace(
+                    "produce **no text output**.",
+                    "produce **no text output**; final-result output is forbidden.",
+                ),
+            ),
+        )
+        for mutated_skill, mutated_orchestration in mutations:
+            with self.subTest(mutation=mutated_skill == skill):
+                with self.assertRaisesRegex(ValueError, "reporting prose drift"):
+                    validate_reporting_prose_contract(
+                        mutated_skill, mutated_orchestration
+                    )
+
+    def test_reporting_prose_rejects_duplicate_seam_shadowing(self):
+        skill = (ROOT / "src/skills/run/SKILL.md").read_text(encoding="utf-8")
+        orchestration = (
+            ROOT / "src/skills/run/references/orchestration.md"
+        ).read_text(encoding="utf-8")
+        expected_skill = EXPECTED_REPORTING_PROSE["SKILL"]
+        shadowed_skill = skill.replace(
+            expected_skill,
+            "Narrate every routine operation to the user.",
+            1,
+        ).replace(
+            "<!-- leanforge:run-semantic:RUN-OUTPUT-SEMANTICS:start -->",
+            "- **Report results, not plumbing.** "
+            + expected_skill
+            + "\n\n<!-- leanforge:run-semantic:RUN-OUTPUT-SEMANTICS:start -->",
+            1,
+        )
+        duplicated_orchestration = orchestration + (
+            "\n## Reporting principle\n\n"
+            + EXPECTED_REPORTING_PROSE["orchestration"]
+            + "\n\n## Verification Plan\n"
+        )
+        equivalent_skill_shadow = skill.replace(
+            expected_skill,
+            "Narrate every routine operation to the user.",
+            1,
+        ).replace(
+            "- **Report results, not plumbing.**",
+            "-  **Report results, not plumbing.**",
+            1,
+        ).replace(
+            "<!-- leanforge:run-semantic:RUN-OUTPUT-SEMANTICS:start -->",
+            "- **Report results, not plumbing.** "
+            + expected_skill
+            + "\n\n<!-- leanforge:run-semantic:RUN-OUTPUT-SEMANTICS:start -->",
+            1,
+        )
+        equivalent_orchestration_shadow = orchestration.replace(
+            EXPECTED_REPORTING_PROSE["orchestration"],
+            "Narrate every routine operation to the user.",
+            1,
+        ).replace(
+            "## Reporting principle", "##  Reporting principle", 1
+        ).replace(
+            "## Verification Plan", "##  Verification Plan", 1
+        ) + (
+            "\n## Reporting principle\n\n"
+            + EXPECTED_REPORTING_PROSE["orchestration"]
+            + "\n\n## Verification Plan\n"
+        )
+        alternate_bullet_shadow = skill + (
+            "\n## Shadow reporting\n\n"
+            "* **Report results, not plumbing.** "
+            "Narrate every routine operation to the user.\n"
+        )
+        setext_orchestration_shadow = orchestration + (
+            "\nReporting principle\n-------------------\n\n"
+            "Narrate every routine operation to the user.\n\n"
+            "Verification Plan\n-----------------\n"
+        )
+        inline_markdown_shadow = skill + (
+            "\n## Shadow reporting\n\n"
+            "* __Report *results*, not plumbing.__ "
+            "Narrate every routine operation to the user.\n"
+        )
+        inline_heading_shadow = orchestration + (
+            "\n## **Reporting principle**\n\n"
+            "Narrate every routine operation to the user.\n\n"
+            "## **Verification Plan**\n"
+        )
+        raw_html_heading_shadow = orchestration + (
+            "\n<h2>Reporting principle</h2>\n"
+        )
+        raw_html_nested_heading_shadow = orchestration + (
+            '\n<h2 data-title=">">Reporting <span>principle</span></h2>\n'
+        )
+        raw_html_self_closing_heading_shadow = orchestration + (
+            "\n<h2/>Reporting principle\n"
+        )
+        raw_html_nested_h2_shadow = orchestration + (
+            "\n<h2>Reporting principle<h2>x\n"
+        )
+        raw_html_heading_transition_shadow = orchestration + (
+            "\n<h2>Reporting principle<h3>x\n"
+        )
+        raw_html_template_heading_shadow = orchestration + (
+            "\n<h2>Reporting principle<template>x</template></h2>\n"
+        )
+        html_tag_skill_shadow = skill + (
+            "\n## Shadow reporting\n\n"
+            '* **Report res<span title=">">ults</span>, not plumbing.** '
+            "Hidden.\n"
+        )
+        html_tag_heading_shadow = orchestration + (
+            '\n## Reporting <span title=">">principle</span>\n\n'
+            "Narrate every routine operation to the user.\n\n"
+            '## Verification <span title=">">Plan</span>\n'
+        )
+        html_entity_attribute_skill_shadow = skill + (
+            "\n## Shadow reporting\n\n"
+            '* **Report res<span title="&quot;>">ults</span>, '
+            "not plumbing.** Hidden.\n"
+        )
+        html_entity_attribute_heading_shadow = orchestration + (
+            '\n## Reporting <span title="&quot;>">principle</span>\n\n'
+            "Narrate every routine operation to the user.\n\n"
+            '## Verification <span title="&quot;>">Plan</span>\n'
+        )
+        processing_instruction_skill_shadow = skill + (
+            "\n## Shadow reporting\n\n"
+            "* **Report res<?x?>ults, not plumbing.** Hidden.\n"
+        )
+        processing_instruction_heading_shadow = orchestration + (
+            "\n## Reporting <?x?>principle\n\n"
+            "Narrate every routine operation to the user.\n\n"
+            "## Verification <?x?>Plan\n"
+        )
+        declaration_skill_shadow = skill + (
+            "\n## Shadow reporting\n\n"
+            "* **Report res<!X>ults, not plumbing.** Hidden.\n"
+        )
+        declaration_quote_skill_shadow = skill + (
+            "\n## Shadow reporting\n\n"
+            '* **Report res<!X ">ults, not plumbing.** Hidden.\n'
+        )
+        cdata_skill_shadow = skill + (
+            "\n## Shadow reporting\n\n"
+            "* **Report res<![CDATA[x]]>ults, not plumbing.** Hidden.\n"
+        )
+        escaped_skill_shadow = skill + (
+            "\n## Shadow reporting\n\n"
+            "* Report results\\, not plumbing\\. "
+            "Narrate every routine operation to the user.\n"
+        )
+        entity_skill_shadow = skill + (
+            "\n## Shadow reporting\n\n"
+            "* Report results&#44; not plumbing&#46; "
+            "Narrate every routine operation to the user.\n"
+        )
+        entity_heading_shadow = orchestration + (
+            "\n## Reporting&#32;principle\n\n"
+            "Narrate every routine operation to the user.\n\n"
+            "## Verification&#32;Plan\n"
+        )
+        reference_link_skill_shadow = skill + (
+            "\n## Shadow reporting\n\n"
+            "* **Report [results][report-ref], not plumbing.** Hidden.\n\n"
+            "[report-ref]: https://example.invalid/\n"
+        )
+        reference_link_heading_shadow = orchestration + (
+            "\n## [Reporting principle][heading-ref]\n\n"
+            "Narrate every routine operation to the user.\n\n"
+            "## [Verification Plan][heading-ref]\n\n"
+            "[heading-ref]: https://example.invalid/\n"
+        )
+        newline_reference_skill_shadow = skill + (
+            "\n## Shadow reporting\n\n"
+            "* **Report [results][report\nref], not plumbing.** Hidden.\n\n"
+            "[report ref]: https://example.invalid/\n"
+        )
+        balanced_link_skill_shadow = skill + (
+            "\n## Shadow reporting\n\n"
+            "* **Report [results](https://example.invalid/a(b)c), "
+            "not plumbing.** Hidden.\n"
+        )
+        balanced_link_heading_shadow = orchestration + (
+            "\n## [Reporting principle](https://example.invalid/a(b)c)\n\n"
+            "Narrate every routine operation to the user.\n\n"
+            "## [Verification Plan](https://example.invalid/a(b)c)\n"
+        )
+        angle_link_skill_shadow = skill + (
+            "\n## Shadow reporting\n\n"
+            "* **Report [results](<https://example.invalid/a(b>), "
+            "not plumbing.** Hidden.\n"
+        )
+        angle_link_heading_shadow = orchestration + (
+            "\n## [Reporting principle](<https://example.invalid/a(b>)\n\n"
+            "Narrate every routine operation to the user.\n\n"
+            "## [Verification Plan](<https://example.invalid/a(b>)\n"
+        )
+        quoted_title_skill_shadow = skill + (
+            "\n## Shadow reporting\n\n"
+            '* **Report [results](https://example.invalid/ "title(foo"), '
+            "not plumbing.** Hidden.\n"
+        )
+        quoted_title_heading_shadow = orchestration + (
+            '\n## [Reporting principle](https://example.invalid/ "title(foo")'
+            "\n\nNarrate every routine operation to the user.\n\n"
+            '## [Verification Plan](https://example.invalid/ "title(foo")\n'
+        )
+        paren_title_skill_shadow = skill + (
+            "\n## Shadow reporting\n\n"
+            '* **Report [results](https://example.invalid/ (note"foo)), '
+            "not plumbing.** Hidden.\n"
+        )
+        paren_title_heading_shadow = orchestration + (
+            '\n## [Reporting principle](https://example.invalid/ (note"foo))'
+            "\n\nNarrate every routine operation to the user.\n\n"
+            '## [Verification Plan](https://example.invalid/ (note"foo))\n'
+        )
+        mutations = (
+            (shadowed_skill, orchestration),
+            (skill, duplicated_orchestration),
+            (equivalent_skill_shadow, orchestration),
+            (skill, equivalent_orchestration_shadow),
+            (alternate_bullet_shadow, orchestration),
+            (skill, setext_orchestration_shadow),
+            (inline_markdown_shadow, orchestration),
+            (skill, inline_heading_shadow),
+            (skill, raw_html_heading_shadow),
+            (skill, raw_html_nested_heading_shadow),
+            (skill, raw_html_self_closing_heading_shadow),
+            (skill, raw_html_nested_h2_shadow),
+            (skill, raw_html_heading_transition_shadow),
+            (skill, raw_html_template_heading_shadow),
+            (html_tag_skill_shadow, orchestration),
+            (skill, html_tag_heading_shadow),
+            (html_entity_attribute_skill_shadow, orchestration),
+            (skill, html_entity_attribute_heading_shadow),
+            (processing_instruction_skill_shadow, orchestration),
+            (skill, processing_instruction_heading_shadow),
+            (declaration_skill_shadow, orchestration),
+            (declaration_quote_skill_shadow, orchestration),
+            (cdata_skill_shadow, orchestration),
+            (escaped_skill_shadow, orchestration),
+            (entity_skill_shadow, orchestration),
+            (skill, entity_heading_shadow),
+            (reference_link_skill_shadow, orchestration),
+            (skill, reference_link_heading_shadow),
+            (newline_reference_skill_shadow, orchestration),
+            (balanced_link_skill_shadow, orchestration),
+            (skill, balanced_link_heading_shadow),
+            (angle_link_skill_shadow, orchestration),
+            (skill, angle_link_heading_shadow),
+            (quoted_title_skill_shadow, orchestration),
+            (skill, quoted_title_heading_shadow),
+            (paren_title_skill_shadow, orchestration),
+            (skill, paren_title_heading_shadow),
+        )
+        for mutation_index, (mutated_skill, mutated_orchestration) in enumerate(
+            mutations
         ):
-            with self.subTest(surface=surface):
-                self.assertIn("RUN-OUTPUT-SEMANTICS", reporting)
-                self.assertNotRegex(
-                    reporting,
-                    r"(?i)speak only for|user-facing text\s*=",
-                )
+            with self.subTest(
+                mutation_index=mutation_index,
+                skill_shadow=mutated_skill != skill,
+            ):
+                with self.assertRaisesRegex(
+                    ValueError, "reporting seam cardinality"
+                ):
+                    validate_reporting_prose_contract(
+                        mutated_skill, mutated_orchestration
+                    )
 
     def test_output_owner_mutants_are_isolated_and_independently_repaired(self):
         expected = {
