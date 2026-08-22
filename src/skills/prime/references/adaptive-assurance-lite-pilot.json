@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "contract_id": "leanforge.adaptive-assurance-lite-pilot",
+  "activation": "shadow",
+  "eligibility_contract": "leanforge.adaptive-assurance#lite",
+  "promotion_policy": "monotonic",
+  "prime": {
+    "artifact_contract": "existing_3doc_thin",
+    "preconditions": "keep",
+    "intent_completeness_review": "skip",
+    "three_doc_gate": "skip",
+    "user_approval": "keep",
+    "questions": "user_owned_only"
+  },
+  "run": {
+    "git_preflight": "keep",
+    "recovery_guard": "keep",
+    "contract_validation": "keep",
+    "execution": "direct",
+    "worktree": "skip",
+    "task_verification": "targeted",
+    "integration_verification": "skip",
+    "completion_verification": "full_once",
+    "evidence_reuse": "exact_only",
+    "runtime_smoke": "when_spec_declares_runnable_service",
+    "final_independent_review": "skip",
+    "final_diff_check": "keep",
+    "harness_sync": "skip",
+    "user_integration_choice": "keep"
+  },
+  "escalate_to_standard_on": [
+    "changed_scope_expanded",
+    "multiple_write_areas_discovered",
+    "verification_gap_discovered"
+  ],
+  "escalate_to_assurance_on": [
+    "destructive_behavior_discovered",
+    "external_state_discovered",
+    "hard_trigger_discovered",
+    "recovery_ambiguity_discovered",
+    "security_or_data_boundary_discovered",
+    "user_intent_conflict_discovered"
+  ]
+}

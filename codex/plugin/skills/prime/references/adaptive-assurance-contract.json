@@ -1,0 +1,112 @@
+{
+  "schema_version": 1,
+  "contract_id": "leanforge.adaptive-assurance",
+  "shadow_only": true,
+  "modes": [
+    "lite",
+    "standard",
+    "assurance"
+  ],
+  "mode_order": [
+    "lite",
+    "standard",
+    "assurance"
+  ],
+  "default_mode": "standard",
+  "first_cycle_mode": "assurance",
+  "decision_reasons": [
+    "first_cycle",
+    "hard_assurance_trigger",
+    "lite_eligible",
+    "standard_default"
+  ],
+  "hard_assurance_triggers": [
+    "auth_or_permission",
+    "breaking_public_contract",
+    "concurrency_or_consistency",
+    "data_migration",
+    "deployment_or_release",
+    "destructive_operation",
+    "external_state_write",
+    "high_cost_recovery",
+    "large_cross_module_change",
+    "payment_or_financial",
+    "personal_data",
+    "security_boundary",
+    "unknown_material_risk",
+    "user_intent_conflict"
+  ],
+  "facts": [
+    "architecture_change",
+    "clear_acceptance",
+    "cross_module_wiring",
+    "durable_contract_change",
+    "existing_harness",
+    "existing_verification",
+    "multiple_tasks",
+    "new_dependency",
+    "new_module",
+    "no_user_owned_ambiguity",
+    "operations_change",
+    "public_contract_change",
+    "reversible",
+    "runtime_service_change",
+    "security_rule_change",
+    "single_local_write_area"
+  ],
+  "lite": {
+    "required_true": [
+      "clear_acceptance",
+      "existing_harness",
+      "existing_verification",
+      "no_user_owned_ambiguity",
+      "reversible",
+      "single_local_write_area"
+    ],
+    "required_false": [
+      "architecture_change",
+      "cross_module_wiring",
+      "durable_contract_change",
+      "multiple_tasks",
+      "new_dependency",
+      "new_module",
+      "operations_change",
+      "public_contract_change",
+      "runtime_service_change",
+      "security_rule_change"
+    ]
+  },
+  "durable_change_triggers": [
+    "architecture_change",
+    "durable_contract_change",
+    "new_dependency",
+    "new_module",
+    "operations_change",
+    "public_contract_change",
+    "security_rule_change"
+  ],
+  "escalation_signals": {
+    "to_standard": [
+      "changed_scope_expanded",
+      "multiple_write_areas_discovered",
+      "verification_gap_discovered"
+    ],
+    "to_assurance": [
+      "destructive_behavior_discovered",
+      "external_state_discovered",
+      "hard_trigger_discovered",
+      "recovery_ambiguity_discovered",
+      "security_or_data_boundary_discovered",
+      "user_intent_conflict_discovered"
+    ]
+  },
+  "evidence_reuse": {
+    "required_prior_outcome": "green",
+    "required_equal": [
+      "base_sha",
+      "environment_fingerprint",
+      "relevant_scope_hash",
+      "verify_set"
+    ]
+  }
+}

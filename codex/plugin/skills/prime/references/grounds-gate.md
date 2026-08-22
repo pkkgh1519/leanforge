@@ -67,3 +67,38 @@ so the asymmetric default never *silently* buries a real gap or conflict.
 Stack-agnostic. The three grounds and the two tiers apply to any candidate in any stack; what counts
 as a framework default, a convention, or applicable section authority is discovered from the project
 at runtime, never assumed here.
+
+## Adaptive Assurance shadow observation
+
+At the **ELICIT exit**, after every user-owned ambiguity has been settled or explicitly dispositioned,
+load `adaptive-assurance-contract.json` once and record an advisory decision in
+`.leanforge/assurance-shadow.json`.
+
+Use only facts already grounded by ORIENT/ELICIT plus the closed contract vocabulary. Do **not** ask the
+user a question merely to improve this shadow classification. If a material risk cannot be classified,
+record `unknown_material_risk`, which routes the shadow result to `assurance`.
+
+The record is deterministic and contains exactly:
+
+```json
+{
+  "schema_version": 1,
+  "shadow_only": true,
+  "cycle": "first | delta",
+  "mode": "lite | standard | assurance",
+  "reasons": ["<closed decision_reasons atom>"],
+  "hard_triggers": ["<closed hard trigger names>"],
+  "missing_lite_required_true": ["<closed fact names>"],
+  "violated_lite_required_false": ["<closed fact names>"],
+  "harness_sync": true
+}
+```
+
+Write the record atomically under `.leanforge/` and omit timestamps or environment-specific paths.
+`harness_sync` is advisory only: first cycle is always `true`; on a delta it is `true` only when a
+closed durable-change trigger is present.
+
+**Shadow means no authority.** This record must not change Prime's stage sequence, question policy,
+independent reviewers, 3-doc contents, user approval, Run routing/worktrees, verification topology,
+recovery behavior, or the live harness update policy. The current Full Assurance behavior remains
+authoritative until a later release explicitly activates an adaptive route.
