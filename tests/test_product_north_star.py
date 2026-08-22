@@ -66,34 +66,53 @@ class ProductNorthStarContractTests(unittest.TestCase):
         )
 
     def test_adaptive_assurance_is_internal_binary_and_monotonic(self):
-        bodies = (
-            normalized(BUSINESS),
-            normalized(ARCHITECTURE),
-            normalized(CONTRACTS),
-            normalized(PHASE1),
-        )
-        required = (
-            "사용자가",
-            "strict Lite",
-            "기존 Full Assurance",
-            "standard",
-            "관측 label",
-        )
-        for path, body in zip(
-            (BUSINESS, ARCHITECTURE, CONTRACTS, PHASE1), bodies
-        ):
-            with self.subTest(path=path.relative_to(ROOT).as_posix()):
-                self.assert_terms(body, required, "binary adaptive boundary")
+        business = normalized(BUSINESS)
+        architecture = normalized(ARCHITECTURE)
+        contracts = normalized(CONTRACTS)
+        phase1 = normalized(PHASE1)
 
         self.assert_terms(
-            bodies[0],
+            business,
             (
                 "mode 선택은 내부 변속기다.",
                 "사용자가 `lite | standard | assurance`를 선택",
-                "추가 repo scan·subagent·사용자 질문을 정당화하지 않는다.",
+                "strict Lite와 기존 Full Assurance의 두 실행 경로",
+                "`standard`는 관측·분석 label",
                 "같은 cycle에서 더 낮은 경로로 다시 내리지 않는다.",
             ),
-            "internal and monotonic mode selection",
+            "authoritative adaptive boundary",
+        )
+        self.assert_terms(
+            architecture,
+            (
+                "내부 risk-to-procedure 선택기",
+                "strict Lite와 현재 Full Assurance 두 개",
+                "`standard`는 별도 순효익이 증명되기 전까지 관측 label",
+                "기존 Full Assurance로 단조 복귀",
+            ),
+            "architecture adaptive boundary",
+        )
+        self.assert_terms(
+            contracts,
+            (
+                "사용자는 mode를 선택하지 않으며 내부 분류를 위해 추가 질문을 받지 않는다.",
+                "strict Lite와 기존 Full Assurance 두 경로",
+                "`standard`는 독립 실행 계약이 아니라 관측 label",
+                "기존 Full Assurance로 단조 복귀",
+            ),
+            "consumer adaptive boundary",
+        )
+        self.assert_terms(
+            phase1,
+            (
+                "The first live activation, if separately approved, must be binary",
+                "strict Lite",
+                "existing Full Assurance",
+                "`standard` remains an observation label",
+                "promotes monotonically to the existing Full Assurance path",
+                "The user never selects a mode.",
+            ),
+            "Phase 1 adaptive boundary",
         )
 
     def test_component_outputs_align_to_the_product_artifacts(self):

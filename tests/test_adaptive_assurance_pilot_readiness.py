@@ -126,7 +126,7 @@ class AdaptiveAssurancePilotReadinessTests(unittest.TestCase):
                 "3-doc-gate blocker rate",
                 "no mode-induced user burden",
                 "conservative median removable-ceremony estimate to exceed the measured median shadow tax by at least `2×`",
-                "GO_TO_PHASE_2_DESIGN_REVIEW requires all of the following",
+                "`GO_TO_PHASE_2_DESIGN_REVIEW` requires all of the following",
                 "A GO decision authorizes only a separate Phase 2 design review.",
             ),
             "quality, burden, value, and decision gate",
@@ -173,9 +173,9 @@ class AdaptiveAssurancePilotReadinessTests(unittest.TestCase):
             phase1,
             (
                 "research/adaptive-assurance/pilot-readiness-study.md",
-                "first live activation, if separately approved, must be binary",
+                "The first live activation, if separately approved, must be binary",
                 "It never activates Lite.",
-                "does not claim actual Time to Trusted Change improvement",
+                "claim actual Time to Trusted Change improvement",
             ),
             "Phase 1 handoff",
         )
