@@ -34,13 +34,22 @@ def normalized(path: Path) -> str:
     return normalize_text(path.read_text(encoding="utf-8"))
 
 
-def _sentences(value: str) -> tuple[str, ...]:
-    normalized_value = normalize_text(value)
-    return tuple(
-        sentence.strip()
-        for sentence in re.split(r"(?<=[.!?])\s+", normalized_value)
-        if sentence.strip()
-    )
+def _policy_units(value: str) -> tuple[str, ...]:
+    units: list[str] = []
+    in_fence = False
+    for raw_line in value.splitlines():
+        stripped = raw_line.strip()
+        if stripped.startswith("```"):
+            in_fence = not in_fence
+            continue
+        if in_fence or not stripped or stripped.startswith("#"):
+            continue
+        units.extend(
+            sentence.strip()
+            for sentence in re.split(r"(?<=[.!?])\s+", normalize_text(stripped))
+            if sentence.strip()
+        )
+    return tuple(units)
 
 
 def _is_negated(sentence: str) -> bool:
@@ -64,6 +73,8 @@ def _is_negated(sentence: str) -> bool:
             "are not",
             "outside",
             "forbidden",
+            "exclude",
+            "yes is failure",
         )
     )
 
@@ -71,7 +82,7 @@ def _is_negated(sentence: str) -> bool:
 def validate_no_normative_inversions(documents: Mapping[str, str]) -> None:
     violations: list[str] = []
     for path, body in documents.items():
-        for sentence in _sentences(body):
+        for sentence in _policy_units(body):
             lowered = sentence.lower()
             negated = _is_negated(sentence)
 
@@ -284,6 +295,17 @@ class ProductNorthStarContractTests(unittest.TestCase):
             for path in PRODUCT_DOCUMENTS
         }
         validate_no_normative_inversions(documents)
+
+    def test_negative_policy_controls_are_not_inversions(self):
+        validate_no_normative_inversions(
+            {
+                "negative-controls.md": """
+- exclude any saving that depends on a third `standard` execution topology;
+- Savings depend on a third Standard topology: `<yes | no; yes is failure>`;
+- User mode selection absent: `<yes | no>`.
+"""
+            }
+        )
 
     def test_known_opposite_product_mutations_are_rejected(self):
         documents = {
