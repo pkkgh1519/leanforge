@@ -31,7 +31,7 @@ class AdaptiveAssuranceObservationStudyTests(unittest.TestCase):
                 "Resolver:",
                 "without reading the sidecar mode, reasons",
                 "mechanically without inspecting its contents",
-                "then reveal the prediction",
+                "Reveal the prediction only after",
                 "The observation never changes the current cycle.",
             ),
             "observation and blinded-adjudication boundary",
