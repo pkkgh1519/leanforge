@@ -1,6 +1,7 @@
 import json
 import unittest
 from pathlib import Path
+from typing import Mapping
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -12,38 +13,127 @@ STATUS = ROOT / "docs/tracking/status.md"
 PILOT = ROOT / "src/skills/prime/references/adaptive-assurance-lite-pilot.json"
 ATTRIBUTES = ROOT / ".gitattributes"
 
+RESEARCH_ROOT = "research/adaptive-assurance"
+EXPECTED_RESEARCH_FILES = {
+    "research/adaptive-assurance/pilot-readiness-study.md",
+    "research/adaptive-assurance/observation-template.md",
+    "research/adaptive-assurance/pilot-readiness-report-template.md",
+}
+FORBIDDEN_RESEARCH_ROOTS = (
+    "docs/",
+    "src/skills/",
+    "claude/skills/",
+    "codex/plugin/skills/",
+)
+RESEARCH_DETAIL_ATOMS = (
+    "5 cases × 2 hosts × 2 versions × 5 repetitions = 100 runs",
+    "Study version: `2`",
+    "Adaptive Assurance contract Git blob object ID:",
+    "Counts by shadow mode and observed class",
+    "Estimated net removable cost after shadow tax:",
+    "Binary reversibility gate:",
+    "Part C — paired A/B shadow-tax benchmark",
+)
+
+
+def normalize_text(value: str) -> str:
+    return " ".join(value.split())
+
 
 def normalized(path: Path) -> str:
-    return " ".join(path.read_text(encoding="utf-8").split())
+    return normalize_text(path.read_text(encoding="utf-8"))
+
+
+def _is_under(path: str, roots: tuple[str, ...]) -> bool:
+    return any(path.startswith(root) for root in roots)
+
+
+def validate_research_placement(files: Mapping[str, str]) -> None:
+    violations: list[str] = []
+    markdown_files = {
+        path: body for path, body in files.items() if path.endswith(".md")
+    }
+    research_files = {
+        path for path in markdown_files if path.startswith(RESEARCH_ROOT + "/")
+    }
+    expected_files = EXPECTED_RESEARCH_FILES
+    if research_files != expected_files:
+        violations.append(
+            "research allowlist mismatch: "
+            f"missing={sorted(expected_files - research_files)}, "
+            f"extra={sorted(research_files - expected_files)}"
+        )
+
+    allowed_bodies = {
+        normalize_text(markdown_files[path]): path
+        for path in expected_files
+        if path in markdown_files
+    }
+    for path, body in markdown_files.items():
+        normalized_body = normalize_text(body)
+        if path not in expected_files and normalized_body in allowed_bodies:
+            violations.append(
+                f"{path}: exact research artifact copy outside {allowed_bodies[normalized_body]}"
+            )
+
+        if _is_under(path, FORBIDDEN_RESEARCH_ROOTS):
+            detail_score = sum(atom in body for atom in RESEARCH_DETAIL_ATOMS)
+            if detail_score >= 2:
+                violations.append(
+                    f"{path}: detailed Adaptive Assurance study content leaked into live/default context"
+                )
+
+    if violations:
+        raise AssertionError("\n".join(violations))
+
+
+def collect_contract_markdown(root: Path) -> dict[str, str]:
+    files: dict[str, str] = {}
+    roots = (
+        root / "research/adaptive-assurance",
+        root / "docs",
+        root / "src/skills",
+        root / "claude/skills",
+        root / "codex/plugin/skills",
+    )
+    for scan_root in roots:
+        if not scan_root.exists():
+            continue
+        for path in scan_root.rglob("*.md"):
+            files[path.relative_to(root).as_posix()] = path.read_text(encoding="utf-8")
+    return files
 
 
 class AdaptiveAssurancePilotReadinessTests(unittest.TestCase):
     def assert_terms(self, body: str, terms: tuple[str, ...], context: str) -> None:
-        missing = [term for term in terms if " ".join(term.split()) not in body]
+        missing = [term for term in terms if normalize_text(term) not in body]
         self.assertFalse(missing, f"missing {context}: {missing}")
 
-    def test_study_is_outside_default_docs_and_live_skill_surfaces(self):
-        self.assertTrue(PROTOCOL.is_file())
-        self.assertTrue(OBSERVATION.is_file())
-        self.assertTrue(REPORT.is_file())
-        self.assertFalse(
-            (ROOT / "docs/adaptive-assurance-observation-study.md").exists()
-        )
-        self.assertFalse(
-            (ROOT / "docs/adaptive-assurance-observation-template.md").exists()
-        )
+    def test_detailed_study_is_allowlisted_outside_default_and_live_context(self):
+        files = collect_contract_markdown(ROOT)
+        validate_research_placement(files)
 
-        names = {PROTOCOL.name, OBSERVATION.name, REPORT.name}
-        for surface in (
-            ROOT / "src/skills",
-            ROOT / "claude/skills",
-            ROOT / "codex/plugin/skills",
-        ):
-            for path in surface.rglob("*.md"):
-                body = path.read_text(encoding="utf-8")
-                with self.subTest(path=path.relative_to(ROOT).as_posix()):
-                    for name in names:
-                        self.assertNotIn(name, body)
+    def test_renamed_research_copies_are_rejected_from_default_and_live_context(self):
+        files = collect_contract_markdown(ROOT)
+        protocol = files[PROTOCOL.relative_to(ROOT).as_posix()]
+        slightly_renamed_protocol = protocol.replace(
+            "# Adaptive Assurance Pilot-Readiness Study",
+            "# Internal Pilot Evaluation Notes",
+            1,
+        )
+        mutations = (
+            ("docs/renamed-pilot-study.md", protocol),
+            (
+                "src/skills/prime/references/renamed-pilot-study.md",
+                slightly_renamed_protocol,
+            ),
+        )
+        for path, body in mutations:
+            mutated = dict(files)
+            mutated[path] = body
+            with self.subTest(path=path):
+                with self.assertRaises(AssertionError):
+                    validate_research_placement(mutated)
 
     def test_study_is_pilot_readiness_not_classifier_accuracy_only(self):
         body = normalized(PROTOCOL)

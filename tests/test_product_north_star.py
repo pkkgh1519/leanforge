@@ -1,5 +1,7 @@
+import re
 import unittest
 from pathlib import Path
+from typing import Mapping
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -8,19 +10,142 @@ ARCHITECTURE = ROOT / "docs/architecture.md"
 CONTRACTS = ROOT / "docs/contracts.md"
 STANDARDS = ROOT / "docs/standards.md"
 PHASE1 = ROOT / "docs/adaptive-assurance-phase1.md"
+STATUS = ROOT / "docs/tracking/status.md"
+PROTOCOL = ROOT / "research/adaptive-assurance/pilot-readiness-study.md"
+REPORT = ROOT / "research/adaptive-assurance/pilot-readiness-report-template.md"
+
+PRODUCT_DOCUMENTS = (
+    BUSINESS,
+    ARCHITECTURE,
+    CONTRACTS,
+    STANDARDS,
+    PHASE1,
+    STATUS,
+    PROTOCOL,
+    REPORT,
+)
+
+
+def normalize_text(value: str) -> str:
+    return " ".join(value.split())
 
 
 def normalized(path: Path) -> str:
-    return " ".join(path.read_text(encoding="utf-8").split())
+    return normalize_text(path.read_text(encoding="utf-8"))
+
+
+def _sentences(value: str) -> tuple[str, ...]:
+    normalized_value = normalize_text(value)
+    return tuple(
+        sentence.strip()
+        for sentence in re.split(r"(?<=[.!?])\s+", normalized_value)
+        if sentence.strip()
+    )
+
+
+def _is_negated(sentence: str) -> bool:
+    lowered = sentence.lower()
+    return any(
+        token in lowered
+        for token in (
+            "아니다",
+            "않는다",
+            "않으며",
+            "않고",
+            "해서는 안",
+            "할 수 없다",
+            "금지",
+            "never",
+            "must not",
+            "does not",
+            "do not",
+            "cannot",
+            "is not",
+            "are not",
+            "outside",
+            "forbidden",
+        )
+    )
+
+
+def validate_no_normative_inversions(documents: Mapping[str, str]) -> None:
+    violations: list[str] = []
+    for path, body in documents.items():
+        for sentence in _sentences(body):
+            lowered = sentence.lower()
+            negated = _is_negated(sentence)
+
+            if (
+                "제품의 1차 성과는" in sentence
+                and any(term in lowered for term in ("문서 수", "reviewer 수", "worktree 수"))
+                and not negated
+            ):
+                violations.append(f"{path}: primary outcome inverted: {sentence}")
+
+            if (
+                "time to trusted change" in lowered
+                and any(
+                    term in lowered
+                    for term in (
+                        "참고 지표",
+                        "secondary metric",
+                        "optional metric",
+                        "non-primary metric",
+                    )
+                )
+                and not negated
+            ):
+                violations.append(f"{path}: north-star metric demoted: {sentence}")
+
+            has_all_modes = all(mode in lowered for mode in ("lite", "standard", "assurance"))
+            user_subject = any(term in lowered for term in ("사용자", "user"))
+            selection_verb = any(term in lowered for term in ("선택", "choose", "select"))
+            if has_all_modes and user_subject and selection_verb and not negated:
+                violations.append(f"{path}: user-facing mode selection introduced: {sentence}")
+
+            standard_topology = (
+                "standard" in lowered
+                and any(term in lowered for term in ("세 번째", "third", "three"))
+                and any(
+                    term in lowered
+                    for term in ("workflow", "topology", "orchestration", "실행 경로")
+                )
+            )
+            if standard_topology and not negated:
+                violations.append(f"{path}: third Standard topology introduced: {sentence}")
+
+            go_authority = (
+                ("go_to_phase_2_design_review" in lowered or "go recommendation" in lowered)
+                and any(
+                    term in lowered
+                    for term in (
+                        "activation",
+                        "activate_lite",
+                        "reviewer",
+                        "worktree",
+                        "evidence reuse",
+                        "harness sync",
+                    )
+                )
+                and any(term in lowered for term in ("승인", "허용", "authorize", "approve", "permit"))
+            )
+            if go_authority and not negated:
+                violations.append(f"{path}: GO authority expanded beyond design review: {sentence}")
+
+    if violations:
+        raise AssertionError("\n".join(violations))
 
 
 class ProductNorthStarContractTests(unittest.TestCase):
     def assert_terms(self, body: str, terms: tuple[str, ...], context: str) -> None:
-        missing = [term for term in terms if " ".join(term.split()) not in body]
+        missing = [term for term in terms if normalize_text(term) not in body]
         self.assertFalse(missing, f"missing {context}: {missing}")
 
-    def test_business_rules_define_authoritative_user_outcome(self):
-        body = normalized(BUSINESS)
+    def test_business_rules_define_one_authoritative_user_outcome(self):
+        raw = BUSINESS.read_text(encoding="utf-8")
+        body = normalize_text(raw)
+        self.assertEqual(1, raw.count("## 제품 북극성 — 최상위 권위"))
+        self.assertEqual(1, raw.count("## Adaptive Assurance 경계"))
         self.assert_terms(
             body,
             (
@@ -152,6 +277,47 @@ class ProductNorthStarContractTests(unittest.TestCase):
             ),
             "north-star release standards",
         )
+
+    def test_authoritative_documents_have_no_normative_inversions(self):
+        documents = {
+            path.relative_to(ROOT).as_posix(): path.read_text(encoding="utf-8")
+            for path in PRODUCT_DOCUMENTS
+        }
+        validate_no_normative_inversions(documents)
+
+    def test_known_opposite_product_mutations_are_rejected(self):
+        documents = {
+            path.relative_to(ROOT).as_posix(): path.read_text(encoding="utf-8")
+            for path in PRODUCT_DOCUMENTS
+        }
+        mutations = (
+            (
+                "primary-outcome-inversion",
+                BUSINESS.relative_to(ROOT).as_posix(),
+                "제품의 1차 성과는 문서 수와 reviewer 수이며 Time to Trusted Change는 참고 지표일 뿐이다.",
+            ),
+            (
+                "user-mode-selection",
+                CONTRACTS.relative_to(ROOT).as_posix(),
+                "사용자는 Lite, Standard, Assurance 세 실행 workflow 중 하나를 직접 선택해야 한다.",
+            ),
+            (
+                "third-standard-topology",
+                ARCHITECTURE.relative_to(ROOT).as_posix(),
+                "Standard를 세 번째 live workflow로 추가하고 별도 orchestration으로 실행한다.",
+            ),
+            (
+                "go-authorizes-activation",
+                PROTOCOL.relative_to(ROOT).as_posix(),
+                "GO_TO_PHASE_2_DESIGN_REVIEW은 Lite activation과 reviewer/worktree 생략을 승인한다.",
+            ),
+        )
+        for name, path, opposite in mutations:
+            mutated = dict(documents)
+            mutated[path] = mutated[path] + "\n\n" + opposite + "\n"
+            with self.subTest(mutation=name):
+                with self.assertRaises(AssertionError):
+                    validate_no_normative_inversions(mutated)
 
 
 if __name__ == "__main__":
