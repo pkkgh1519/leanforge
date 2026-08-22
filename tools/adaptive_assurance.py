@@ -91,7 +91,8 @@ def validate_contract(value: Any) -> dict[str, Any]:
         raise ContractError("contract root must be an object")
     _exact_keys(value, CONTRACT_KEYS, "contract")
     if (
-        value["schema_version"] != 1
+        type(value["schema_version"]) is not int
+        or value["schema_version"] != 1
         or value["contract_id"] != "leanforge.adaptive-assurance"
     ):
         raise ContractError("unsupported contract identity")
@@ -99,7 +100,8 @@ def validate_contract(value: Any) -> dict[str, Any]:
         raise ContractError("phase 1 must remain shadow_only=true")
 
     modes = _unique_strings(value["modes"], "modes")
-    if modes != ("lite", "standard", "assurance") or tuple(value["mode_order"]) != modes:
+    mode_order = _unique_strings(value["mode_order"], "mode_order")
+    if modes != ("lite", "standard", "assurance") or mode_order != modes:
         raise ContractError("mode order must be lite, standard, assurance")
     if value["default_mode"] != "standard" or value["first_cycle_mode"] != "assurance":
         raise ContractError("unexpected routing defaults")
@@ -110,13 +112,15 @@ def validate_contract(value: Any) -> dict[str, Any]:
     hard = set(
         _unique_strings(value["hard_assurance_triggers"], "hard_assurance_triggers")
     )
+    if "unknown_material_risk" not in hard:
+        raise ContractError("unknown material risk must fail closed to Assurance")
     lite = value["lite"]
     if not isinstance(lite, dict) or set(lite) != {"required_true", "required_false"}:
         raise ContractError("lite contract must be closed")
     required_true = set(_unique_strings(lite["required_true"], "lite.required_true"))
     required_false = set(_unique_strings(lite["required_false"], "lite.required_false"))
-    if required_true & required_false or not (required_true | required_false) <= facts:
-        raise ContractError("invalid Lite fact sets")
+    if required_true & required_false or (required_true | required_false) != facts:
+        raise ContractError("Lite fact sets must partition the closed fact vocabulary")
 
     durable = set(
         _unique_strings(value["durable_change_triggers"], "durable_change_triggers")
@@ -155,8 +159,6 @@ def validate_contract(value: Any) -> dict[str, Any]:
         != EVIDENCE_KEYS - {"outcome"}
     ):
         raise ContractError("invalid evidence reuse contract")
-    if not hard:
-        raise ContractError("hard trigger vocabulary must not be empty")
     return value
 
 
@@ -164,7 +166,11 @@ def validate_case(case: Any, contract: Mapping[str, Any]) -> dict[str, Any]:
     if not isinstance(case, dict):
         raise ContractError("case root must be an object")
     _exact_keys(case, CASE_KEYS, "case")
-    if case["schema_version"] != 1 or case["cycle"] not in {"first", "delta"}:
+    if (
+        type(case["schema_version"]) is not int
+        or case["schema_version"] != 1
+        or case["cycle"] not in {"first", "delta"}
+    ):
         raise ContractError("invalid case identity")
     if not isinstance(case["case_id"], str) or not case["case_id"]:
         raise ContractError("case_id must be non-empty")

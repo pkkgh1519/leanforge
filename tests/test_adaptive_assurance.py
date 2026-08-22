@@ -60,6 +60,49 @@ class AdaptiveAssuranceTest(unittest.TestCase):
         with self.assertRaises(adaptive.ContractError):
             adaptive.validate_contract(mutated)
 
+    def test_core_contract_shape_mutations_fail_closed(self):
+        mutations = (
+            (
+                "boolean-schema-version",
+                lambda value: value.__setitem__("schema_version", True),
+            ),
+            (
+                "object-mode-order",
+                lambda value: value.__setitem__(
+                    "mode_order",
+                    {"lite": 0, "standard": 1, "assurance": 2},
+                ),
+            ),
+            (
+                "unclassified-lite-fact",
+                lambda value: value["lite"]["required_false"].remove(
+                    "runtime_service_change"
+                ),
+            ),
+            (
+                "missing-unknown-material-risk",
+                lambda value: value["hard_assurance_triggers"].remove(
+                    "unknown_material_risk"
+                ),
+            ),
+        )
+        for name, mutate in mutations:
+            mutated = copy.deepcopy(CONTRACT)
+            mutate(mutated)
+            with self.subTest(mutation=name):
+                with self.assertRaises(adaptive.ContractError):
+                    adaptive.validate_contract(mutated)
+
+    def test_case_schema_version_rejects_boolean(self):
+        case = {
+            k: copy.deepcopy(v)
+            for k, v in CORPUS["cases"][0].items()
+            if k not in {"expected_mode", "expected_harness_sync"}
+        }
+        case["schema_version"] = True
+        with self.assertRaises(adaptive.ContractError):
+            adaptive.route_case(case, CONTRACT)
+
     def test_unknown_trigger_fails_closed(self):
         case = {
             k: copy.deepcopy(v)

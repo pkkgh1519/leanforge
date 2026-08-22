@@ -10,9 +10,18 @@ from pathlib import Path
 from adaptive_assurance import ContractError, load_json, shadow_payload
 
 
+def shadow_tmp_path(path: Path) -> Path:
+    return path.with_name(path.name + ".tmp")
+
+
+def discard_stale_output(path: Path) -> None:
+    path.unlink(missing_ok=True)
+    shadow_tmp_path(path).unlink(missing_ok=True)
+
+
 def write_atomic(path: Path, value: dict) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    tmp = path.with_name(path.name + ".tmp")
+    tmp = shadow_tmp_path(path)
     tmp.write_text(
         json.dumps(value, indent=2, sort_keys=True) + "\n",
         encoding="utf-8",
@@ -28,10 +37,17 @@ def main() -> int:
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
     try:
+        discard_stale_output(args.output)
         contract = load_json(args.contract)
         case = load_json(args.case)
         write_atomic(args.output, shadow_payload(case, contract))
-    except ContractError as exc:
+    except (ContractError, OSError) as exc:
+        try:
+            discard_stale_output(args.output)
+        except OSError as cleanup_exc:
+            parser.error(
+                f"{exc}; cannot discard stale shadow output: {cleanup_exc}"
+            )
         parser.error(str(exc))
     return 0
 

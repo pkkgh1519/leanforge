@@ -62,12 +62,15 @@ class AdaptiveAssuranceShadowRunnerTest(unittest.TestCase):
             self.assertTrue(payload["shadow_only"])
             self.assertFalse(payload["harness_sync"])
 
-    def test_malformed_case_fails_without_output(self):
+    def test_malformed_case_discards_existing_output(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             case_path = root / "bad.json"
             output = root / "out.json"
+            stale_tmp = output.with_name(output.name + ".tmp")
             case_path.write_text('{"schema_version":1}\n', encoding="utf-8")
+            output.write_text('{"mode":"lite"}\n', encoding="utf-8")
+            stale_tmp.write_text("stale\n", encoding="utf-8")
             completed = subprocess.run(
                 [
                     sys.executable,
@@ -86,6 +89,7 @@ class AdaptiveAssuranceShadowRunnerTest(unittest.TestCase):
             )
             self.assertNotEqual(0, completed.returncode)
             self.assertFalse(output.exists())
+            self.assertFalse(stale_tmp.exists())
 
 
 if __name__ == "__main__":

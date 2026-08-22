@@ -71,12 +71,19 @@ at runtime, never assumed here.
 ## Adaptive Assurance shadow observation
 
 At the **ELICIT exit**, after every user-owned ambiguity has been settled or explicitly dispositioned,
-load `adaptive-assurance-contract.json` once and record an advisory decision in
+load `adaptive-assurance-contract.json` once and record an advisory **ELICIT-exit prediction** in
 `.leanforge/assurance-shadow.json`.
+
+This prediction is the current Prime cycle's replaceable snapshot, not a final 3-doc or Run outcome
+and not an observation history. Before deriving it, remove any existing sidecar. Any later return to
+ELICIT must replace the snapshot at the next ELICIT exit; later reviewer, planning, and Run outcomes
+are compared separately when evaluating shadow observations.
 
 Use only facts already grounded by ORIENT/ELICIT plus the closed contract vocabulary. Do **not** ask the
 user a question merely to improve this shadow classification. If a material risk cannot be classified,
-record `unknown_material_risk`, which routes the shadow result to `assurance`.
+record `unknown_material_risk`, which routes the shadow result to `assurance`. If a complete record
+cannot be derived and validated, leave the sidecar absent; do not ask the user or block Prime merely
+to preserve shadow telemetry.
 
 The record is deterministic and contains exactly:
 
@@ -94,9 +101,9 @@ The record is deterministic and contains exactly:
 }
 ```
 
-Write the record atomically under `.leanforge/` and omit timestamps or environment-specific paths.
-`harness_sync` is advisory only: first cycle is always `true`; on a delta it is `true` only when a
-closed durable-change trigger is present.
+After validating the complete record, write it atomically under `.leanforge/`; never incrementally edit
+the destination. Omit timestamps or environment-specific paths. `harness_sync` is advisory only: first
+cycle is always `true`; on a delta it is `true` only when a closed durable-change trigger is present.
 
 **Shadow means no authority.** This record must not change Prime's stage sequence, question policy,
 independent reviewers, 3-doc contents, user approval, Run routing/worktrees, verification topology,

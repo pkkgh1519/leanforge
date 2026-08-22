@@ -35,9 +35,15 @@ dependencies.
 
 ## Live shadow observation
 
-Prime now records an advisory `.leanforge/assurance-shadow.json` at the ELICIT exit, after user-owned
+Prime records an advisory `.leanforge/assurance-shadow.json` at the ELICIT exit, after user-owned
 ambiguity has been settled. The hook lives in the already-loaded `grounds-gate.md` reference so it adds
 no new Markdown reference load. It loads only the small closed JSON contract.
+
+The sidecar is an ELICIT-exit prediction for the current Prime cycle, not a final 3-doc or Run outcome
+and not an observation history. Prime removes any prior snapshot before deriving the new one. If it
+cannot complete and validate the closed record, it leaves the sidecar absent without changing the
+Full Assurance flow or asking the user merely for shadow telemetry. A later return to ELICIT replaces
+the snapshot at its next exit; later reviewer, planning, and Run outcomes are compared separately.
 
 The record schema, routing predicate, and decision-reason vocabulary are closed and timestamp-free.
 The grounded fact classification still belongs to Prime; the shadow result has no execution authority.
