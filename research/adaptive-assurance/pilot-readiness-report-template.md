@@ -1,135 +1,124 @@
 # Adaptive Assurance Pilot-Readiness Report
 
-> Produce this report from one pinned study batch. Publish only redacted aggregates and redacted
-> underclassification summaries. The report may authorize a Phase 2 design review, never Lite
-> activation.
+> Report one pinned study batch using redacted aggregates. This report may authorize a Phase 2 design
+> review, never Lite activation.
 
 ## 1. Decision
 
 - Recommendation: `<GO_TO_PHASE_2_DESIGN_REVIEW | NO_GO>`
-- Pinned Leanforge commit: `<exact SHA>`
-- Adaptive Assurance contract Git blob: `<exact blob id>`
+- Source commit: `<exact SHA>`
+- Contract blob: `<exact blob id>`
+- Generated-package digest by host: `<values>`
+- Installed-package digest by host: `<values>`
 - Proposed pilot host scope: `<claude | codex | both | none>`
-- Proposed execution topology: `<strict Lite vs existing Full Assurance | none>`
-- Decision rationale: `<concise intersection of safety, cost, quality, burden, value, reversibility>`
+- Proposed topology: `<strict Lite vs existing Full Assurance | none>`
+- Rationale: `<safety, tax, quality, burden, value, reversibility>`
 
-## 2. Product north-star summary
+## 2. Product gate summary
 
-- Primary outcome assessed: `Time to Trusted Change`
-- Safety gate: `<pass | fail | unevaluable>`
-- Shadow-tax gate: `<pass | fail | unevaluable>`
-- Quality gate: `<pass | fail | unevaluable>`
-- User-burden gate: `<pass | fail | unevaluable>`
-- Potential-value gate: `<pass | fail | unevaluable>`
-- Binary reversibility gate: `<pass | fail | unevaluable>`
+| Gate | Claude | Codex | Overall |
+|---|---|---|---|
+| Safety and wrong-path | `<result>` | `<result>` | `<result>` |
+| Removable-gate intervention | `<result>` | `<result>` | `<result>` |
+| Installed identity and smoke | `<result>` | `<result>` | `<result>` |
+| Shadow tax and endpoints | `<result>` | `<result>` | `<result>` |
+| Quality | `<result>` | `<result>` | `<result>` |
+| User burden | `<result>` | `<result>` | `<result>` |
+| Prevalence-weighted value | `<result>` | `<result>` | `<result>` |
+| Binary reversibility | `<result>` | `<result>` | `<result>` |
 
-A GO recommendation requires every gate to pass. A missing or unevaluable gate is NO-GO.
+Every proposed host must pass independently. Missing or unevaluable data is NO-GO for that host.
 
-## 3. Cohort and integrity
+## 3. Cohort, endpoints, and representative coverage
 
-- Study batch: `<id>`
-- Observation window/case range: `<scope>`
-- Inclusion/exclusion criteria: `<criteria id and summary>`
-- Eligible cycles: `<count>`
-- Enrolled cycles: `<count>`
-- Excluded cycles by predeclared reason: `<counts>`
-- Sidecar absent: `<count>`
-- Unevaluable: `<count>`
-- Claude usable observations: `<count>`
-- Codex usable observations: `<count>`
-- Blinding or integrity exceptions: `<count and disposition>`
+- Observation window and criteria: `<summary>`
+- Eligible/enrolled/excluded/absent/unevaluable: `<counts>`
+- Counts by host and shadow mode: `<table>`
+- Counts by evidence endpoint: `<Prime-only | Run completion | Run blocker | abandonment>`
+- Run-qualified shadow-Lite count by host: `<counts>`
+- Counts by task category: `<redacted table>`
+- Counts by Lite required-true failure: `<redacted table>`
+- Counts by Lite required-false violation: `<redacted table>`
+- Counts by later escalation family: `<redacted table>`
+- Counts by hard-trigger family: `<redacted table>`
+- Counts by removable-gate intervention: `<redacted table>`
+- Per-host coverage floors satisfied: `<yes | no>`
 
-## 4. Safety observation
+## 4. Safety classification and interventions
 
-### Counts by shadow mode and observed class
+### Shadow mode versus escalated observed class
 
-| Shadow | Observed Lite | Observed Standard | Observed Assurance | Unevaluable |
-|---|---:|---:|---:|---:|
-| Lite | `<n>` | `<n>` | `<n>` | `<n>` |
-| Standard | `<n>` | `<n>` | `<n>` | `<n>` |
-| Assurance | `<n>` | `<n>` | `<n>` | `<n>` |
-| Absent | `<n>` | `<n>` | `<n>` | `<n>` |
+| Host | Shadow | Observed Lite | Observed Standard | Observed Assurance | Unevaluable |
+|---|---|---:|---:|---:|---:|
+| `<host>` | Lite | `<n>` | `<n>` | `<n>` | `<n>` |
+| `<host>` | Standard | `<n>` | `<n>` | `<n>` | `<n>` |
+| `<host>` | Assurance | `<n>` | `<n>` | `<n>` | `<n>` |
 
-### Comparison labels
+- Exact/conservative/Lite-to-Standard/material-false-negative: `<counts by host>`
+- Strict-Lite cases dependent on a removable gate: `<count by host>`
+- Unresolved wrong-path cases: `<count>`
+- Unresolved removal-dependent cases: `<count>`
 
-- Exact: `<count>`
-- Conservative: `<count>`
-- Lite-to-Standard: `<count>`
-- Material false negative: `<count>`
-- Unevaluable: `<count>`
-
-### Individual underclassifications
-
-For every Lite-to-Standard or material false negative, include a redacted summary:
-
-- Case ID: `<sanitized>`
-- Shadow → observed: `<transition>`
-- Later fact or hard trigger: `<closed atom>`
-- Causal explanation: `<redacted>`
-- Disposition: `<fixed | accepted not Lite-relevant | new batch required | unresolved>`
-
-Any unresolved Lite → Assurance case makes the report NO-GO.
+For every wrong-path or removal-dependent case, include sanitized case ID, later fact/signal/gate,
+consequence, disposition, and whether a new batch is required. Any unresolved instance is NO-GO.
 
 ## 5. Installed-host behavior smoke
 
-- Total smokes: `<count>`
-- Claude: `<count>`
-- Codex: `<count>`
-- Classification-only user questions: `<count>`
-- Classification subagents: `<count>`
-- Mode choices shown to user: `<count>`
-- Live Prime/Run behavior changes: `<count>`
-- Telemetry failures that blocked product outcome: `<count>`
-- Gate result: `<pass | fail | unevaluable>`
+| Host | Installed digest matched | Smokes | Mode questions | Classification agents | Live changes | Telemetry blockers | Result |
+|---|---|---:|---:|---:|---:|---:|---|
+| Claude | `<yes/no>` | `<n>` | `<n>` | `<n>` | `<n>` | `<n>` | `<result>` |
+| Codex | `<yes/no>` | `<n>` | `<n>` | `<n>` | `<n>` | `<n>` | `<result>` |
 
-## 6. Paired A/B shadow-tax benchmark
+## 6. Host-stratified paired A/B shadow-tax benchmark
+
+For each proposed host provide a separate table. Do not pool host strata.
+
+### `<host>`
 
 - A revision: `2d2be39c01c9d19819acb0c658f07d06b06931a7`
-- B revision: `<pinned candidate SHA>`
-- Cases: `<count and categories>`
-- Hosts: `<scope>`
-- Repetitions: `<count>`
-- A/B order randomized: `<yes | no>`
-- Material host/model/settings changes: `<none | details and separated strata>`
+- B revision: `<candidate SHA>`
+- Generated and installed digest verified: `<yes | no>`
+- Total pairs: `<n>`
+- Both reached G7: `<n>`
+- A-only stop / B-only stop / both stop: `<counts>`
+- Successful-G7 rate A/B: `<rates>`
 
-| Metric | A | B | Delta | Margin | Result |
+| Metric on matched successful-G7 pairs | A | B | Delta | Margin | Result |
 |---|---:|---:|---:|---:|---|
-| Median time-to-G7 | `<v>` | `<v>` | `<%>` | `≤ +5%` | `<pass/fail>` |
-| p90 time-to-G7 | `<v>` | `<v>` | `<%>` | `≤ +10%` | `<pass/fail>` |
-| Median tokens/usage | `<v>` | `<v>` | `<%>` | `<predeclared>` | `<pass/fail/NA>` |
-| Median tool calls | `<v>` | `<v>` | `<v>` | `<predeclared>` | `<pass/fail>` |
-| Median files read | `<v>` | `<v>` | `<v>` | no broad scan | `<pass/fail>` |
-| User questions | `<v>` | `<v>` | `<v>` | `0 classification-only` | `<pass/fail>` |
-| Subagent dispatches | `<v>` | `<v>` | `<v>` | `0 classification-only` | `<pass/fail>` |
+| Median time-to-G7 seconds | `<v>` | `<v>` | `<%>` | `≤ +5%` | `<result>` |
+| p90 time-to-G7 seconds | `<v>` | `<v>` | `<%>` | `≤ +10%` | `<result>` |
+| Median tokens/usage | `<v>` | `<v>` | `<%>` | `<predeclared>` | `<result>` |
+| Median tool calls | `<v>` | `<v>` | `<v>` | `<predeclared>` | `<result>` |
+| Median files read | `<v>` | `<v>` | `<v>` | no broad scan | `<result>` |
+| User questions | `<v>` | `<v>` | `<v>` | `0 classification-only` | `<result>` |
+| Subagent dispatches | `<v>` | `<v>` | `<v>` | `0 classification-only` | `<result>` |
 
-- Structural overhead confirmed as at most one contract read and one sidecar replacement: `<yes | no>`
-- Shadow-tax gate: `<pass | fail | unevaluable>`
+A B-only stop, lower B successful-G7 rate, unavailable required metric, or failed margin fails this host.
 
-## 7. Quality and user burden
+## 7. Predeclared quality and user burden by host
 
-- Blinded 3-doc comparisons: `<count>`
-- Surviving user-owned ambiguity, A/B: `<counts>`
-- 3-doc-gate blocker rate, A/B: `<rates>`
-- Graph/coverage defects, A/B: `<counts>`
-- User reply turns, A/B: `<values>`
-- Approval-summary size, A/B: `<values>`
-- Extra approval steps: `<count>`
-- Quality gate: `<pass | fail | unevaluable>`
-- User-burden gate: `<pass | fail | unevaluable>`
+| Host | B-only critical defects | Median score delta | B worse by ≥1 | B≤2 while A≥4 | Blocker-rate delta | Summary-size delta | Result |
+|---|---:|---:|---:|---:|---:|---:|---|
+| Claude | `<n>` | `<v>` | `<%>` | `<n>` | `<v>` | `<%>` | `<result>` |
+| Codex | `<n>` | `<v>` | `<%>` | `<n>` | `<v>` | `<%>` | `<result>` |
 
-## 8. Potential value
+Required margins per proposed host: zero B-only critical defects, median score delta at least -0.25, no
+more than 10% of pairs worse by one point or more, zero B≤2 when A≥4, no blocker-rate increase, zero
+classification-only questions or approval steps, and no more than 10% median approval-summary growth.
 
-- Strict-Lite usable cases: `<count>`
-- Candidate removable ceremonies: `<redacted aggregate>`
-- Median conservatively estimated removable cost: `<value>`
-- Median measured shadow tax: `<value>`
-- Estimated removable-cost / shadow-tax ratio: `<ratio>`
-- Required ratio: `≥ 2×`
-- Promotion/recovery allowance included: `<yes | no>`
-- Savings depend on a third Standard topology: `<yes | no; yes is failure>`
-- Potential-value gate: `<pass | fail | unevaluable>`
+## 8. Cohort-level potential value in wall-clock seconds
 
-These figures are a design estimate. They are not actual Lite performance evidence.
+Calculate separately for every proposed host using all enrolled eligible cycles in the prevalence
+denominator.
+
+| Host | Enrolled cycles | Final strict-Lite Run-qualified cycles | Strict-Lite prevalence | Median removable seconds | Weighted removable benefit/cycle | Median shadow-tax seconds | Promotion/recovery seconds/cycle | Expected cost/cycle | Ratio | Net seconds/cycle | Result |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|
+| Claude | `<n>` | `<n>` | `<v>` | `<v>` | `<v>` | `<v>` | `<v>` | `<v>` | `<v>` | `<v>` | `<result>` |
+| Codex | `<n>` | `<n>` | `<v>` | `<v>` | `<v>` | `<v>` | `<v>` | `<v>` | `<v>` | `<v>` | `<result>` |
+
+The common unit is seconds. Weighted removable benefit must be at least 2× expected cost, expected net
+seconds per enrolled cycle must be positive, and no benefit may depend on a third Standard topology.
+These are design estimates, not actual Lite performance evidence.
 
 ## 9. Phase 2 boundary
 
@@ -137,24 +126,23 @@ A GO recommendation must propose only:
 
 ```text
 strict Lite
-    or, on any uncertainty/new risk
+    or, on uncertainty or new risk
 existing Full Assurance
 ```
 
 - Standard remains observation-only: `<yes | no>`
 - User mode selection absent: `<yes | no>`
 - Additional mode question absent: `<yes | no>`
-- Monotonic Full Assurance fallback defined: `<yes | no>`
-- Pilot can be disabled without breaking shadow or Full Assurance: `<yes | no>`
-- Binary reversibility gate: `<pass | fail | unevaluable>`
+- Full Assurance fallback monotonic: `<yes | no>`
+- Pilot disable leaves shadow and Full Assurance usable: `<yes | no>`
+- Binary reversibility result: `<pass | fail | unevaluable>`
 
 ## 10. Limitations and next action
 
 - Unavailable measurements: `<list>`
-- Sampling limitations: `<list>`
-- Host-scope limitations: `<list>`
-- Uncertainty that remains: `<list>`
-- Next action: `<revise shadow and restart batch | stop | open separate Phase 2 design review>`
+- Sampling and host limitations: `<list>`
+- Remaining uncertainty: `<list>`
+- Next action: `<restart batch | stop | open separate Phase 2 design review>`
 
-Even a GO report states only that a bounded pilot design is worth reviewing. Actual end-to-end Time to
-Trusted Change improvement must be measured in Phase 2 before any broader activation.
+Even a GO report only says a bounded pilot design is worth reviewing. Phase 2 must measure actual
+end-to-end Time to Trusted Change before broader activation.

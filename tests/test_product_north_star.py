@@ -36,19 +36,40 @@ def normalized(path: Path) -> str:
 
 def _policy_units(value: str) -> tuple[str, ...]:
     units: list[str] = []
+    current: list[str] = []
     in_fence = False
+
+    def flush() -> None:
+        if not current:
+            return
+        paragraph = normalize_text(" ".join(current))
+        units.extend(
+            sentence.strip()
+            for sentence in re.split(r"(?<=[.!?])\s+", paragraph)
+            if sentence.strip()
+        )
+        current.clear()
+
     for raw_line in value.splitlines():
         stripped = raw_line.strip()
         if stripped.startswith("```"):
+            flush()
             in_fence = not in_fence
             continue
-        if in_fence or not stripped or stripped.startswith("#"):
+        if in_fence:
             continue
-        units.extend(
-            sentence.strip()
-            for sentence in re.split(r"(?<=[.!?])\s+", normalize_text(stripped))
-            if sentence.strip()
-        )
+        if not stripped:
+            flush()
+            continue
+        if stripped.startswith("#"):
+            flush()
+            continue
+        if re.match(r"^(?:[-*+]|\d+[.)])\s+", stripped):
+            flush()
+            current.append(stripped)
+            continue
+        current.append(stripped)
+    flush()
     return tuple(units)
 
 
@@ -75,6 +96,7 @@ def _is_negated(sentence: str) -> bool:
             "forbidden",
             "exclude",
             "yes is failure",
+            "no benefit",
         )
     )
 
@@ -321,7 +343,7 @@ class ProductNorthStarContractTests(unittest.TestCase):
             (
                 "user-mode-selection",
                 CONTRACTS.relative_to(ROOT).as_posix(),
-                "사용자는 Lite, Standard, Assurance 세 실행 workflow 중 하나를 직접 선택해야 한다.",
+                "사용자는 Lite, Standard, Assurance 세 실행 workflow 중\n하나를 직접 선택해야 한다.",
             ),
             (
                 "third-standard-topology",
@@ -331,7 +353,7 @@ class ProductNorthStarContractTests(unittest.TestCase):
             (
                 "go-authorizes-activation",
                 PROTOCOL.relative_to(ROOT).as_posix(),
-                "GO_TO_PHASE_2_DESIGN_REVIEW은 Lite activation과 reviewer/worktree 생략을 승인한다.",
+                "GO_TO_PHASE_2_DESIGN_REVIEW은 Lite activation과\nreviewer/worktree 생략을 승인한다.",
             ),
         )
         for name, path, opposite in mutations:

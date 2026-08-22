@@ -97,13 +97,15 @@ on delta work and the study machinery must not become recurring product context.
 - Per-cycle worksheet: `../research/adaptive-assurance/observation-template.md`
 - Final report template: `../research/adaptive-assurance/pilot-readiness-report-template.md`
 
-Phase 1.2 evaluates five dimensions together:
+Phase 1.2 evaluates the following together:
 
-1. no unresolved Lite-to-Assurance material false negative;
-2. shadow classification does not materially regress Prime time/token/tool cost;
-3. 3-doc quality does not deteriorate;
-4. no mode-induced user question, approval step, or reading burden;
-5. conservative removable ceremony exceeds measured shadow tax and a binary fallback is explicit.
+1. zero unresolved Lite-to-Standard or Lite-to-Assurance wrong-path decisions after later escalation;
+2. strict-Lite activation evidence is Run-qualified and does not depend on a gate proposed for removal;
+3. installed Claude/Codex package digests match the pinned generated packages;
+4. every proposed host independently passes endpoint-safe shadow-tax and predeclared quality margins;
+5. mode selection adds no user question, approval step, subagent, broad scan, or reading burden;
+6. prevalence-weighted removable seconds exceed shadow plus promotion/recovery cost by at least 2×;
+7. a binary, monotonic Full Assurance fallback remains explicit and reversible.
 
 The study uses revision-pinned real observations, installed-host behavior smokes, and a paired A/B
 benchmark against Adaptive Assurance's pre-shadow base. Its output is

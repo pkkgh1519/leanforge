@@ -1,27 +1,29 @@
 # Adaptive Assurance Phase 1.2 Observation Record
 
-> Copy this worksheet into a private study workspace for one Prime cycle. Do not commit a completed
-> record to the public Leanforge repository. Complete and seal Section A without showing its contents to
-> the adjudicator, complete Section B, then reveal Section A and complete Sections C–E.
+> Keep completed records in a private study workspace. Complete and seal Section A before the
+> adjudicator sees the prediction, complete Section B, then reveal Section A and finish the record.
 
-## A. Cohort and sealed shadow prediction — collector only
+## A. Cohort, identity, and sealed prediction
 
-- Study version: `2`
+- Study version: `3`
 - Study batch: `<batch-id>`
-- Predeclared observation window or case range: `<sealed scope>`
+- Observation window or case range: `<sealed scope>`
 - Inclusion/exclusion criteria version: `<criteria-id>`
 - Enrollment status: `<eligible | excluded>`
-- Predeclared exclusion reason, when excluded: `<reason or none>`
-- Leanforge commit: `<exact commit SHA>`
-- Adaptive Assurance contract Git blob object ID: `<exact blob id>`
+- Predeclared exclusion reason: `<reason | none>`
+- Leanforge source commit: `<exact SHA>`
+- Adaptive Assurance contract Git blob: `<exact blob id>`
+- Pinned generated-package digest: `<host-specific digest>`
+- Installed-package digest: `<host-specific digest>`
+- Installed package equals pinned generated package: `<yes | no | unverifiable>`
 - Case ID: `<sanitized-id>`
-- Coarse task category: `<docs | test | local-fix | config | feature | refactor | dependency | operations | other>`
+- Task category: `<docs | test | local-fix | config | feature | refactor | dependency | operations | other>`
 - Host: `<claude | codex | other>`
-- Model/settings label, only when exposed by the host: `<label | unavailable>`
+- Model/settings label: `<label | unavailable>`
 - Cycle: `<first | delta>`
 - Capture status: `<present | absent>`
-- Collector role or initials: `<redacted identifier>`
-- Adjudication arrangement: `<separate adjudicator | mechanically blinded same person | not independent>`
+- Collector: `<redacted identifier>`
+- Adjudication arrangement: `<separate | mechanically blinded same person | not independent>`
 
 Copy the sidecar unchanged when present:
 
@@ -40,103 +42,112 @@ Copy the sidecar unchanged when present:
 ```
 
 - Section A sealed before adjudication: `<yes | no>`
-- Prediction contents hidden from adjudicator: `<yes | no>`
-- Case enrollment decided before prediction reveal: `<yes | no>`
-- If any answer is `no`, use a second adjudicator or mark the comparison `unevaluable`.
+- Prediction hidden from adjudicator: `<yes | no>`
+- Enrollment decided before prediction reveal: `<yes | no>`
 
-## B. Independent observed class — adjudicator before reveal
+## B. Independent final evidence and escalated observed class
 
-- Pinned Leanforge commit confirmed: `<yes | no>`
-- Pinned contract blob confirmed: `<yes | no>`
-- Evidence-window endpoint: `<Prime G7 | Run completion | terminal blocker | user abandonment>`
+- Evidence endpoint: `<Prime G7 only | Run completion | Run terminal blocker | user abandonment>`
+- Run-qualified for strict-Lite activation coverage: `<yes | no>`
 - Evidence availability: `<complete | incomplete | contradictory>`
-- Evidence sources reviewed, sanitized: `<final 3-doc, reviewer findings, command evidence, blocker summary>`
-- Adjudicator role or initials: `<redacted identifier>`
-- Adjudicator had not read Section A or the sidecar: `<yes | no>`
+- Evidence sources, sanitized: `<3-doc, reviewer findings, command evidence, blocker summary>`
+- Adjudicator: `<redacted identifier>`
+- Adjudicator had not read Section A: `<yes | no>`
 
-### Observed classification
+### Final routing facts
 
-- Independently observed class: `<lite | standard | assurance | unevaluable>`
-- Newly discovered hard triggers: `<closed atoms or none>`
-- Newly discovered Lite required-true failures: `<closed facts or none>`
-- Newly discovered Lite required-false violations: `<closed facts or none>`
-- Later escalation signal: `<none | to_standard | to_assurance>`
+- Base class from final facts: `<lite | standard | assurance | unevaluable>`
+- Hard triggers: `<closed atoms | none>`
+- Lite required-true failures: `<closed facts | none>`
+- Lite required-false violations: `<closed facts | none>`
+- Later escalation signals in event order: `<closed atoms | unknown atom | none>`
+- Escalated observed class: `<lite | standard | assurance | unevaluable>`
 - Classification basis: `<concise evidence-based rationale>`
 
-Apply the pinned contract revision that produced the prediction. Do not infer success from missing
-evidence. When one class cannot be supported without guessing, select `unevaluable`.
+Unknown escalation signals fail closed to Assurance. Do not infer success from missing evidence.
+
+### Safety-relevant intervention by a proposed removable gate
+
+For each gate, record `<none | nonmaterial | safety-relevant>` and a redacted basis:
+
+- Prime intent-completeness reviewer: `<value and basis>`
+- Prime 3-doc gate reviewer: `<value and basis>`
+- worktree isolation or wave integration: `<value and basis>`
+- final independent reviewer: `<value and basis>`
+- harness synchronization eligibility: `<value and basis>`
+- Successful outcome depended on a gate proposed for removal: `<yes | no | unevaluable>`
+
+A `yes` requires eligibility or gate-design repair and a fresh study batch before it can support GO.
 
 ## C. Reveal and safety comparison
 
-Complete only after Section B is fixed.
-
 - Revealed shadow mode: `<lite | standard | assurance | absent>`
-- Comparison label: `<exact | conservative | lite_to_standard | material_false_negative | unevaluable>`
-- Material false negative: `<yes | no | unevaluable>`
-- Required safety disposition: `<none | inspect grounding | revise eligibility | revise hard-trigger detection | repeat with independent adjudicator | no-go>`
-- Resolver or second-adjudicator outcome, when used: `<concise result or none>`
+- Comparison: `<exact | conservative | lite_to_standard | material_false_negative | unevaluable>`
+- Wrong binary path: `<yes | no | unevaluable>`
+- Required disposition: `<none | inspect grounding | revise eligibility | revise gate design | new batch | no-go>`
+- Resolver outcome: `<concise result | none>`
 
-### Underclassification explanation
+For every `lite_to_standard`, material false negative, or removal-dependent case, record:
 
-Required for every `lite_to_standard` or `material_false_negative` record.
+- Initial prediction basis: `<ELICIT-exit basis>`
+- Later fact, signal, intervention, or trigger: `<closed atom or gate>`
+- Concrete consequence: `<safety, quality, recovery, or ceremony effect>`
+- Minimal repair: `<action>`
+- New batch required: `<yes | no>`
 
-- Initial prediction basis: `<what was grounded at ELICIT exit>`
-- Later fact or trigger: `<what changed or was discovered>`
-- Why the difference matters: `<concrete safety or ceremony consequence>`
-- Proposed contract, grounding, or study disposition: `<minimal action>`
-- Router or contract changed as a result: `<yes | no>`
-- If `yes`, new study batch ID: `<required new batch>`
+## D. Product and performance observation
 
-## D. Product north-star observation
+Record only values available without changing the observed cycle.
 
-Record only values available without changing the observed Prime/Run cycle.
-
-- Shadow collection caused an additional user question: `<yes | no | unevaluable>`
-- User was asked to choose or understand a mode: `<yes | no | unevaluable>`
-- Shadow collection added a subagent dispatch: `<yes | no | unevaluable>`
-- Shadow collection caused an additional broad repo scan: `<yes | no | unevaluable>`
-- Shadow collection changed live Prime or Run behavior: `<yes | no | unevaluable>`
-- Prime invocation to G7 or stop, when available: `<duration | unavailable>`
+- Classification-only user question: `<yes | no | unevaluable>`
+- User mode selection or explanation: `<yes | no | unevaluable>`
+- Classification subagent: `<yes | no | unevaluable>`
+- Classification broad repo scan: `<yes | no | unevaluable>`
+- Live Prime/Run behavior changed: `<yes | no | unevaluable>`
+- Reached G7 successfully: `<yes | no>`
+- Prime invocation to G7: `<seconds | not applicable | unavailable>`
+- Prime invocation to terminal stop: `<seconds | not applicable | unavailable>`
 - User question count: `<integer | unavailable>`
 - User reply turns: `<integer | unavailable>`
 - Subagent count: `<integer | unavailable>`
-- Tool-call or file-read count: `<value | unavailable>`
+- Tool calls or files read: `<value | unavailable>`
 - Host usage/tokens: `<value | unavailable>`
-- 3-doc-gate result: `<clear | blocking | not reached | unavailable>`
-- 3-doc-gate blocker count: `<integer | unavailable>`
-- Approval summary size: `<words/tokens | unavailable>`
+- 3-doc-gate result and blockers: `<value>`
+- Executability score, blinded 1-to-5: `<score | unavailable>`
+- Critical quality defects: `<closed categories | none | unavailable>`
+- Approval-summary size: `<words/tokens | unavailable>`
 
-### Potential Lite value
+## E. Common-unit potential value
 
-- Strict-Lite eligibility remains true at evidence-window end: `<yes | no | unevaluable>`
-- Candidate ceremony that a binary pilot could omit: `<closed list>`
-- Hard boundary that must remain: `<closed list>`
-- Measured or conservatively bounded removable cost: `<value and basis | unavailable>`
-- Expected promotion/recovery cost: `<value and basis | unavailable>`
-- Estimated net removable cost after shadow tax: `<value and uncertainty | unavailable>`
+Use wall-clock seconds for both cost and benefit.
 
-Do not record a saving that depends on removing intent ownership, actual command evidence, recovery,
-final diff, user approval, integration choice, or on creating a third Standard execution topology.
+- Final strict-Lite and Run-qualified: `<yes | no | unevaluable>`
+- Removal-dependent intervention absent: `<yes | no | unevaluable>`
+- Removable ceremony: `<closed list>`
+- Conservative removable seconds: `<seconds and basis | unavailable>`
+- Shadow-tax seconds for this enrolled cycle: `<seconds | unavailable>`
+- Promotion/recovery seconds: `<seconds | zero | unavailable>`
+- Counts in strict-Lite prevalence numerator: `<yes | no>`
+- Counts in enrolled-cycle prevalence denominator: `<yes | no>`
 
-## E. Redaction and integrity check
+Do not count savings that remove intent ownership, actual command evidence, recovery, final diff, user
+approval, integration choice, or require a third Standard topology.
 
-- [ ] The exact Leanforge commit and contract blob are recorded.
-- [ ] The observation window and inclusion/exclusion criteria were fixed before prediction reveal.
-- [ ] This case was not selected or excluded because of its shadow mode or outcome.
-- [ ] No raw user prompt is included.
-- [ ] No proprietary source, patch, or customer content is included.
-- [ ] No secret, credential, personal data, repository URL, or absolute path is included.
-- [ ] The exact sidecar payload was copied rather than reconstructed.
-- [ ] The independent class was fixed before the shadow mode was revealed.
-- [ ] Missing or contradictory evidence was not counted as a pass.
-- [ ] This record did not alter the observed Prime or Run cycle.
-- [ ] This record is not pooled with a different router, contract, host, model, or settings revision.
+## F. Integrity and disposition
 
-## F. Study disposition
+- [ ] Source, contract, generated package, and installed package identity are recorded and equal.
+- [ ] Enrollment was fixed before prediction reveal.
+- [ ] The independent class was fixed before reveal and includes later escalation signals.
+- [ ] Prime-only evidence is not counted as strict-Lite activation coverage.
+- [ ] Every proposed removable gate was checked for safety-relevant intervention.
+- [ ] Missing, stopped, or contradictory evidence was not counted as success or faster G7.
+- [ ] No raw prompt, proprietary source, secret, personal data, repository URL, or absolute path is included.
+- [ ] This record is not pooled with another source/package/host/model/settings revision.
 
 - Usable safety observation: `<yes | no>`
-- Counts toward mode coverage: `<lite | standard | assurance | no>`
-- Counts toward host coverage: `<claude | codex | other | no>`
-- Counts toward potential-value analysis: `<yes | no>`
-- Requires individual study-report entry: `<yes | no>`
-- Final note, redacted: `<optional concise note>`
+- Mode coverage: `<lite | standard | assurance | no>`
+- Host coverage: `<claude | codex | other | no>`
+- Run-qualified Lite coverage: `<yes | no>`
+- Potential-value analysis: `<yes | no>`
+- Individual report entry required: `<yes | no>`
+- Final redacted note: `<optional>`

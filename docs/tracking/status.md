@@ -9,13 +9,11 @@ Leanforge의 1차 성과는 최소한의 사용자 노력으로 완성된 신뢰
 ## 검증된 현재 상태
 
 - **v1.9.0 semantic contract foundation:** 기존 monolithic Run orchestration을 유지하면서 route topology, external proof, failure precedence, completion reuse, concern disposition, lifecycle·review ownership, user output 의미를 작은 machine-readable kernel과 stable protected Markdown block으로 결속했다.
-- **Instruction load graph:** Run의 instruction path와 activation edge를 별도 graph로 정의하고 route·overlay·phase·profile별 transitive closure를 하나의 deterministic activation path로 검증한다.
-- **독립 검증 기반:** hand-authored scenario, known-opposite mutation, canonical·generated skill surface의 exact raw-byte baseline으로 semantic kernel과 load closure를 독립 검증한다.
-- **Adaptive Assurance shadow foundation:** Prime은 ELICIT exit에서 Lite·Standard·Assurance advisory prediction을 `.leanforge/assurance-shadow.json`에 기록한다. 이 snapshot은 실행 권위가 없고 Full Assurance 흐름을 바꾸지 않는다.
-- **Shadow observation integrity:** sidecar는 현재 Prime cycle의 교체 가능한 ELICIT-exit prediction으로 한정된다. 새 record가 완성되지 않으면 이전 snapshot을 현재 결과로 남기지 않으며, closed Lite fact partition과 `unknown_material_risk` fail-closed 경계를 검증한다.
-- **Pilot-readiness study contract:** 고정된 router revision과 사전 등록 cohort에서 safety observation, installed-host behavior smoke, paired A/B shadow-tax benchmark, blinded 3-doc quality, 사용자 부담, 보수적 잠재 절감을 함께 평가한다. 완료 record와 raw benchmark log는 공개 저장소에 커밋하지 않는다.
-- **Release consistency guard:** build가 Git 없이 일곱 release surface의 정확한 label을 읽고 missing·ambiguous·mismatch를 거부한다. Baseline, 본문 예시 제외, 각 mutation을 focused test로 검증했다.
-- **명시적 Run TDD 호출:** Codex canonical/generated metadata에 implicit invocation 금지가 일치한다.
+- **Instruction load graph:** Run의 instruction path와 activation edge를 별도 graph로 정의하고 route·overlay·phase·profile별 transitive closure를 deterministic activation path로 검증한다.
+- **독립 검증 기반:** hand-authored scenario, known-opposite mutation, canonical·generated skill surface의 exact raw-byte baseline으로 semantic kernel과 load closure를 검증한다.
+- **Adaptive Assurance shadow foundation:** Prime은 ELICIT exit에서 advisory prediction을 기록하지만 Full Assurance 흐름을 바꾸지 않는다.
+- **Shadow observation integrity:** sidecar freshness, closed Lite fact partition, `unknown_material_risk` fail-closed 경계를 검증한다.
+- **Pilot-readiness study contract:** pinned source·contract·generated/installed package identity, blinded safety observation, removable-gate intervention, installed-host smoke, paired A/B shadow tax, predeclared quality, user burden, prevalence-weighted value를 함께 평가한다.
 - **Generated parity CI:** build 뒤 tracked drift, untracked output, 전체 unittest, whitespace를 순서대로 차단한다.
 
 ## Adaptive Assurance의 고정 경계
@@ -28,15 +26,15 @@ Leanforge의 1차 성과는 최소한의 사용자 노력으로 완성된 신뢰
 
 ## 남은 확정 목표
 
-1. **Phase 1.2 safety observation:** 한 pinned revision에서 최소 35개의 usable real observation을 수집한다. Shadow Lite 15건 이상, Standard 10건 이상, Assurance 10건 이상을 포함하고 모든 underclassification을 개별 처분한다.
-2. **Installed-host behavior smoke:** proposed host scope에서 최소 20회 수행한다. 두 host가 범위라면 Claude Code 10회 이상과 Codex 10회 이상을 포함하며 classification-only 질문·subagent·mode choice·live behavior 변화가 0인지 확인한다.
-3. **Paired A/B shadow-tax benchmark:** pre-shadow base `2d2be39c01c9d19819acb0c658f07d06b06931a7`와 pinned candidate를 동일 case·host·model/settings에서 비교한다. 두 host 기준 5 case × 2 version × 5 repetition으로 100회를 수행하고 median time-to-G7 +5%, p90 +10% 비열화 한계를 적용한다.
-4. **Quality·사용자 부담 gate:** blinded 3-doc review에서 intent completeness·graph·coverage·blocker rate가 악화되지 않고, mode 때문에 질문·reply turn·approval step·읽기 부담이 늘지 않아야 한다.
-5. **Potential-value gate:** 보수적인 removable-ceremony 추정치가 측정된 median shadow tax의 2배 이상이어야 한다. 이는 Phase 2 설계 가치를 판단하는 buffer이며 실제 Lite 성능 주장이 아니다.
-6. **Phase 2 design review:** 위 다섯 gate와 binary fallback이 모두 통과할 때만 별도 reviewed release 설계로 이동한다. Phase 1.2 결과는 activation 권위가 아니다.
-7. **v1.9.1 block-preserving split:** v1.9.0 계약을 기준으로 core·worktree·parallel·external·failure overlay를 분리한다. Adaptive Assurance activation과 같은 릴리스에 묶지 않으며 독립적인 의미·load closure·행동 review를 통과해야 한다.
-
-각 목표는 현재 구현을 자동 승인하지 않는다. Lite activation과 block-preserving split은 각각 독립된 사용자 승인과 release review를 요구한다.
+1. **Safety observation:** 최소 35개의 usable real observation을 수집한다. Shadow Lite 15건은 모두 Run completion 또는 Run terminal blocker까지 도달해야 하며, later escalation을 적용한 Lite-to-Standard와 Lite-to-Assurance wrong-path가 모두 해결되어야 한다.
+2. **Removable-gate safety:** strict-Lite 결과가 Prime reviewer, worktree/wave gate, final reviewer, harness sync 등 생략 후보 gate의 safety-relevant intervention에 의존한 사례가 0이어야 한다.
+3. **Installed identity and host floors:** installed package digest가 pinned generated package와 같아야 한다. 두 host pilot이면 host별 usable 15건, Lite 5건, Standard 3건, Assurance 3건 이상을 확보한다.
+4. **Installed-host behavior smoke:** proposed host scope에서 최소 20회 수행한다. 두 host가 범위라면 Claude Code 10회 이상과 Codex 10회 이상을 포함한다.
+5. **Paired A/B shadow-tax benchmark:** pre-shadow base `2d2be39c01c9d19819acb0c658f07d06b06931a7`와 pinned candidate를 5 case × 2 host × 2 version × 5 repetition으로 100회를 수행한다. 양쪽이 G7에 도달한 matched pair만 latency에 사용하고 host별 median +5%, p90 +10%, B-only stop 0을 적용한다.
+6. **Quality·사용자 부담 gate:** host별 blinded score와 critical defect, blocker rate, 질문·reply turn·approval step·summary size가 사전 고정된 non-inferiority margin을 통과해야 한다.
+7. **Potential-value gate:** 공통 단위는 wall-clock seconds다. 모든 enrolled cycle을 denominator로 한 strict-Lite prevalence를 적용하고, weighted removable benefit이 shadow tax와 promotion/recovery cost 합계의 2배 이상이며 net seconds/cycle이 양수여야 한다.
+8. **Phase 2 design review:** 위 gate가 proposed host마다 독립적으로 통과할 때만 별도 reviewed release 설계로 이동한다. Phase 1.2 결과는 activation 권위가 아니다.
+9. **v1.9.1 block-preserving split:** Adaptive Assurance activation과 같은 릴리스에 묶지 않고 독립적인 의미·load closure·행동 review를 통과한다.
 
 ## 연구 산출물
 
@@ -46,14 +44,8 @@ Leanforge의 1차 성과는 최소한의 사용자 노력으로 완성된 신뢰
 - `research/adaptive-assurance/observation-template.md`
 - `research/adaptive-assurance/pilot-readiness-report-template.md`
 
-최종 보고서 판정은 `GO_TO_PHASE_2_DESIGN_REVIEW` 또는 `NO_GO`다. GO도 실제 Lite activation을 승인하지 않는다.
-
-## 미래 방향
-
-- Phase 2 bounded pilot이 별도 승인되면 실제 end-to-end Time to Trusted Change를 기존 Full Assurance와 비교한다.
-- 실제 Claude Code·Codex host에서 behavior smoke와 paired benchmark로 deterministic contract 밖의 host 비용과 동작을 관찰한다.
-- Token·latency 개선은 위 반복 측정이 존재할 때만 주장한다. 분류 정확도나 synthetic fixture는 순효익 증거를 대체하지 않는다.
+최종 판정은 `GO_TO_PHASE_2_DESIGN_REVIEW` 또는 `NO_GO`다. GO도 Lite activation을 승인하지 않는다.
 
 ## 차단 사항
 
-현재 Full Assurance 제품 흐름에 확인된 blocker는 없다. Lite activation gate는 safety, shadow-tax, quality, user burden, potential value, binary reversibility가 모두 통과하고 별도 reviewed release가 승인될 때까지 의도적으로 닫혀 있다.
+현재 Full Assurance 제품 흐름에 확인된 blocker는 없다. Lite activation은 wrong-path, removable-gate dependence, installed identity, per-host coverage, endpoint-safe shadow tax, quality, user burden, prevalence-weighted value, binary reversibility가 모두 통과하고 별도 reviewed release가 승인될 때까지 닫혀 있다.
