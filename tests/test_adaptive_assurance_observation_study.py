@@ -17,7 +17,10 @@ def read(path: Path) -> str:
 
 class AdaptiveAssuranceObservationStudyTests(unittest.TestCase):
     def assert_terms(self, body: str, terms: tuple[str, ...], context: str) -> None:
-        missing = [term for term in terms if term not in body]
+        normalized = " ".join(body.split())
+        missing = [
+            term for term in terms if " ".join(term.split()) not in normalized
+        ]
         self.assertFalse(missing, f"missing {context}: {missing}")
 
     def test_protocol_separates_shadow_prediction_from_blinded_adjudication(self):
