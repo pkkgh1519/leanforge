@@ -68,7 +68,9 @@ class AdaptiveAssurancePilotReadinessTests(unittest.TestCase):
             body,
             (
                 "The user never selects `lite | standard | assurance`.",
-                "The first live pilot has only two execution paths: strict Lite and existing Full Assurance.",
+                "The first live pilot has only two execution paths:",
+                "strict Lite",
+                "existing Full Assurance",
                 "`standard` remains an observational label.",
                 "A newly discovered risk promotes monotonically to the existing Full Assurance path.",
                 "three independent live workflows",
