@@ -35,6 +35,21 @@ starts a new study batch. Earlier records remain historical evidence but do not 
 coverage target. This prevents a repaired router from inheriting confidence earned by a different
 predicate.
 
+## Enrollment and cohort integrity
+
+Before reading any prediction in a batch, predeclare the observation window, host scope, and objective
+inclusion/exclusion criteria. Use a consecutive time window, a consecutive case range, or a fixed maximum
+case count. Do not decide whether to enroll a case after seeing its shadow mode.
+
+Record every eligible Prime cycle in the predeclared window, including cycles with an absent sidecar,
+terminal blocker, user abandonment, or unevaluable outcome. An exclusion is allowed only for a
+predeclared objective reason and remains counted in the study report by reason. Convenience, an
+unexpected prediction, or an inconvenient outcome is not an exclusion reason.
+
+If a future pilot is intended for both Claude Code and Codex, the usable observations must represent
+both hosts and the report must break results down by host. Evidence from one host can support at most a
+host-limited pilot unless a later study covers the other host.
+
 ## Unit of observation and evidence window
 
 One observation covers one Prime cycle for one Current Delivery Slice. First and delta cycles are
@@ -75,7 +90,8 @@ the public Leanforge repository.
 Record only the minimum derived information needed for comparison:
 
 - the pinned Leanforge commit and contract blob object ID;
-- a sanitized case identifier and coarse task category;
+- the predeclared cohort identity, sanitized case identifier, host, and coarse task category;
+- the model label only when the host exposes a stable label;
 - the exact shadow payload;
 - the independently observed class and concise basis;
 - newly discovered closed facts, hard triggers, or escalation signals;
@@ -87,17 +103,20 @@ kept in a private study workspace, but the report exported from that workspace m
 
 ## Collection procedure
 
-1. Run the existing Full Assurance Prime and Run behavior unchanged.
-2. After Prime reaches G7 or stops, mechanically copy the sidecar into the sealed prediction section of
-   the template and record the pinned commit and contract blob. If the sidecar is absent, record
-   `Capture status: absent`; do not reconstruct or guess it.
-3. Without reading the prediction, adjudicate the final observed class from the completed 3-doc,
+1. Predeclare and seal the batch's observation window, host scope, inclusion criteria, and exclusion
+   criteria before reading any batch prediction.
+2. Run the existing Full Assurance Prime and Run behavior unchanged.
+3. Enroll every eligible cycle in the predeclared window. After Prime reaches G7 or stops, mechanically
+   copy the sidecar into the sealed prediction section of the template and record the pinned commit and
+   contract blob. If the sidecar is absent, record `Capture status: absent`; do not reconstruct or guess
+   it.
+4. Without reading the prediction, adjudicate the final observed class from the completed 3-doc,
    independent reviewer findings, actual Run evidence, and any terminal blocker in the evidence window.
    Apply the pinned contract revision that produced the prediction.
-4. Reveal the prediction only after the observed class and rationale are fixed.
-5. Assign one comparison label from the closed study labels below.
-6. Record whether shadow collection itself caused any additional user question or live workflow change.
-7. Preserve the record outside the public repository. The observation never changes the current cycle.
+5. Reveal the prediction only after the observed class and rationale are fixed.
+6. Assign one comparison label from the closed study labels below.
+7. Record whether shadow collection itself caused any additional user question or live workflow change.
+8. Preserve the record outside the public repository. The observation never changes the current cycle.
 
 Do not ask the user a question merely to make the study record more complete. Missing study evidence
 produces `unevaluable`, not a new product decision.
@@ -144,11 +163,12 @@ observations:
 - at least 10 shadow `assurance` predictions.
 
 The sample should cover first cycle, local reversible deltas, multiple tasks or write areas, verification
-gaps, durable changes, runtime-service changes, and representative hard-trigger families. This is a
+gaps, durable changes, runtime-service changes, and representative hard-trigger families. When both
+supported hosts are in the proposed pilot scope, both must appear in the usable sample. This is a
 coverage floor for an engineering decision, not a claim of statistical significance.
 
-Absent and unevaluable records are reported separately and do not count toward the usable total.
-Synthetic contract cases remain test oracles; they do not count as real shadow observations.
+Absent, excluded, and unevaluable records are reported separately and do not count toward the usable
+total. Synthetic contract cases remain test oracles; they do not count as real shadow observations.
 
 ## Activation decision gates
 
@@ -160,7 +180,9 @@ The bounded Lite pilot remains **NO-GO** when any of these holds:
 - any shadow `lite` case is independently observed as `assurance`;
 - a material false negative has not been explained and repaired or explicitly shown not to affect Lite;
 - a `lite_to_standard` pattern reveals an unresolved systemic eligibility or fact-grounding gap;
-- absent or unevaluable records prevent representative comparison;
+- absent, excluded, or unevaluable records prevent representative comparison;
+- enrollment was selected after prediction reveal or exclusion reasons were not predeclared;
+- the proposed host scope is not represented by usable observations;
 - shadow collection caused additional user questions or changed live Prime or Run behavior;
 - the coverage target is not met.
 
@@ -178,7 +200,9 @@ A study report contains only redacted aggregates and individually redacted under
 summaries:
 
 - the pinned Leanforge commit and contract blob object ID;
-- counts by shadow mode and independently observed class;
+- the predeclared observation window, host scope, eligible count, enrolled count, and exclusions by
+  reason;
+- counts by host, shadow mode, and independently observed class;
 - counts by comparison label;
 - sidecar absence and unevaluable counts;
 - each `lite_to_standard` and `material_false_negative` case with its causal fact or trigger;

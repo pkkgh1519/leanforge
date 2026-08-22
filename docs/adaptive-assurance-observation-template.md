@@ -8,11 +8,16 @@
 
 - Study version: `1`
 - Study batch: `<batch-id>`
+- Predeclared observation window or case range: `<sealed scope>`
+- Inclusion/exclusion criteria version: `<criteria-id>`
+- Enrollment status: `<eligible | excluded>`
+- Predeclared exclusion reason, when excluded: `<reason or none>`
 - Leanforge commit: `<exact commit SHA>`
 - Adaptive Assurance contract Git blob object ID: `<exact blob id>`
 - Case ID: `<sanitized-id>`
 - Coarse task category: `<docs | test | local-fix | config | feature | refactor | dependency | operations | other>`
 - Host: `<claude | codex | other>`
+- Model label, only when exposed by the host: `<label | unavailable>`
 - Cycle: `<first | delta>`
 - Capture status: `<present | absent>`
 - Collector role or initials: `<redacted identifier>`
@@ -36,7 +41,8 @@ Copy the sidecar unchanged when present:
 
 - Section A sealed before adjudication: `<yes | no>`
 - Prediction contents hidden from adjudicator: `<yes | no>`
-- If either answer is `no`, use a second adjudicator or mark the comparison `unevaluable`.
+- Case enrollment decided before prediction reveal: `<yes | no>`
+- If any answer is `no`, use a second adjudicator or mark the comparison `unevaluable`.
 
 ## B. Independent observed class — adjudicator before reveal
 
@@ -86,6 +92,8 @@ Required for every `lite_to_standard` or `material_false_negative` record.
 ## D. Redaction and integrity check
 
 - [ ] The exact Leanforge commit and contract blob are recorded.
+- [ ] The observation window and inclusion/exclusion criteria were fixed before prediction reveal.
+- [ ] This case was not selected or excluded because of its shadow mode or outcome.
 - [ ] No raw user prompt is included.
 - [ ] No proprietary source, patch, or customer content is included.
 - [ ] No secret, credential, personal data, repository URL, or absolute path is included.
@@ -99,5 +107,6 @@ Required for every `lite_to_standard` or `material_false_negative` record.
 
 - Usable observation: `<yes | no>`
 - Counts toward coverage target: `<lite | standard | assurance | no>`
+- Counts toward host coverage: `<claude | codex | other | no>`
 - Requires individual study-report entry: `<yes | no>`
 - Final note, redacted: `<optional concise note>`

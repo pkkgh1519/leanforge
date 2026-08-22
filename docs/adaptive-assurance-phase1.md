@@ -65,6 +65,11 @@ Each study batch uses one pinned Leanforge commit and contract blob. Router, pre
 grounding changes start a new batch rather than inheriting coverage from observations produced by a
 different contract.
 
+The study uses a predeclared cohort: its observation window, host scope, and inclusion/exclusion criteria
+are fixed before prediction reveal, and every eligible cycle is recorded. A pilot intended for both
+Claude Code and Codex requires usable evidence from both hosts; otherwise the evidence can support only
+a host-limited pilot.
+
 The protocol does not activate Lite or change live Prime or Run behavior. No completed observation
 record belongs in this public repository. Records remain in a redacted private study workspace; only
 redacted aggregates and underclassification summaries may be reported back.

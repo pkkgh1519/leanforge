@@ -51,6 +51,21 @@ class AdaptiveAssuranceObservationStudyTests(unittest.TestCase):
             "pinned router revision",
         )
 
+    def test_protocol_predeclares_enrollment_and_host_scope(self):
+        body = read(PROTOCOL)
+        self.assert_terms(
+            body,
+            (
+                "Before reading any prediction in a batch",
+                "Do not decide whether to enroll a case after seeing its shadow mode.",
+                "Record every eligible Prime cycle",
+                "Convenience, an unexpected prediction, or an inconvenient outcome is not an exclusion reason.",
+                "host-limited pilot",
+                "counts by host",
+            ),
+            "cohort selection and host coverage",
+        )
+
     def test_protocol_has_fail_closed_comparison_and_activation_gates(self):
         body = read(PROTOCOL)
         self.assert_terms(
@@ -84,7 +99,7 @@ class AdaptiveAssuranceObservationStudyTests(unittest.TestCase):
             "data-minimization and real-observation boundary",
         )
 
-    def test_manual_template_preserves_order_revision_redaction_and_exact_payload(self):
+    def test_manual_template_preserves_order_revision_cohort_and_exact_payload(self):
         body = read(TEMPLATE)
         self.assert_terms(
             body,
@@ -93,11 +108,14 @@ class AdaptiveAssuranceObservationStudyTests(unittest.TestCase):
                 "B. Independent observed class",
                 "C. Reveal and comparison",
                 "D. Redaction and integrity check",
+                "Predeclared observation window or case range:",
+                "Enrollment status:",
                 "Leanforge commit:",
                 "Adaptive Assurance contract Git blob object ID:",
                 "Copy the sidecar unchanged",
+                "Case enrollment decided before prediction reveal:",
+                "This case was not selected or excluded because of its shadow mode or outcome.",
                 "The independent class was fixed before the shadow mode was revealed.",
-                "Missing or contradictory evidence was not counted as a pass.",
                 "This record is not pooled with a different router or contract revision.",
             ),
             "manual observation worksheet",
@@ -129,6 +147,7 @@ class AdaptiveAssuranceObservationStudyTests(unittest.TestCase):
                 "adaptive-assurance-observation-study.md",
                 "adaptive-assurance-observation-template.md",
                 "one pinned Leanforge commit and contract blob",
+                "predeclared cohort",
                 "does not activate Lite",
                 "No completed observation record belongs in this public repository.",
             ),
@@ -139,6 +158,7 @@ class AdaptiveAssuranceObservationStudyTests(unittest.TestCase):
             (
                 "Phase 1.2 observation study protocol",
                 "고정된 router revision",
+                "사전 등록된 cohort",
                 "zero unresolved Lite-to-Assurance cases",
                 "별도 reviewed release",
                 "20회 behavior smoke",
