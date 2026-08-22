@@ -27,3 +27,5 @@ tests/test_adaptive_assurance*.py text eol=lf
 tools/adaptive_assurance.py text eol=lf
 tools/adaptive_assurance_shadow.py text eol=lf
 docs/adaptive-assurance-phase1.md text eol=lf
+docs/adaptive-assurance-observation-study.md text eol=lf
+docs/adaptive-assurance-observation-template.md text eol=lf

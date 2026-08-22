@@ -50,6 +50,24 @@ The grounded fact classification still belongs to Prime; the shadow result has n
 It cannot alter Prime stages, questions, independent reviews, 3-doc output, user approval, Run
 routing/worktrees, verification topology, recovery, or the current harness update policy.
 
+## Phase 1.2 observation study
+
+The manual study protocol lives in `adaptive-assurance-observation-study.md`; its copyable worksheet is
+`adaptive-assurance-observation-template.md`.
+
+The study preserves the ELICIT-exit prediction, independently adjudicates the final observed class
+without reading that prediction, and reveals the shadow result only after the independent class is
+fixed. It records exact, conservative, Lite-to-Standard, material-false-negative, and unevaluable
+comparisons. A missing or contradictory record is not success, and every underclassified case receives
+an individual disposition.
+
+The protocol does not activate Lite or change live Prime or Run behavior. No completed observation
+record belongs in this public repository. Records remain in a redacted private study workspace; only
+redacted aggregates and underclassification summaries may be reported back.
+
+A Phase 2 design review remains blocked until the study reaches representative coverage, has zero
+unresolved Lite-to-Assurance cases, and receives a separate explicit activation decision.
+
 ## Durable-memory policy
 
 A first cycle always needs project memory. For a future adaptive delta, harness synchronization should
@@ -109,8 +127,9 @@ This branch still does **not**:
 - change Run route topology;
 - reduce task, integration, completion, smoke, or final-review gates;
 - make harness synchronization conditional in the live workflow;
-- alter recovery or user approval behavior.
+- alter recovery or user approval behavior;
+- make study records execution authority.
 
-The next activation step is a bounded Lite pilot only after the fixed corpus, CI, and real shadow
-observations show no high-risk false negatives. The first live activation should remain explicitly
-reversible and must preserve monotonic escalation back to the existing Full Assurance path.
+The next step is to complete the Phase 1.2 observation study and hold an independent activation review.
+Only a later, separately reviewed release may introduce a bounded Lite pilot. That release must remain
+explicitly reversible and preserve monotonic escalation back to the existing Full Assurance path.
