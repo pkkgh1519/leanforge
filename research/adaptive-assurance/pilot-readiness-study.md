@@ -57,9 +57,9 @@ aggregates and causal summaries may be published.
 
 ## Pinned study batch and installed identity
 
-Every batch is pinned to:
+The safety-observation cohort is pinned to one exact candidate identity:
 
-- one exact Leanforge source commit;
+- one Leanforge source commit and source-tree digest;
 - the Git blob object ID of `adaptive-assurance-contract.json`;
 - the rebuilt generated-package tree digest for each host;
 - the installed-package tree digest actually executed by each host;
@@ -67,15 +67,30 @@ Every batch is pinned to:
 - a predeclared observation window or consecutive case range;
 - objective inclusion and exclusion criteria.
 
-Before enrollment, rebuild the pinned commit with `build/build.sh`, verify canonical-to-generated parity,
-and compare the installed package digest with the pinned generated package digest. A mismatch or an
-unverifiable installed package makes that host observation unusable. A marketplace version label alone
-is not package identity.
+Before enrollment, rebuild the pinned candidate with `build/build.sh`, verify canonical-to-generated
+parity, and compare each installed package digest with its pinned generated package digest. A mismatch or
+an unverifiable installed package makes that host observation unusable. A marketplace version label
+alone is not package identity.
 
-Do not pool observations or benchmark runs from materially different source, contract, generated
-package, installed package, host, model, or settings revisions. Any routing, predicate, hard-trigger, or
-shadow-grounding change closes the batch and starts a new one. Earlier records remain historical but do
-not satisfy the new batch's gates.
+The paired A/B benchmark pins two identities separately:
+
+- **B candidate arm:** the candidate source commit/tree, contract blob, generated-package digest, and
+  installed-package digest;
+- **A shadow-disabled control arm:** a deterministic control tree derived from the B candidate tree by
+  removing only the live Adaptive Assurance shadow-observation hook from canonical `grounds-gate.md`,
+  then rebuilding the corresponding generated surfaces; record the control patch digest, control-tree
+  digest, generated-package digest, and installed-package digest.
+
+Verify that the A/B source diff is exactly the allowlisted hook removal and that the generated-package
+diff is exactly its generated Claude/Codex copies. Product docs, Prime/Run stages, prompts, contracts,
+reviewers, and all non-shadow behavior are identical across arms. The historical pre-shadow commit may
+remain provenance, but it is not the performance control because unrelated docs and workflow changes
+would confound the measurement.
+
+Do not pool observations from materially different candidate identities. For the benchmark, prohibit
+identity drift within either arm and within a matched pair; the intentional, allowlisted A/B hook
+difference does not close the batch. Any other routing, predicate, hard-trigger, package, host, model,
+or settings change closes the batch and starts a new one.
 
 ## Cohort integrity and host floors
 
@@ -205,13 +220,16 @@ A smoke is not a safety-observation substitute and does not count toward the 35-
 
 ## Part C: paired A/B shadow-tax benchmark
 
-### Versions and workload
+### Arms and workload
 
-- **A, pre-shadow Full Assurance:** `2d2be39c01c9d19819acb0c658f07d06b06931a7`.
-- **B, candidate shadow revision:** the exact pinned source and installed package.
+- **A, shadow-disabled control:** the separately pinned control derived from B by the allowlisted hook
+  removal described above.
+- **B, candidate shadow revision:** the exact pinned candidate source, contract, generated package, and
+  installed package.
 
-Use five representative small delta cases with fixed repository snapshots, replayable prompts, and
-predeclared user answers. For a two-host study, run:
+Before any run, verify the A/B source and generated-package diffs against the allowlist. Use five
+representative small delta cases with fixed repository snapshots, replayable sanitized or synthetic
+benchmark prompts, and predeclared user answers. For a two-host study, run:
 
 ```text
 5 cases × 2 hosts × 2 versions × 5 repetitions = 100 runs
@@ -283,7 +301,8 @@ Quality passes per proposed host only when:
 
 User burden passes only with zero classification-only questions, zero added approval steps, no increase
 in reply turns attributable to mode selection, and no more than 10% increase in median approval-summary
-size per host. Missing required quality or burden data is `unevaluable`, not a pass.
+size per host. Record question count, reply-turn count, and approval-step count for every paired run and
+report their host-stratified deltas. Missing required quality or burden data is `unevaluable`, not a pass.
 
 ## Part E: cohort-level potential value in one cost unit
 
@@ -296,20 +315,23 @@ wall-clock seconds using measured step timestamps where available and conservati
 otherwise. Exclude safety, recovery, actual command evidence, final diff, approval, integration choice,
 and any saving that depends on a third `standard` topology.
 
-Shadow tax is paid by every enrolled cycle, including absent and unevaluable observations. Compute:
+Shadow tax is paid by every enrolled cycle, including absent and unevaluable observations. Assign zero
+removable benefit to every cycle that is not final strict-Lite, Run-qualified, and free of a
+removal-dependent intervention. Compute in seconds:
 
 ```text
 weighted removable benefit per enrolled cycle
-  = final strict-Lite prevalence × conservative median removable seconds
+  = sum(conservative removable seconds across all enrolled cycles) / enrolled cycle count
 
 expected cost per enrolled cycle
-  = median shadow-tax seconds + prevalence-weighted promotion/recovery seconds
+  = (sum(shadow-tax seconds) + sum(promotion/recovery seconds)) / enrolled cycle count
 ```
 
 The initial gate requires weighted removable benefit to be at least `2×` expected cost and expected net
-seconds per enrolled cycle to be positive, separately for every proposed host. Use all enrolled eligible
-cycles in the prevalence denominator. Best-case savings, unobserved eligible work, and Prime-only Lite
-records do not count.
+seconds per enrolled cycle to be positive, separately for every proposed host. This sum-over-cohort
+formula, rather than prevalence multiplied by a Lite-case median, prevents heterogeneous Lite savings
+from being overstated. Best-case savings, unobserved eligible work, and Prime-only Lite records do not
+count.
 
 This is a pilot-design buffer, not actual production benefit. Phase 2 must measure end-to-end Time to
 Trusted Change before broader activation.
@@ -336,11 +358,14 @@ reviewer/worktree skipping, evidence reuse, conditional harness sync, merge, rel
 ## Data minimization
 
 Do not commit completed observations or raw benchmark logs in Markdown, JSON, CSV, TSV, text, log, or
-other formats. Record only sanitized identifiers, pinned digests, exact shadow payloads, derived classes,
-aggregated metrics, and redacted causal summaries in the private study workspace.
+other formats. Real-observation raw prompts, proprietary source or patches, secrets, personal data,
+customer identifiers, repository URLs, absolute paths, and credentials are prohibited.
 
-Do not record raw prompts, proprietary source or patches, secrets, personal data, customer identifiers,
-repository URLs, absolute paths, or credentials.
+For reproducibility, the private study workspace may retain the exact sanitized or synthetic benchmark
+prompts, fixed repository fixtures, predeclared answers, randomization seed, and runner script used for
+Part C. These fixtures must contain no proprietary or personal material and must remain outside the
+public repository. Published output remains limited to pinned digests, aggregated metrics, and redacted
+causal summaries.
 
 ## Non-goals
 

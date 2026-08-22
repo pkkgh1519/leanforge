@@ -6,10 +6,11 @@
 ## 1. Decision
 
 - Recommendation: `<GO_TO_PHASE_2_DESIGN_REVIEW | NO_GO>`
-- Source commit: `<exact SHA>`
-- Contract blob: `<exact blob id>`
-- Generated-package digest by host: `<values>`
-- Installed-package digest by host: `<values>`
+- B candidate source commit/tree and contract blob: `<exact identities>`
+- B generated/installed package digest by host: `<values>`
+- A shadow-disabled control patch/tree digest: `<exact identities>`
+- A generated/installed package digest by host: `<values>`
+- A/B allowlisted source and generated diff verified: `<yes | no>`
 - Proposed pilot host scope: `<claude | codex | both | none>`
 - Proposed topology: `<strict Lite vs existing Full Assurance | none>`
 - Rationale: `<safety, tax, quality, burden, value, reversibility>`
@@ -77,9 +78,11 @@ For each proposed host provide a separate table. Do not pool host strata.
 
 ### `<host>`
 
-- A revision: `2d2be39c01c9d19819acb0c658f07d06b06931a7`
-- B revision: `<candidate SHA>`
-- Generated and installed digest verified: `<yes | no>`
+- A control patch/tree digest: `<values>`
+- A generated/installed package digest: `<values>`
+- B candidate source/tree/contract identity: `<values>`
+- B generated/installed package digest: `<values>`
+- A/B allowlisted hook-only diff verified: `<yes | no>`
 - Total pairs: `<n>`
 - Both reached G7: `<n>`
 - A-only stop / B-only stop / both stop: `<counts>`
@@ -99,28 +102,31 @@ A B-only stop, lower B successful-G7 rate, unavailable required metric, or faile
 
 ## 7. Predeclared quality and user burden by host
 
-| Host | B-only critical defects | Median score delta | B worse by ≥1 | B≤2 while A≥4 | Blocker-rate delta | Summary-size delta | Result |
-|---|---:|---:|---:|---:|---:|---:|---|
-| Claude | `<n>` | `<v>` | `<%>` | `<n>` | `<v>` | `<%>` | `<result>` |
-| Codex | `<n>` | `<v>` | `<%>` | `<n>` | `<v>` | `<%>` | `<result>` |
+| Host | B-only critical defects | Median score delta | B worse by ≥1 | B≤2 while A≥4 | Blocker-rate delta | Reply-turn delta | Approval-step delta | Summary-size delta | Result |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---|
+| Claude | `<n>` | `<v>` | `<%>` | `<n>` | `<v>` | `<v>` | `<v>` | `<%>` | `<result>` |
+| Codex | `<n>` | `<v>` | `<%>` | `<n>` | `<v>` | `<v>` | `<v>` | `<%>` | `<result>` |
 
 Required margins per proposed host: zero B-only critical defects, median score delta at least -0.25, no
 more than 10% of pairs worse by one point or more, zero B≤2 when A≥4, no blocker-rate increase, zero
-classification-only questions or approval steps, and no more than 10% median approval-summary growth.
+classification-only questions, zero added approval steps or mode-attributable reply turns, and no more
+than 10% median approval-summary growth.
 
 ## 8. Cohort-level potential value in wall-clock seconds
 
-Calculate separately for every proposed host using all enrolled eligible cycles in the prevalence
-denominator.
+Calculate separately for every proposed host using every enrolled eligible cycle in the denominator.
+Assign zero removable benefit to every nonqualifying cycle.
 
-| Host | Enrolled cycles | Final strict-Lite Run-qualified cycles | Strict-Lite prevalence | Median removable seconds | Weighted removable benefit/cycle | Median shadow-tax seconds | Promotion/recovery seconds/cycle | Expected cost/cycle | Ratio | Net seconds/cycle | Result |
-|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|
-| Claude | `<n>` | `<n>` | `<v>` | `<v>` | `<v>` | `<v>` | `<v>` | `<v>` | `<v>` | `<v>` | `<result>` |
-| Codex | `<n>` | `<n>` | `<v>` | `<v>` | `<v>` | `<v>` | `<v>` | `<v>` | `<v>` | `<v>` | `<result>` |
+| Host | Enrolled cycles | Final strict-Lite Run-qualified cycles | Sum removable seconds | Weighted removable benefit/cycle | Sum shadow-tax seconds | Sum promotion/recovery seconds | Expected cost/cycle | Ratio | Net seconds/cycle | Result |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|
+| Claude | `<n>` | `<n>` | `<v>` | `<v>` | `<v>` | `<v>` | `<v>` | `<v>` | `<v>` | `<result>` |
+| Codex | `<n>` | `<n>` | `<v>` | `<v>` | `<v>` | `<v>` | `<v>` | `<v>` | `<v>` | `<result>` |
 
-The common unit is seconds. Weighted removable benefit must be at least 2× expected cost, expected net
-seconds per enrolled cycle must be positive, and no benefit may depend on a third Standard topology.
-These are design estimates, not actual Lite performance evidence.
+The common unit is seconds. Weighted removable benefit is the sum of conservative removable seconds
+across all enrolled cycles divided by enrolled cycles, with zero benefit assigned to nonqualifying
+cycles. Expected cost uses the summed shadow and promotion/recovery seconds over the same denominator.
+Benefit must be at least 2× cost, net seconds/cycle must be positive, and no benefit may depend on a
+third Standard topology. These are design estimates, not actual Lite performance evidence.
 
 ## 9. Phase 2 boundary
 

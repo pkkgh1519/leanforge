@@ -195,15 +195,19 @@ class AdaptiveAssurancePilotReadinessTests(unittest.TestCase):
             "binary internal pilot boundary",
         )
 
-    def test_batch_pins_installed_identity_and_per_host_coverage(self):
+    def test_batch_pins_each_arm_installed_identity_and_per_host_coverage(self):
         body = normalized(PROTOCOL)
         self.assert_terms(
             body,
             (
                 "rebuilt generated-package tree digest for each host",
                 "installed-package tree digest actually executed by each host",
-                "compare the installed package digest with the pinned generated package digest",
+                "compare each installed package digest with its pinned generated package digest",
                 "marketplace version label alone is not package identity",
+                "B candidate arm:",
+                "A shadow-disabled control arm:",
+                "A/B source diff is exactly the allowlisted hook removal",
+                "prohibit identity drift within either arm",
                 "remove any existing advisory `.leanforge/assurance-shadow.json` and verify the path is absent",
                 "A sidecar counts as present only when the current cycle subsequently reaches ELICIT exit",
                 "for each host, at least 15 usable observations",
@@ -286,8 +290,9 @@ class AdaptiveAssurancePilotReadinessTests(unittest.TestCase):
                 "The common cost unit is wall-clock seconds.",
                 "Do not divide seconds by tokens, tool calls, or files read.",
                 "Shadow tax is paid by every enrolled cycle",
-                "final strict-Lite prevalence × conservative median removable seconds",
-                "Use all enrolled eligible cycles in the prevalence denominator.",
+                "sum(conservative removable seconds across all enrolled cycles) / enrolled cycle count",
+                "sum(shadow-tax seconds) + sum(promotion/recovery seconds)",
+                "rather than prevalence multiplied by a Lite-case median",
                 "weighted removable benefit to be at least `2×` expected cost",
                 "expected net seconds per enrolled cycle to be positive",
             ),
@@ -308,6 +313,7 @@ class AdaptiveAssurancePilotReadinessTests(unittest.TestCase):
                 "Successful outcome depended on a gate proposed for removal:",
                 "Prime invocation to G7:",
                 "Conservative removable seconds:",
+                "Approval-step count:",
             ),
             "observation worksheet",
         )
@@ -322,11 +328,31 @@ class AdaptiveAssurancePilotReadinessTests(unittest.TestCase):
                 "B-only stop / both stop",
                 "Predeclared quality and user burden by host",
                 "Cohort-level potential value in wall-clock seconds",
+                "A shadow-disabled control patch/tree digest",
+                "A/B allowlisted source and generated diff verified",
+                "Reply-turn delta",
+                "Approval-step delta",
+                "Sum removable seconds",
                 "Any unresolved instance is NO-GO.",
                 "A material false negative has only two valid dispositions",
                 "It cannot be accepted, waived, or marked not Lite-relevant.",
             ),
             "pilot-readiness report",
+        )
+
+    def test_private_sanitized_benchmark_fixtures_are_permitted_but_public_raw_data_is_not(self):
+        body = normalized(PROTOCOL)
+        self.assert_terms(
+            body,
+            (
+                "private study workspace may retain the exact sanitized or synthetic benchmark prompts",
+                "fixed repository fixtures",
+                "predeclared answers",
+                "randomization seed",
+                "must remain outside the public repository",
+                "Real-observation raw prompts",
+            ),
+            "reproducible private benchmark fixtures",
         )
 
     def test_phase1_status_lf_and_dormant_activation_match_the_study(self):
@@ -340,6 +366,7 @@ class AdaptiveAssurancePilotReadinessTests(unittest.TestCase):
                 "research/adaptive-assurance/pilot-readiness-study.md",
                 "The first live activation, if separately approved, must be binary",
                 "It never activates Lite.",
+                "control is derived from the same candidate tree with only the live shadow hook disabled",
                 "claim actual Time to Trusted Change improvement",
             ),
             "Phase 1 handoff",
@@ -350,6 +377,7 @@ class AdaptiveAssurancePilotReadinessTests(unittest.TestCase):
                 "Time to Trusted Change",
                 "100회를 수행",
                 "strict Lite와 기존 Full Assurance 두 실행 경로",
+                "live shadow hook만 제거한 control A와 candidate B",
             ),
             "tracked study commitments",
         )

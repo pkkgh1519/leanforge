@@ -30,9 +30,9 @@ Leanforge의 1차 성과는 최소한의 사용자 노력으로 완성된 신뢰
 2. **Removable-gate safety:** strict-Lite 결과가 Prime reviewer, worktree/wave gate, final reviewer, harness sync 등 생략 후보 gate의 safety-relevant intervention에 의존한 사례가 0이어야 한다.
 3. **Installed identity and host floors:** installed package digest가 pinned generated package와 같아야 한다. 두 host pilot이면 host별 usable 15건, Lite 5건, Standard 3건, Assurance 3건 이상을 확보한다.
 4. **Installed-host behavior smoke:** proposed host scope에서 최소 20회 수행한다. 두 host가 범위라면 Claude Code 10회 이상과 Codex 10회 이상을 포함한다.
-5. **Paired A/B shadow-tax benchmark:** pre-shadow base `2d2be39c01c9d19819acb0c658f07d06b06931a7`와 pinned candidate를 5 case × 2 host × 2 version × 5 repetition으로 100회를 수행한다. 양쪽이 G7에 도달한 matched pair만 latency에 사용하고 host별 median +5%, p90 +10%, B-only stop 0을 적용한다.
+5. **Paired A/B shadow-tax benchmark:** 같은 pinned candidate tree에서 live shadow hook만 제거한 control A와 candidate B를 별도로 hash-pin하고, allowlisted hook diff 외에는 동일함을 확인한다. 5 case × 2 host × 2 version × 5 repetition으로 100회를 수행하며, 양쪽이 G7에 도달한 matched pair만 latency에 사용하고 host별 median +5%, p90 +10%, B-only stop 0을 적용한다.
 6. **Quality·사용자 부담 gate:** host별 blinded score와 critical defect, blocker rate, 질문·reply turn·approval step·summary size가 사전 고정된 non-inferiority margin을 통과해야 한다.
-7. **Potential-value gate:** 공통 단위는 wall-clock seconds다. 모든 enrolled cycle을 denominator로 한 strict-Lite prevalence를 적용하고, weighted removable benefit이 shadow tax와 promotion/recovery cost 합계의 2배 이상이며 net seconds/cycle이 양수여야 한다.
+7. **Potential-value gate:** 공통 단위는 wall-clock seconds다. 모든 enrolled cycle에 대해 nonqualifying case의 benefit을 0으로 두고 conservative removable seconds를 합산한 뒤 enrolled count로 나눈다. 이 weighted benefit이 같은 denominator의 shadow tax와 promotion/recovery cost 합계의 2배 이상이며 net seconds/cycle이 양수여야 한다.
 8. **Phase 2 design review:** 위 gate가 proposed host마다 독립적으로 통과할 때만 별도 reviewed release 설계로 이동한다. Phase 1.2 결과는 activation 권위가 아니다.
 9. **v1.9.1 block-preserving split:** Adaptive Assurance activation과 같은 릴리스에 묶지 않고 독립적인 의미·load closure·행동 review를 통과한다.
 

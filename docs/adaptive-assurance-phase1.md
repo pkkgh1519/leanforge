@@ -108,7 +108,7 @@ Phase 1.2 evaluates the following together:
 7. a binary, monotonic Full Assurance fallback remains explicit and reversible.
 
 The study uses revision-pinned real observations, installed-host behavior smokes, and a paired A/B
-benchmark against Adaptive Assurance's pre-shadow base. Its output is
+benchmark whose control is derived from the same candidate tree with only the live shadow hook disabled. Its output is
 `GO_TO_PHASE_2_DESIGN_REVIEW` or `NO_GO`. It never activates Lite.
 
 ## Durable-memory policy

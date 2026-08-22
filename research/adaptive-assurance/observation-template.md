@@ -112,6 +112,7 @@ Record only values available without changing the observed cycle.
 - Prime invocation to terminal stop: `<seconds | not applicable | unavailable>`
 - User question count: `<integer | unavailable>`
 - User reply turns: `<integer | unavailable>`
+- Approval-step count: `<integer | unavailable>`
 - Subagent count: `<integer | unavailable>`
 - Tool calls or files read: `<value | unavailable>`
 - Host usage/tokens: `<value | unavailable>`
