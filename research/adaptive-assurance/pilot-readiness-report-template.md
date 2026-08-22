@@ -117,14 +117,15 @@ than 10% median approval-summary growth.
 Calculate separately for every proposed host using every enrolled eligible cycle in the denominator.
 Assign zero removable benefit to every nonqualifying cycle.
 
-| Host | Enrolled cycles | Final strict-Lite Run-qualified cycles | Sum removable seconds | Weighted removable benefit/cycle | Sum shadow-tax seconds | Sum promotion/recovery seconds | Expected cost/cycle | Ratio | Net seconds/cycle | Result |
+| Host | Enrolled cycles | Realizable shadow-Lite→observed-Lite cycles | Sum removable seconds | Weighted removable benefit/cycle | Sum shadow-tax seconds | Sum promotion/recovery seconds | Expected cost/cycle | Ratio | Net seconds/cycle | Result |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|
 | Claude | `<n>` | `<n>` | `<v>` | `<v>` | `<v>` | `<v>` | `<v>` | `<v>` | `<v>` | `<result>` |
 | Codex | `<n>` | `<n>` | `<v>` | `<v>` | `<v>` | `<v>` | `<v>` | `<v>` | `<v>` | `<result>` |
 
 The common unit is seconds. Weighted removable benefit is the sum of conservative removable seconds
-across all enrolled cycles divided by enrolled cycles, with zero benefit assigned to nonqualifying
-cycles. Expected cost uses the summed shadow and promotion/recovery seconds over the same denominator.
+across all enrolled cycles divided by enrolled cycles, with zero benefit assigned unless the shadow
+prediction is Lite, the escalated observed class remains Lite, the case is Run-qualified, and no
+removal-dependent intervention occurred. Expected cost uses the summed shadow and promotion/recovery seconds over the same denominator.
 Benefit must be at least 2× cost, net seconds/cycle must be positive, and no benefit may depend on a
 third Standard topology. These are design estimates, not actual Lite performance evidence.
 

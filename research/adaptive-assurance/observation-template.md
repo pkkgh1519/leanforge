@@ -125,13 +125,16 @@ Record only values available without changing the observed cycle.
 
 Use wall-clock seconds for both cost and benefit.
 
-- Final strict-Lite and Run-qualified: `<yes | no | unevaluable>`
+- Shadow prediction is Lite: `<yes | no | absent>`
+- Escalated observed class remains Lite: `<yes | no | unevaluable>`
+- Run-qualified: `<yes | no>`
 - Removal-dependent intervention absent: `<yes | no | unevaluable>`
+- Realizable Lite-benefit case: `<yes | no | unevaluable>`
 - Removable ceremony: `<closed list>`
 - Conservative removable seconds: `<seconds and basis | unavailable>`
 - Shadow-tax seconds for this enrolled cycle: `<seconds | unavailable>`
 - Promotion/recovery seconds: `<seconds | zero | unavailable>`
-- Counts in strict-Lite prevalence numerator: `<yes | no>`
+- Counts in realizable Lite-benefit numerator: `<yes | no>`
 - Counts in enrolled-cycle prevalence denominator: `<yes | no>`
 
 Do not count savings that remove intent ownership, actual command evidence, recovery, final diff, user

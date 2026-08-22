@@ -309,15 +309,18 @@ report their host-stratified deltas. Missing required quality or burden data is 
 The common cost unit is wall-clock seconds. Do not divide seconds by tokens, tool calls, or files read.
 Those remain secondary diagnostic metrics.
 
-Because Lite is dormant, Phase 1.2 estimates rather than proves savings. For every final strict-Lite,
-Run-qualified case with no removal-dependent intervention, estimate removable Full Assurance ceremony in
-wall-clock seconds using measured step timestamps where available and conservative lower bounds
-otherwise. Exclude safety, recovery, actual command evidence, final diff, approval, integration choice,
-and any saving that depends on a third `standard` topology.
+Because Lite is dormant, Phase 1.2 estimates rather than proves savings. A **realizable Lite-benefit
+case** must have a shadow prediction of `lite`, remain `lite` after final facts and later escalation, reach
+Run completion or a Run terminal blocker, and have no removal-dependent intervention. Only such a case
+would actually enter the proposed strict-Lite branch and can contribute removable Full Assurance
+ceremony. Estimate its removable wall-clock seconds using measured step timestamps where available and
+conservative lower bounds otherwise. Exclude safety, recovery, actual command evidence, final diff,
+approval, integration choice, and any saving that depends on a third `standard` topology.
 
 Shadow tax is paid by every enrolled cycle, including absent and unevaluable observations. Assign zero
-removable benefit to every cycle that is not final strict-Lite, Run-qualified, and free of a
-removal-dependent intervention. Compute in seconds:
+removable benefit to every cycle that is not a realizable Lite-benefit case. In particular, a conservative
+shadow Standard or Assurance prediction that later adjudicates as Lite still follows Full Assurance in
+the binary router and contributes zero benefit. Compute in seconds:
 
 ```text
 weighted removable benefit per enrolled cycle
@@ -330,8 +333,8 @@ expected cost per enrolled cycle
 The initial gate requires weighted removable benefit to be at least `2×` expected cost and expected net
 seconds per enrolled cycle to be positive, separately for every proposed host. This sum-over-cohort
 formula, rather than prevalence multiplied by a Lite-case median, prevents heterogeneous Lite savings
-from being overstated. Best-case savings, unobserved eligible work, and Prime-only Lite records do not
-count.
+from being overstated. Best-case savings, unobserved eligible work, Prime-only Lite records, and
+conservative non-Lite predictions do not count.
 
 This is a pilot-design buffer, not actual production benefit. Phase 2 must measure end-to-end Time to
 Trusted Change before broader activation.
