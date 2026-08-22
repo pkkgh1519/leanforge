@@ -282,6 +282,8 @@ class ProductNorthStarContractTests(unittest.TestCase):
                 "사용자 목표와 사용자 소유 결정 → 제품 북극성·사용자 산출물 계약 → Prime·Run·Set의 책임 경계",
                 "mode, sidecar, reviewer 또는 worktree가 존재한다는 이유로 사용자 질문·문서·단계를 추가해서는 안 된다.",
                 "검증된 실제 변경·증거·통합 선택",
+                "초기: 기존 저장소 증거 + 사용자 결정 → durable project knowledge",
+                "Set의 첫 실행은 현재 delivery cycle에서 바뀐 내용이 없어도 기존 코드·문서·dependencies·conventions·module boundaries를 읽어 초기 durable context를 만든다.",
             ),
             "architecture dependency direction",
         )

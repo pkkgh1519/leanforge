@@ -61,6 +61,8 @@ Every proposed host must pass independently. Missing or unevaluable data is NO-G
 
 For every wrong-path or removal-dependent case, include sanitized case ID, later fact/signal/gate,
 consequence, disposition, and whether a new batch is required. Any unresolved instance is NO-GO.
+A material false negative has only two valid dispositions: fixed and re-observed in a fresh pinned
+batch, or `NO_GO`. It cannot be accepted, waived, or marked not Lite-relevant.
 
 ## 5. Installed-host behavior smoke
 

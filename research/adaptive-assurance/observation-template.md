@@ -21,6 +21,9 @@
 - Host: `<claude | codex | other>`
 - Model/settings label: `<label | unavailable>`
 - Cycle: `<first | delta>`
+- Pre-cycle sidecar removed and absence verified: `<yes | no>`
+- Current cycle reached ELICIT exit: `<yes | no>`
+- Sidecar recreated after pre-cycle clear: `<yes | no>`
 - Capture status: `<present | absent>`
 - Collector: `<redacted identifier>`
 - Adjudication arrangement: `<separate | mechanically blinded same person | not independent>`
@@ -137,6 +140,7 @@ approval, integration choice, or require a third Standard topology.
 
 - [ ] Source, contract, generated package, and installed package identity are recorded and equal.
 - [ ] Enrollment was fixed before prediction reveal.
+- [ ] The prior sidecar was cleared before Prime and any present sidecar was recreated after this cycle reached ELICIT exit.
 - [ ] The independent class was fixed before reveal and includes later escalation signals.
 - [ ] Prime-only evidence is not counted as strict-Lite activation coverage.
 - [ ] Every proposed removable gate was checked for safety-relevant intervention.

@@ -42,17 +42,19 @@ Claude 패키지는 공통 `SKILL.md` 본문에 Claude 전용 `disable-model-inv
 |---|---|---|
 | Prime | 목표·문서·메모를 검토 가능한 승인 계약으로 정제 | 저장소 증거와 사용자 결정 → 승인 가능한 의도 계약 |
 | Run | 승인 계약과 Git 상태를 소비해 격리 실행·검증·통합 후보를 생성 | 승인 계약 → 검증된 실제 변경·증거·통합 선택 |
-| Set | 기존 프로젝트의 지속 가능한 운영 문맥을 생성 | 실제로 바뀐 durable knowledge → 프로젝트 문서 |
+| Set | 기존 프로젝트의 지속 가능한 운영 문맥을 생성·갱신 | 초기: 기존 저장소 증거 + 사용자 결정 → durable project knowledge; 이후: 실제로 변경된 durable knowledge → 문서 갱신 |
 | Run TDD | Run 위에 행동 변경용 선택적 TDD 규율을 추가 | Run 계약 → 행동 단위 RED·GREEN·리팩터 검증 |
 | Adaptive Assurance | 이미 grounded된 위험 사실에서 필요한 최소 절차를 advisory 또는 pilot로 선택 | 제품 guardrail + Prime/Run 경계 → 내부 mode; 사용자 선택 금지 |
 | build | 정본과 호스트 오버레이를 두 설치 패키지로 변환 | `src/skills` + `platform` → generated packages |
 | contract tests | 워크플로·복구·배포면 불변조건을 실행 가능한 예로 고정 | source + generated + CI/build 계약 → pass/fail |
 
+Set의 첫 실행은 현재 delivery cycle에서 바뀐 내용이 없어도 기존 코드·문서·dependencies·conventions·module boundaries를 읽어 초기 durable context를 만든다. 바뀐 지식만 갱신한다는 no-churn 규칙은 초기 bootstrap 이후의 유지보수에 적용한다.
+
 ## 대표 흐름
 
 Prime은 사용자의 입력을 그대로 권위로 채택하지 않고 저장소 사실과 대조한다. 사용자가 중요한 결정을 승인하면 Run이 실행 가능한 계약을 소비한다. Run은 작업 의존성과 위험도에 따라 직접 실행 또는 격리된 worktree 실행을 선택하고, 명령·출력·exit code가 확보되지 않은 결과는 완료로 승격하지 않는다. 작업이 끝나면 설치 패키지 생성이나 프로젝트별 검증을 실행하고, main 통합이나 외부 게시 전에는 사용자 결정을 기다린다.
 
-정상 경로에서 사용자가 받는 결과는 내부 topology 설명이 아니라 승인 가능한 계약, 검증된 변경, 신뢰 증거와 잔여 위험 요약, 통합 선택이다. durable knowledge가 바뀌지 않은 작업은 이를 남기기 위한 별도 harness ceremony를 만들지 않는다.
+정상 경로에서 사용자가 받는 결과는 내부 topology 설명이 아니라 승인 가능한 계약, 검증된 변경, 신뢰 증거와 잔여 위험 요약, 통합 선택이다. durable knowledge가 바뀌지 않은 후속 작업은 이를 남기기 위한 별도 harness ceremony를 만들지 않는다.
 
 ## 배포 경계
 

@@ -88,6 +88,13 @@ unevaluable outcomes. An exclusion is allowed only for a predeclared objective r
 report by reason. An unexpected prediction, inconvenient result, or difficult adjudication is not an
 exclusion reason.
 
+Before invoking Prime for each enrolled cycle, remove any existing advisory
+`.leanforge/assurance-shadow.json` and verify the path is absent. This pre-cycle clear has no execution
+authority; it prevents a prior cycle's deterministic snapshot from being misattributed to the new cycle.
+A sidecar counts as present only when the current cycle subsequently reaches ELICIT exit and recreates
+the file. If pre-clear cannot be verified, or the cycle stops before ELICIT exit, record the sidecar as
+absent and the shadow comparison as `unevaluable`.
+
 A host-limited pilot requires the full overall coverage floor on that host. A two-host pilot requires the
 overall floor plus, for each host, at least 15 usable observations containing at least 5 shadow-Lite, 3
 shadow-Standard, and 3 shadow-Assurance predictions. Evidence from an under-covered host can support at
@@ -163,6 +170,9 @@ Mode order is `lite < standard < assurance`.
 Every `lite_to_standard` and `material_false_negative` requires an individual explanation and
 resolution. In the binary topology, both transitions are wrong-path decisions. An unresolved instance of
 either transition makes the batch NO-GO.
+A `material_false_negative` cannot be accepted, waived, or declared Lite-irrelevant. It requires
+grounding or eligibility repair followed by re-observation in a fresh pinned batch; otherwise the result
+is `NO_GO`.
 
 ### Coverage floor and reportable dimensions
 

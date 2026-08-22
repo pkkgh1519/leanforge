@@ -204,6 +204,8 @@ class AdaptiveAssurancePilotReadinessTests(unittest.TestCase):
                 "installed-package tree digest actually executed by each host",
                 "compare the installed package digest with the pinned generated package digest",
                 "marketplace version label alone is not package identity",
+                "remove any existing advisory `.leanforge/assurance-shadow.json` and verify the path is absent",
+                "A sidecar counts as present only when the current cycle subsequently reaches ELICIT exit",
                 "for each host, at least 15 usable observations",
                 "at least 5 shadow-Lite, 3 shadow-Standard, and 3 shadow-Assurance",
             ),
@@ -223,6 +225,8 @@ class AdaptiveAssurancePilotReadinessTests(unittest.TestCase):
                 "Zero unresolved removal-dependent strict-Lite cases",
                 "both transitions are wrong-path decisions",
                 "unresolved instance of either transition makes the batch NO-GO",
+                "A `material_false_negative` cannot be accepted, waived, or declared Lite-irrelevant.",
+                "re-observation in a fresh pinned batch",
             ),
             "Run-qualified and escalated safety evidence",
         )
@@ -297,6 +301,8 @@ class AdaptiveAssurancePilotReadinessTests(unittest.TestCase):
             observation,
             (
                 "Installed-package digest:",
+                "Pre-cycle sidecar removed and absence verified:",
+                "Current cycle reached ELICIT exit:",
                 "Run-qualified for strict-Lite activation coverage:",
                 "Later escalation signals in event order:",
                 "Successful outcome depended on a gate proposed for removal:",
@@ -317,6 +323,8 @@ class AdaptiveAssurancePilotReadinessTests(unittest.TestCase):
                 "Predeclared quality and user burden by host",
                 "Cohort-level potential value in wall-clock seconds",
                 "Any unresolved instance is NO-GO.",
+                "A material false negative has only two valid dispositions",
+                "It cannot be accepted, waived, or marked not Lite-relevant.",
             ),
             "pilot-readiness report",
         )
