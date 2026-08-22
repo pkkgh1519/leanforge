@@ -30,11 +30,25 @@ class AdaptiveAssuranceObservationStudyTests(unittest.TestCase):
                 "Adjudicator:",
                 "Resolver:",
                 "without reading the sidecar mode, reasons",
-                "seal Section A",
+                "mechanically without inspecting its contents",
                 "then reveal the prediction",
                 "The observation never changes the current cycle.",
             ),
             "observation and blinded-adjudication boundary",
+        )
+
+    def test_protocol_pins_one_router_revision_per_study_batch(self):
+        body = read(PROTOCOL)
+        self.assert_terms(
+            body,
+            (
+                "one exact Leanforge commit",
+                "Git blob object ID",
+                "Do not pool observations from different router or contract revisions.",
+                "starts a new study batch",
+                "do not carry the old batch's coverage count forward",
+            ),
+            "pinned router revision",
         )
 
     def test_protocol_has_fail_closed_comparison_and_activation_gates(self):
@@ -70,7 +84,7 @@ class AdaptiveAssuranceObservationStudyTests(unittest.TestCase):
             "data-minimization and real-observation boundary",
         )
 
-    def test_manual_template_preserves_order_redaction_and_exact_shadow_payload(self):
+    def test_manual_template_preserves_order_revision_redaction_and_exact_payload(self):
         body = read(TEMPLATE)
         self.assert_terms(
             body,
@@ -79,10 +93,12 @@ class AdaptiveAssuranceObservationStudyTests(unittest.TestCase):
                 "B. Independent observed class",
                 "C. Reveal and comparison",
                 "D. Redaction and integrity check",
+                "Leanforge commit:",
+                "Adaptive Assurance contract Git blob object ID:",
                 "Copy the sidecar unchanged",
                 "The independent class was fixed before the shadow mode was revealed.",
                 "Missing or contradictory evidence was not counted as a pass.",
-                "This record did not alter the observed Prime or Run cycle.",
+                "This record is not pooled with a different router or contract revision.",
             ),
             "manual observation worksheet",
         )
@@ -112,6 +128,7 @@ class AdaptiveAssuranceObservationStudyTests(unittest.TestCase):
             (
                 "adaptive-assurance-observation-study.md",
                 "adaptive-assurance-observation-template.md",
+                "one pinned Leanforge commit and contract blob",
                 "does not activate Lite",
                 "No completed observation record belongs in this public repository.",
             ),
@@ -121,6 +138,7 @@ class AdaptiveAssuranceObservationStudyTests(unittest.TestCase):
             status,
             (
                 "Phase 1.2 observation study protocol",
+                "one pinned router revision",
                 "zero unresolved Lite-to-Assurance cases",
                 "separate reviewed release",
             ),

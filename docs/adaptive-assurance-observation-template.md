@@ -1,19 +1,22 @@
 # Adaptive Assurance Phase 1.2 Observation Record
 
 > Copy this worksheet into a private study workspace for one Prime cycle. Do not commit a completed
-> record to the public Leanforge repository. Complete Section A, seal it, complete Section B without
-> reading the prediction, then reveal Section A and complete Section C.
+> record to the public Leanforge repository. Complete and seal Section A without showing its contents to
+> the adjudicator, complete Section B, then reveal Section A and complete Section C.
 
 ## A. Sealed shadow prediction — collector only
 
 - Study version: `1`
-- Case ID: `<sanitized-id>`
 - Study batch: `<batch-id>`
+- Leanforge commit: `<exact commit SHA>`
+- Adaptive Assurance contract Git blob object ID: `<exact blob id>`
+- Case ID: `<sanitized-id>`
 - Coarse task category: `<docs | test | local-fix | config | feature | refactor | dependency | operations | other>`
 - Host: `<claude | codex | other>`
 - Cycle: `<first | delta>`
 - Capture status: `<present | absent>`
 - Collector role or initials: `<redacted identifier>`
+- Adjudication arrangement: `<separate adjudicator | mechanically blinded same person | not independent>`
 
 Copy the sidecar unchanged when present:
 
@@ -32,15 +35,18 @@ Copy the sidecar unchanged when present:
 ```
 
 - Section A sealed before adjudication: `<yes | no>`
-- If `no`, use a second adjudicator or mark the comparison `unevaluable`.
+- Prediction contents hidden from adjudicator: `<yes | no>`
+- If either answer is `no`, use a second adjudicator or mark the comparison `unevaluable`.
 
 ## B. Independent observed class — adjudicator before reveal
 
+- Pinned Leanforge commit confirmed: `<yes | no>`
+- Pinned contract blob confirmed: `<yes | no>`
 - Evidence-window endpoint: `<Prime G7 | Run completion | terminal blocker | user abandonment>`
 - Evidence availability: `<complete | incomplete | contradictory>`
 - Evidence sources reviewed, sanitized: `<final 3-doc, reviewer findings, command evidence, blocker summary>`
 - Adjudicator role or initials: `<redacted identifier>`
-- Adjudicator had not read Section A: `<yes | no>`
+- Adjudicator had not read Section A or the sidecar: `<yes | no>`
 
 ### Observed classification
 
@@ -51,8 +57,8 @@ Copy the sidecar unchanged when present:
 - Later escalation signal: `<none | to_standard | to_assurance>`
 - Classification basis: `<concise evidence-based rationale>`
 
-Do not infer success from missing evidence. When one class cannot be supported without guessing, select
-`unevaluable`.
+Apply the pinned contract revision that produced the prediction. Do not infer success from missing
+evidence. When one class cannot be supported without guessing, select `unevaluable`.
 
 ## C. Reveal and comparison
 
@@ -74,9 +80,12 @@ Required for every `lite_to_standard` or `material_false_negative` record.
 - Later fact or trigger: `<what changed or was discovered>`
 - Why the difference matters: `<concrete safety or ceremony consequence>`
 - Proposed contract, grounding, or study disposition: `<minimal action>`
+- Router or contract changed as a result: `<yes | no>`
+- If `yes`, new study batch ID: `<required new batch>`
 
 ## D. Redaction and integrity check
 
+- [ ] The exact Leanforge commit and contract blob are recorded.
 - [ ] No raw user prompt is included.
 - [ ] No proprietary source, patch, or customer content is included.
 - [ ] No secret, credential, personal data, repository URL, or absolute path is included.
@@ -84,6 +93,7 @@ Required for every `lite_to_standard` or `material_false_negative` record.
 - [ ] The independent class was fixed before the shadow mode was revealed.
 - [ ] Missing or contradictory evidence was not counted as a pass.
 - [ ] This record did not alter the observed Prime or Run cycle.
+- [ ] This record is not pooled with a different router or contract revision.
 
 ## E. Study disposition
 

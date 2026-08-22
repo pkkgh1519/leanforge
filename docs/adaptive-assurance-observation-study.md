@@ -24,13 +24,25 @@ Secondary questions are:
 - Are shadow records systematically absent or unevaluable?
 - Does collecting the observation create any user question or workflow change?
 
+## Pinned study batch
+
+Every study batch is pinned to one exact Leanforge commit and the Git blob object ID of
+`adaptive-assurance-contract.json`. Record both values on every worksheet.
+
+Do not pool observations from different router or contract revisions. Any change to routing code,
+contract vocabulary, Lite predicates, hard triggers, or shadow grounding closes the current batch and
+starts a new study batch. Earlier records remain historical evidence but do not satisfy the new batch's
+coverage target. This prevents a repaired router from inheriting confidence earned by a different
+predicate.
+
 ## Unit of observation and evidence window
 
 One observation covers one Prime cycle for one Current Delivery Slice. First and delta cycles are
 recorded separately.
 
-The collector preserves the latest `.leanforge/assurance-shadow.json` after Prime's final ELICIT exit.
-The independent evidence window ends at exactly one of these points:
+The collector preserves the latest `.leanforge/assurance-shadow.json` after Prime reaches G7 or stops;
+the file represents Prime's final ELICIT-exit prediction for that cycle. The independent evidence window
+ends at exactly one of these points:
 
 1. Prime reaches G7 and no Run is performed;
 2. Run reaches completion or a terminal blocker;
@@ -41,19 +53,19 @@ one class, the observation is `unevaluable`.
 
 ## Roles and blinded adjudication
 
-The shadow router must not generate its own expected outcome.
+The shadow router must not generate its own expected outcome. Separate collector and adjudicator roles
+are preferred.
 
-- **Collector:** copies the sidecar unchanged, assigns a sanitized `case_id`, and seals the shadow
-  prediction before adjudication.
+- **Collector:** mechanically copies the sidecar unchanged, records the pinned revision, assigns a
+  sanitized `case_id`, and seals the shadow prediction before adjudication.
 - **Adjudicator:** classifies the final observed work without reading the sidecar mode, reasons,
   triggers, or Lite diagnostics.
 - **Resolver:** handles a disagreement or insufficient basis. A second independent adjudicator may
   resolve it; otherwise the record remains `unevaluable`.
 
-One person may perform both collector and adjudicator roles only as a two-pass procedure: seal Section A
-of the template, classify from final artifacts and evidence in Section B, then reveal the prediction and
-complete Section C. Memory of the prediction is not independent evidence; if blinding is not credible,
-mark the record `unevaluable` or use a second adjudicator.
+One person may perform both collector and adjudicator roles only when Section A is copied and sealed
+mechanically without inspecting its contents. If that person saw or remembers the prediction, the
+adjudication is not blinded; use a second adjudicator or mark the record `unevaluable`.
 
 ## Data minimization
 
@@ -62,6 +74,7 @@ the public Leanforge repository.
 
 Record only the minimum derived information needed for comparison:
 
+- the pinned Leanforge commit and contract blob object ID;
 - a sanitized case identifier and coarse task category;
 - the exact shadow payload;
 - the independently observed class and concise basis;
@@ -75,10 +88,12 @@ kept in a private study workspace, but the report exported from that workspace m
 ## Collection procedure
 
 1. Run the existing Full Assurance Prime and Run behavior unchanged.
-2. After the latest ELICIT exit, copy the sidecar into the sealed prediction section of the template.
-   If the sidecar is absent, record `capture_status: absent`; do not reconstruct or guess it.
+2. After Prime reaches G7 or stops, mechanically copy the sidecar into the sealed prediction section of
+   the template and record the pinned commit and contract blob. If the sidecar is absent, record
+   `Capture status: absent`; do not reconstruct or guess it.
 3. Without reading the prediction, adjudicate the final observed class from the completed 3-doc,
    independent reviewer findings, actual Run evidence, and any terminal blocker in the evidence window.
+   Apply the pinned contract revision that produced the prediction.
 4. Reveal the prediction only after the observed class and rationale are fixed.
 5. Assign one comparison label from the closed study labels below.
 6. Record whether shadow collection itself caused any additional user question or live workflow change.
@@ -89,8 +104,8 @@ produces `unevaluable`, not a new product decision.
 
 ## Independent observed-class rubric
 
-Use the canonical Adaptive Assurance contract against the final observed scope, not the initial shadow
-payload.
+Use the pinned canonical Adaptive Assurance contract against the final observed scope, not the initial
+shadow payload.
 
 - `assurance`: the cycle is first-cycle work; a closed hard trigger is present; or a material risk cannot
   be classified and therefore becomes `unknown_material_risk`.
@@ -121,7 +136,8 @@ explanation. Aggregate percentages must not hide an underclassified case.
 
 ## Study coverage target
 
-The initial activation discussion requires at least 35 usable observations:
+For one pinned router revision, the initial activation discussion requires at least 35 usable
+observations:
 
 - at least 15 shadow `lite` predictions;
 - at least 10 shadow `standard` predictions;
@@ -149,7 +165,8 @@ The bounded Lite pilot remains **NO-GO** when any of these holds:
 - the coverage target is not met.
 
 A Standard-to-Assurance material false negative also requires router investigation even though Standard
-is not a Lite activation route.
+is not a Lite activation route. If an investigation changes the router or contract, start a new pinned
+study batch; do not carry the old batch's coverage count forward.
 
 Proceeding to a Phase 2 design review requires all underclassifications to be individually dispositioned,
 zero unresolved Lite-to-Assurance cases, representative coverage, and explicit confirmation that the
@@ -160,6 +177,7 @@ pilot can return monotonically to the existing Full Assurance path.
 A study report contains only redacted aggregates and individually redacted underclassification
 summaries:
 
+- the pinned Leanforge commit and contract blob object ID;
 - counts by shadow mode and independently observed class;
 - counts by comparison label;
 - sidecar absence and unevaluable counts;

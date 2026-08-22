@@ -61,6 +61,10 @@ fixed. It records exact, conservative, Lite-to-Standard, material-false-negative
 comparisons. A missing or contradictory record is not success, and every underclassified case receives
 an individual disposition.
 
+Each study batch uses one pinned Leanforge commit and contract blob. Router, predicate, vocabulary, or
+grounding changes start a new batch rather than inheriting coverage from observations produced by a
+different contract.
+
 The protocol does not activate Lite or change live Prime or Run behavior. No completed observation
 record belongs in this public repository. Records remain in a redacted private study workspace; only
 redacted aggregates and underclassification summaries may be reported back.
