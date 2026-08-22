@@ -138,11 +138,13 @@ class AdaptiveAssuranceObservationStudyTests(unittest.TestCase):
             status,
             (
                 "Phase 1.2 observation study protocol",
-                "one pinned router revision",
+                "고정된 router revision",
                 "zero unresolved Lite-to-Assurance cases",
-                "separate reviewed release",
+                "별도 reviewed release",
+                "20회 behavior smoke",
+                "100회 반복 측정",
             ),
-            "project status study gate",
+            "project status study gate and preserved measurement commitments",
         )
         for path in (PROTOCOL, TEMPLATE):
             relative = path.relative_to(ROOT).as_posix()
