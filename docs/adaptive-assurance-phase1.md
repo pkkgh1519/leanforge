@@ -3,9 +3,12 @@
 ## Purpose
 
 Leanforge currently applies almost the same high-assurance lifecycle to small deltas and high-risk
-changes. This branch introduces deterministic advisory routing and a dormant Lite pilot without yet
-changing the existing Prime or Run execution topology. The goal is to prove proportional assurance
-before any safety gate is actually removed.
+changes. Adaptive Assurance explores whether the same trusted-change outcome can be reached with less
+unnecessary ceremony for strictly eligible local, reversible work.
+
+The product goal is defined by `business-rules.md`: minimize **Time to Trusted Change** while preserving
+intent fidelity, safety, actual verification evidence, recovery, user approval, and integration choice.
+Mode classification, sidecars, reviewers, and worktrees are internal means rather than product outcomes.
 
 ## Philosophy
 
@@ -18,9 +21,13 @@ The operating rule is:
 > no user-owned ambiguity survives; repository-derivable and reversible technical choices belong to
 > the executing model.
 
-## Closed routing
+Adaptive Assurance must not improve classifier accuracy by creating new user questions, repo scans,
+subagents, approval steps, or a second orchestration. An accurate classifier whose fixed cost makes small
+Prime cycles slower is not a product improvement.
 
-`adaptive-assurance-contract.json` defines the closed shadow router:
+## Closed shadow routing
+
+`adaptive-assurance-contract.json` defines the closed advisory router:
 
 1. A first cycle routes to `assurance`.
 2. Any closed hard trigger routes to `assurance`.
@@ -36,46 +43,71 @@ dependencies.
 ## Live shadow observation
 
 Prime records an advisory `.leanforge/assurance-shadow.json` at the ELICIT exit, after user-owned
-ambiguity has been settled. The hook lives in the already-loaded `grounds-gate.md` reference so it adds
-no new Markdown reference load. It loads only the small closed JSON contract.
+ambiguity has been settled. The hook lives in the already-loaded `grounds-gate.md` reference and loads
+only the small closed JSON contract.
 
 The sidecar is an ELICIT-exit prediction for the current Prime cycle, not a final 3-doc or Run outcome
 and not an observation history. Prime removes any prior snapshot before deriving the new one. If it
-cannot complete and validate the closed record, it leaves the sidecar absent without changing the
-Full Assurance flow or asking the user merely for shadow telemetry. A later return to ELICIT replaces
-the snapshot at its next exit; later reviewer, planning, and Run outcomes are compared separately.
+cannot complete and validate the closed record, it leaves the sidecar absent without changing the Full
+Assurance flow or asking the user merely for shadow telemetry.
 
-The record schema, routing predicate, and decision-reason vocabulary are closed and timestamp-free.
-The grounded fact classification still belongs to Prime; the shadow result has no execution authority.
-It cannot alter Prime stages, questions, independent reviews, 3-doc output, user approval, Run
-routing/worktrees, verification topology, recovery, or the current harness update policy.
+The shadow result has no execution authority. It cannot alter Prime stages, questions, independent
+reviews, 3-doc output, user approval, Run routing/worktrees, verification topology, recovery, integration
+choice, or the current harness update policy.
 
-## Phase 1.2 observation study
+## Dormant Lite pilot contract
 
-The manual study protocol lives in `adaptive-assurance-observation-study.md`; its copyable worksheet is
-`adaptive-assurance-observation-template.md`.
+`adaptive-assurance-lite-pilot.json` describes a future strict Lite path while keeping
+`activation: shadow`.
 
-The study preserves the ELICIT-exit prediction, independently adjudicates the final observed class
-without reading that prediction, and reveals the shadow result only after the independent class is
-fixed. It records exact, conservative, Lite-to-Standard, material-false-negative, and unevaluable
-comparisons. A missing or contradictory record is not success, and every underclassified case receives
-an individual disposition.
+The prospective Lite route keeps the existing Prime→Run 3-doc interface and hard execution boundaries,
+while identifying ceremony that a strictly eligible local reversible delta may not earn:
 
-Each study batch uses one pinned Leanforge commit and contract blob. Router, predicate, vocabulary, or
-grounding changes start a new batch rather than inheriting coverage from observations produced by a
-different contract.
+- Prime keeps normal preconditions, a thin existing 3-doc, and explicit user approval.
+- Run keeps Git preflight, interrupted-run recovery guards, contract/graph validation, targeted task
+  verification, one full completion verification, declared runtime smoke, final diff check, actual
+  command/exit evidence, and user integration choice.
+- Future Lite candidates may omit the two Prime independent reviewers, a worktree, wave integration,
+  final independent reviewer, and harness synchronization only when no durable change exists.
+- Any discovered scope, verification, external-state, recovery, security/data, destructive, or
+  user-intent risk promotes monotonically to the existing Full Assurance path.
 
-The study uses a predeclared cohort: its observation window, host scope, and inclusion/exclusion criteria
-are fixed before prediction reveal, and every eligible cycle is recorded. A pilot intended for both
-Claude Code and Codex requires usable evidence from both hosts; otherwise the evidence can support only
-a host-limited pilot.
+None of these Lite reductions are live.
 
-The protocol does not activate Lite or change live Prime or Run behavior. No completed observation
-record belongs in this public repository. Records remain in a redacted private study workspace; only
-redacted aggregates and underclassification summaries may be reported back.
+## First activation topology
 
-A Phase 2 design review remains blocked until the study reaches representative coverage, has zero
-unresolved Lite-to-Assurance cases, and receives a separate explicit activation decision.
+The first live activation, if separately approved, must be binary:
+
+```text
+strict Lite
+    or, on any uncertainty/new risk
+existing Full Assurance
+```
+
+`standard` remains an observation label and does not become a third live workflow. The user never
+selects a mode. A three-topology orchestration, workflow DSL, or duplicated mode-specific Prime/Run is
+outside the approved direction until a separate net-benefit case is proven.
+
+## Phase 1.2 pilot-readiness study
+
+The full research protocol is intentionally outside `docs/`, because Leanforge Prime reads project docs
+on delta work and the study machinery must not become recurring product context.
+
+- Protocol: `../research/adaptive-assurance/pilot-readiness-study.md`
+- Per-cycle worksheet: `../research/adaptive-assurance/observation-template.md`
+- Final report template: `../research/adaptive-assurance/pilot-readiness-report-template.md`
+
+Phase 1.2 evaluates five dimensions together:
+
+1. no unresolved Lite-to-Assurance material false negative;
+2. shadow classification does not materially regress Prime time/token/tool cost;
+3. 3-doc quality does not deteriorate;
+4. no mode-induced user question, approval step, or reading burden;
+5. conservative removable ceremony exceeds measured shadow tax and a binary fallback is explicit.
+
+The study uses revision-pinned real observations, installed-host behavior smokes, and a paired A/B
+benchmark against Adaptive Assurance's pre-shadow base. Its output is
+`GO_TO_PHASE_2_DESIGN_REVIEW` or `NO_GO`. It never activates Lite.
 
 ## Durable-memory policy
 
@@ -88,39 +120,13 @@ This policy is still advisory in the live workflow.
 
 ## Evidence reuse
 
-A prior verification may be reused only when the prior outcome is green and all of these values are
-exactly equal:
+A prior verification may be reused only when the prior outcome is green and base SHA, verification set,
+environment fingerprint, and relevant-scope hash are exactly equal. Missing, empty, or unequal values
+forbid reuse.
 
-- base SHA
-- verification set
-- environment fingerprint
-- relevant-scope hash
-
-Any missing, empty, or unequal value forbids reuse.
-
-## Dormant Lite pilot
-
-`adaptive-assurance-lite-pilot.json` describes the smallest useful Lite route while keeping
-`activation: shadow`.
-
-The prospective Lite route intentionally keeps the existing Prime→Run 3-doc interface and the hard
-execution boundaries, while removing ceremony that a strictly eligible local reversible delta does not
-earn:
-
-- Prime keeps normal preconditions, a thin existing 3-doc, and explicit user approval, while skipping
-  the two independent Prime reviewers and asking only user-owned decisions.
-- Run keeps Git preflight, interrupted-run recovery guards, and contract/graph validation.
-- Run executes directly without a worktree.
-- Run performs targeted task verification and exactly one full completion verification; reusable
-  evidence must satisfy the exact identity contract.
-- Runnable services still receive the declared runtime smoke.
-- The independent final reviewer is skipped, but the orchestrator still performs a final diff check.
-- Harness synchronization is skipped only because Lite eligibility excludes durable project changes.
-- User integration choice remains mandatory.
-- Any discovered scope, verification, external-state, recovery, security/data, destructive, or
-  user-intent risk promotes monotonically to Standard or Assurance before completion.
-
-None of these Lite reductions are live yet.
+This rule is dormant and cannot replace or weaken the existing `RUN-COMPLETION-REUSE` contract. Any
+future integration must add constraints to the existing Run meaning rather than create a competing
+weaker authority.
 
 ## CI history requirement
 
@@ -136,9 +142,9 @@ This branch still does **not**:
 - change Run route topology;
 - reduce task, integration, completion, smoke, or final-review gates;
 - make harness synchronization conditional in the live workflow;
-- alter recovery or user approval behavior;
-- make study records execution authority.
+- alter recovery, approval, or integration behavior;
+- make study records execution authority;
+- claim actual Time to Trusted Change improvement.
 
-The next step is to complete the Phase 1.2 observation study and hold an independent activation review.
-Only a later, separately reviewed release may introduce a bounded Lite pilot. That release must remain
-explicitly reversible and preserve monotonic escalation back to the existing Full Assurance path.
+Only a later, separately reviewed release may introduce a bounded Lite pilot. Phase 2 must then measure
+actual end-to-end net benefit before any broader activation.

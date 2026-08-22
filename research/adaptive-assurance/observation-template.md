@@ -2,11 +2,11 @@
 
 > Copy this worksheet into a private study workspace for one Prime cycle. Do not commit a completed
 > record to the public Leanforge repository. Complete and seal Section A without showing its contents to
-> the adjudicator, complete Section B, then reveal Section A and complete Section C.
+> the adjudicator, complete Section B, then reveal Section A and complete Sections C–E.
 
-## A. Sealed shadow prediction — collector only
+## A. Cohort and sealed shadow prediction — collector only
 
-- Study version: `1`
+- Study version: `2`
 - Study batch: `<batch-id>`
 - Predeclared observation window or case range: `<sealed scope>`
 - Inclusion/exclusion criteria version: `<criteria-id>`
@@ -17,7 +17,7 @@
 - Case ID: `<sanitized-id>`
 - Coarse task category: `<docs | test | local-fix | config | feature | refactor | dependency | operations | other>`
 - Host: `<claude | codex | other>`
-- Model label, only when exposed by the host: `<label | unavailable>`
+- Model/settings label, only when exposed by the host: `<label | unavailable>`
 - Cycle: `<first | delta>`
 - Capture status: `<present | absent>`
 - Collector role or initials: `<redacted identifier>`
@@ -66,16 +66,14 @@ Copy the sidecar unchanged when present:
 Apply the pinned contract revision that produced the prediction. Do not infer success from missing
 evidence. When one class cannot be supported without guessing, select `unevaluable`.
 
-## C. Reveal and comparison
+## C. Reveal and safety comparison
 
 Complete only after Section B is fixed.
 
 - Revealed shadow mode: `<lite | standard | assurance | absent>`
 - Comparison label: `<exact | conservative | lite_to_standard | material_false_negative | unevaluable>`
 - Material false negative: `<yes | no | unevaluable>`
-- Shadow collection caused an additional user question: `<yes | no | unevaluable>`
-- Shadow collection changed live Prime or Run behavior: `<yes | no | unevaluable>`
-- Required disposition: `<none | inspect grounding | revise eligibility | revise hard-trigger detection | repeat with independent adjudicator | no-go>`
+- Required safety disposition: `<none | inspect grounding | revise eligibility | revise hard-trigger detection | repeat with independent adjudicator | no-go>`
 - Resolver or second-adjudicator outcome, when used: `<concise result or none>`
 
 ### Underclassification explanation
@@ -89,7 +87,38 @@ Required for every `lite_to_standard` or `material_false_negative` record.
 - Router or contract changed as a result: `<yes | no>`
 - If `yes`, new study batch ID: `<required new batch>`
 
-## D. Redaction and integrity check
+## D. Product north-star observation
+
+Record only values available without changing the observed Prime/Run cycle.
+
+- Shadow collection caused an additional user question: `<yes | no | unevaluable>`
+- User was asked to choose or understand a mode: `<yes | no | unevaluable>`
+- Shadow collection added a subagent dispatch: `<yes | no | unevaluable>`
+- Shadow collection caused an additional broad repo scan: `<yes | no | unevaluable>`
+- Shadow collection changed live Prime or Run behavior: `<yes | no | unevaluable>`
+- Prime invocation to G7 or stop, when available: `<duration | unavailable>`
+- User question count: `<integer | unavailable>`
+- User reply turns: `<integer | unavailable>`
+- Subagent count: `<integer | unavailable>`
+- Tool-call or file-read count: `<value | unavailable>`
+- Host usage/tokens: `<value | unavailable>`
+- 3-doc-gate result: `<clear | blocking | not reached | unavailable>`
+- 3-doc-gate blocker count: `<integer | unavailable>`
+- Approval summary size: `<words/tokens | unavailable>`
+
+### Potential Lite value
+
+- Strict-Lite eligibility remains true at evidence-window end: `<yes | no | unevaluable>`
+- Candidate ceremony that a binary pilot could omit: `<closed list>`
+- Hard boundary that must remain: `<closed list>`
+- Measured or conservatively bounded removable cost: `<value and basis | unavailable>`
+- Expected promotion/recovery cost: `<value and basis | unavailable>`
+- Estimated net removable cost after shadow tax: `<value and uncertainty | unavailable>`
+
+Do not record a saving that depends on removing intent ownership, actual command evidence, recovery,
+final diff, user approval, integration choice, or on creating a third Standard execution topology.
+
+## E. Redaction and integrity check
 
 - [ ] The exact Leanforge commit and contract blob are recorded.
 - [ ] The observation window and inclusion/exclusion criteria were fixed before prediction reveal.
@@ -101,12 +130,13 @@ Required for every `lite_to_standard` or `material_false_negative` record.
 - [ ] The independent class was fixed before the shadow mode was revealed.
 - [ ] Missing or contradictory evidence was not counted as a pass.
 - [ ] This record did not alter the observed Prime or Run cycle.
-- [ ] This record is not pooled with a different router or contract revision.
+- [ ] This record is not pooled with a different router, contract, host, model, or settings revision.
 
-## E. Study disposition
+## F. Study disposition
 
-- Usable observation: `<yes | no>`
-- Counts toward coverage target: `<lite | standard | assurance | no>`
+- Usable safety observation: `<yes | no>`
+- Counts toward mode coverage: `<lite | standard | assurance | no>`
 - Counts toward host coverage: `<claude | codex | other | no>`
+- Counts toward potential-value analysis: `<yes | no>`
 - Requires individual study-report entry: `<yes | no>`
 - Final note, redacted: `<optional concise note>`
