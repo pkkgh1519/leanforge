@@ -27,5 +27,6 @@ tests/test_adaptive_assurance*.py text eol=lf
 tests/test_product_north_star.py text eol=lf
 tools/adaptive_assurance.py text eol=lf
 tools/adaptive_assurance_shadow.py text eol=lf
+tools/adaptive_assurance_study.py text eol=lf
 docs/adaptive-assurance-phase1.md text eol=lf
 research/adaptive-assurance/** text eol=lf
