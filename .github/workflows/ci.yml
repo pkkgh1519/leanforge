@@ -40,6 +40,7 @@ jobs:
           cmp \
             "$RUNNER_TEMP/adaptive-assurance-control-prepare.json" \
             "$RUNNER_TEMP/adaptive-assurance-control-verify.json"
+          cat "$RUNNER_TEMP/adaptive-assurance-control-prepare.json"
 
       - name: Run all unit tests
         run: python -m unittest discover -s tests -v
