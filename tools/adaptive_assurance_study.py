@@ -78,7 +78,7 @@ def require_clean_repo(repo: Path) -> None:
         raise StudyError("candidate repository must be clean before study pinning")
 
 
-def export_head(repo: Path, destination: Path) -> None:
+def export_commit(repo: Path, commit: str, destination: Path) -> None:
     destination.mkdir(parents=True, exist_ok=False)
     archive_path = destination.parent / f"{destination.name}.tar"
     try:
@@ -89,7 +89,7 @@ def export_head(repo: Path, destination: Path) -> None:
                 "--format=tar",
                 "--output",
                 str(archive_path),
-                "HEAD",
+                commit,
             ),
             repo,
         )
@@ -269,20 +269,29 @@ def write_manifest(path: Path, value: Mapping[str, Any]) -> None:
 
 def prepare_control(repo: Path, workspace: Path) -> dict[str, Any]:
     repo, workspace = repo.resolve(), workspace.resolve()
+    pinned_commit = git(repo, "rev-parse", "--verify", "HEAD^{commit}")
     require_clean_repo(repo)
+    if git(repo, "rev-parse", "--verify", "HEAD^{commit}") != pinned_commit:
+        raise StudyError("candidate HEAD changed while pinning the study revision")
     if is_inside(workspace, repo):
         raise StudyError("workspace must be outside the candidate repository")
     if workspace.exists():
         raise StudyError(f"workspace already exists: {workspace}")
+    pinned_tree = git(repo, "rev-parse", f"{pinned_commit}^{{tree}}")
+    pinned_contract = git(
+        repo,
+        "rev-parse",
+        f"{pinned_commit}:{CONTRACT_REL.as_posix()}",
+    )
     workspace.parent.mkdir(parents=True, exist_ok=True)
     staging = Path(tempfile.mkdtemp(prefix=workspace.name + ".tmp-", dir=workspace.parent))
     try:
         candidate, control = staging / "candidate", staging / "control"
-        export_head(repo, candidate)
+        export_commit(repo, pinned_commit, candidate)
         before = tree_digest(candidate)
         build(candidate)
         if before != tree_digest(candidate):
-            raise StudyError("candidate generated surfaces are not clean at HEAD")
+            raise StudyError("candidate generated surfaces are not clean at pinned commit")
         shutil.copytree(candidate, control, symlinks=True, copy_function=shutil.copy2)
         original, stripped = strip_shadow(control / GROUND_REL)
         build(control)
@@ -294,13 +303,15 @@ def prepare_control(repo: Path, workspace: Path) -> dict[str, Any]:
         candidate_hook, control_hook = hook_surfaces(candidate, control)
         if candidate_hook != original or control_hook != stripped:
             raise StudyError("built hook surfaces do not match the prepared source edit")
+        if git(repo, "rev-parse", "--verify", "HEAD^{commit}") != pinned_commit:
+            raise StudyError("candidate HEAD changed while preparing the study control")
         manifest = {
             "schema_version": SCHEMA_VERSION,
             "control_kind": CONTROL_KIND,
             "candidate": {
-                "commit": git(repo, "rev-parse", "HEAD"),
-                "git_tree": git(repo, "rev-parse", "HEAD^{tree}"),
-                "contract_blob_sha1": git(repo, "rev-parse", f"HEAD:{CONTRACT_REL.as_posix()}"),
+                "commit": pinned_commit,
+                "git_tree": pinned_tree,
+                "contract_blob_sha1": pinned_contract,
                 **identities(candidate),
             },
             "control": identities(control),

@@ -5,6 +5,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[1]
 TOOLS = ROOT / "tools"
@@ -103,6 +104,55 @@ class AdaptiveAssuranceStudyControlTests(unittest.TestCase):
             self.assertIn(study.SHADOW_HEADING, candidate)
             self.assertNotIn(study.SHADOW_HEADING, control)
             self.assertTrue(candidate.startswith(control.rstrip() + "\n\n"))
+
+    def test_manifest_provenance_uses_the_exported_pinned_commit(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            repo = create_fixture_repo(root)
+            pinned_commit = study.git(
+                repo, "rev-parse", "--verify", "HEAD^{commit}"
+            )
+            manifest = study.prepare_control(repo, root / "workspace")
+
+            self.assertEqual(pinned_commit, manifest["candidate"]["commit"])
+            self.assertEqual(
+                study.git(repo, "rev-parse", f"{pinned_commit}^{{tree}}"),
+                manifest["candidate"]["git_tree"],
+            )
+            self.assertEqual(
+                study.git(
+                    repo,
+                    "rev-parse",
+                    f"{pinned_commit}:{study.CONTRACT_REL.as_posix()}",
+                ),
+                manifest["candidate"]["contract_blob_sha1"],
+            )
+
+    def test_prepare_fails_closed_if_head_moves_after_export(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            repo = create_fixture_repo(root)
+            workspace = root / "workspace"
+            original_export = study.export_commit
+
+            def export_then_advance(
+                repo_path: Path, commit: str, destination: Path
+            ) -> None:
+                original_export(repo_path, commit, destination)
+                (repo_path / "other.txt").write_text(
+                    "advanced\n", encoding="utf-8"
+                )
+                run(["git", "add", "other.txt"], repo_path)
+                run(["git", "commit", "-qm", "advance-head"], repo_path)
+
+            with mock.patch.object(
+                study, "export_commit", side_effect=export_then_advance
+            ):
+                with self.assertRaisesRegex(
+                    study.StudyError, "HEAD changed while preparing"
+                ):
+                    study.prepare_control(repo, workspace)
+            self.assertFalse(workspace.exists())
 
     def test_verify_rejects_any_extra_control_change(self):
         with tempfile.TemporaryDirectory() as tmp:
