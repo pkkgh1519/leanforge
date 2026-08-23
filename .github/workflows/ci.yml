@@ -28,6 +28,19 @@ jobs:
       - name: Check untracked generated files
         run: test -z "$(git status --porcelain --untracked-files=all -- claude codex)"
 
+      - name: Verify Adaptive Assurance shadow-disabled control
+        run: |
+          python tools/adaptive_assurance_study.py prepare-control \
+            --repo . \
+            --workspace "$RUNNER_TEMP/adaptive-assurance-study-control" \
+            > "$RUNNER_TEMP/adaptive-assurance-control-prepare.json"
+          python tools/adaptive_assurance_study.py verify-control \
+            --workspace "$RUNNER_TEMP/adaptive-assurance-study-control" \
+            > "$RUNNER_TEMP/adaptive-assurance-control-verify.json"
+          cmp \
+            "$RUNNER_TEMP/adaptive-assurance-control-prepare.json" \
+            "$RUNNER_TEMP/adaptive-assurance-control-verify.json"
+
       - name: Run all unit tests
         run: python -m unittest discover -s tests -v
 
