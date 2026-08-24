@@ -1,0 +1,45 @@
+name: ChatGPT Leanforge Branch Export
+
+on:
+  pull_request:
+    branches:
+      - Leanforge/v1.9.0-contract-foundation
+    types:
+      - opened
+      - reopened
+      - synchronize
+
+permissions:
+  contents: read
+
+jobs:
+  export-bundle:
+    if: github.head_ref == 'chatgpt-export-leanforge-v1.9.0'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact review branch
+        uses: actions/checkout@v4
+        with:
+          ref: agent/adaptive-assurance-harness-cycle-fix
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Create verified Git bundle
+        shell: bash
+        run: |
+          set -euo pipefail
+          git rev-parse HEAD > "$RUNNER_TEMP/leanforge.checked-out-head.txt"
+          git bundle create "$RUNNER_TEMP/leanforge-harness-cycle.bundle" --all
+          git bundle verify "$RUNNER_TEMP/leanforge-harness-cycle.bundle"
+          git bundle list-heads "$RUNNER_TEMP/leanforge-harness-cycle.bundle" > "$RUNNER_TEMP/leanforge.bundle-heads.txt"
+
+      - name: Upload bundle artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: chatgpt-leanforge-harness-cycle-bundle
+          path: |
+            ${{ runner.temp }}/leanforge-harness-cycle.bundle
+            ${{ runner.temp }}/leanforge.checked-out-head.txt
+            ${{ runner.temp }}/leanforge.bundle-heads.txt
+          if-no-files-found: error
+          retention-days: 1
