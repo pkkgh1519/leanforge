@@ -1,0 +1,99 @@
+name: ChatGPT Apply Product Outcome Patch
+
+on:
+  pull_request:
+    branches:
+      - Leanforge/v1.9.0-contract-foundation
+    types:
+      - opened
+      - reopened
+      - synchronize
+
+permissions:
+  contents: write
+
+jobs:
+  apply-and-verify:
+    if: github.head_ref == 'chatgpt-export-leanforge-v1.9.0'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout transport branch
+        uses: actions/checkout@v4
+        with:
+          ref: chatgpt-export-leanforge-v1.9.0
+          fetch-depth: 0
+
+      - name: Reassemble patch and pin target parent
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/verification"
+          mapfile -t chunks < <(printf '%s\n' .github/chatgpt/product-outcome.patch.gz.b64.* | sort)
+          test "${#chunks[@]}" -eq 15
+          for chunk in "${chunks[@]:0:14}"; do test "$(wc -c < "$chunk")" -eq 1500; done
+          test "$(wc -c < "${chunks[14]}")" -eq 724
+          cat "${chunks[@]}" > "$RUNNER_TEMP/product-outcome.patch.gz.b64"
+          test "$(sha256sum "$RUNNER_TEMP/product-outcome.patch.gz.b64" | awk '{print $1}')" = "7f0111de36f1bba3720e62979ee9f034737d403b6ca712e99ac685f75d2795e0"
+          base64 -d "$RUNNER_TEMP/product-outcome.patch.gz.b64" > "$RUNNER_TEMP/product-outcome.diff.gz"
+          test "$(sha256sum "$RUNNER_TEMP/product-outcome.diff.gz" | awk '{print $1}')" = "1af165ea26fad3969ed2c5cc2d470abf52a23a84447d5300b714d2e4a04809da"
+          gzip -dc "$RUNNER_TEMP/product-outcome.diff.gz" > "$RUNNER_TEMP/product-outcome.diff"
+          test "$(sha256sum "$RUNNER_TEMP/product-outcome.diff" | awk '{print $1}')" = "07d8242270745230096963d71782f95a286e190ecadb86b88d8854a8e4c85d8a"
+          git fetch origin refs/heads/agent/adaptive-assurance-harness-cycle-fix:refs/remotes/origin/product-outcome-target
+          target=$(git rev-parse refs/remotes/origin/product-outcome-target)
+          test "$target" = "cbbb90758d28112a0918a1f999b841b9e8f7a7e6"
+          git switch --detach "$target"
+          git apply --index --binary "$RUNNER_TEMP/product-outcome.diff"
+          test "$(git write-tree)" = "5f991301aea03b7721be67d3ff5d5960e0018da8"
+          git diff --cached --check
+          printf '%s\n' "$target" > "$RUNNER_TEMP/verification/parent.txt"
+          printf '%s\n' "$(git write-tree)" > "$RUNNER_TEMP/verification/tree-before-tests.txt"
+          sha256sum "$RUNNER_TEMP/product-outcome.diff" > "$RUNNER_TEMP/verification/patch.sha256"
+
+      - name: Run deterministic product experiment
+        shell: bash
+        run: |
+          set -euo pipefail
+          python tools/product_outcome_experiment.py --json | tee "$RUNNER_TEMP/verification/product-outcome.json"
+          python -m unittest tests.test_product_outcome_experiment -v 2>&1 | tee "$RUNNER_TEMP/verification/product-outcome-tests.log"
+
+      - name: Build and verify generated parity
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash build/build.sh 2>&1 | tee "$RUNNER_TEMP/verification/build.log"
+          git diff --exit-code -- claude codex
+          test -z "$(git ls-files --others --exclude-standard -- claude codex)"
+          test "$(git write-tree)" = "5f991301aea03b7721be67d3ff5d5960e0018da8"
+          git diff --cached --check
+
+      - name: Run full repository suite
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m unittest discover -s tests -v 2>&1 | tee "$RUNNER_TEMP/verification/full-tests.log"
+
+      - name: Create and push verified commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git write-tree)" = "5f991301aea03b7721be67d3ff5d5960e0018da8"
+          git diff --cached --check
+          git config user.name "OpenAI"
+          git config user.email "noreply@openai.com"
+          git commit -m "docs: align Leanforge with trusted-change outcome"
+          test "$(git rev-parse HEAD^{tree})" = "5f991301aea03b7721be67d3ff5d5960e0018da8"
+          git rev-parse HEAD > "$RUNNER_TEMP/verification/result-commit.txt"
+          git rev-parse HEAD^{tree} > "$RUNNER_TEMP/verification/result-tree.txt"
+          git status --porcelain --untracked-files=all > "$RUNNER_TEMP/verification/final-status.txt"
+          test ! -s "$RUNNER_TEMP/verification/final-status.txt"
+          git push origin HEAD:refs/heads/agent/adaptive-assurance-harness-cycle-fix
+
+      - name: Upload verification evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: chatgpt-leanforge-product-outcome-verification
+          path: ${{ runner.temp }}/verification
+          if-no-files-found: warn
+          retention-days: 1
