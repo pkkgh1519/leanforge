@@ -11,6 +11,8 @@
 - A shadow-disabled control patch/tree digest: `<exact identities>`
 - A generated/installed package digest by host: `<values>`
 - A/B allowlisted source and generated diff verified: `<yes | no>`
+- Predeclared execution-provenance method ID/version and binding/precondition rule by host: `<values>`
+- A/B executed-package binding and precondition verified by host: `<yes | no>`
 - Proposed pilot host scope: `<claude | codex | both | none>`
 - Proposed topology: `<strict Lite vs existing Full Assurance | none>`
 - Rationale: `<safety, tax, quality, burden, value, reversibility>`
@@ -22,6 +24,7 @@
 | Safety and wrong-path | `<result>` | `<result>` | `<result>` |
 | Removable-gate intervention | `<result>` | `<result>` | `<result>` |
 | Installed identity and smoke | `<result>` | `<result>` | `<result>` |
+| A/B arm execution provenance | `<result>` | `<result>` | `<result>` |
 | Shadow tax and endpoints | `<result>` | `<result>` | `<result>` |
 | Quality | `<result>` | `<result>` | `<result>` |
 | User burden | `<result>` | `<result>` | `<result>` |
@@ -67,10 +70,10 @@ batch, or `NO_GO`. It cannot be accepted, waived, or marked not Lite-relevant.
 
 ## 5. Installed-host behavior smoke
 
-| Host | Installed digest matched | Execution provenance qualified | Total smokes | Usable smokes | Mode questions | Classification agents | Live changes | Telemetry blockers | Result |
-|---|---|---|---:|---:|---:|---:|---:|---:|---|
-| Claude | `<yes/no>` | `<yes/no>` | `<n>` | `<n>` | `<n>` | `<n>` | `<n>` | `<n>` | `<result>` |
-| Codex | `<yes/no>` | `<yes/no>` | `<n>` | `<n>` | `<n>` | `<n>` | `<n>` | `<n>` | `<result>` |
+| Host | Provenance method ID/version | Installed digest matched | Execution provenance qualified | Total smokes | Usable smokes | Mode questions | Classification agents | Live changes | Telemetry blockers | Result |
+|---|---|---|---|---:|---:|---:|---:|---:|---:|---|
+| Claude | `<value>` | `<yes/no>` | `<yes/no>` | `<n>` | `<n>` | `<n>` | `<n>` | `<n>` | `<n>` | `<result>` |
+| Codex | `<value>` | `<yes/no>` | `<yes/no>` | `<n>` | `<n>` | `<n>` | `<n>` | `<n>` | `<n>` | `<result>` |
 
 Only provenance-qualified smokes count toward the 20-smoke floor.
 
@@ -85,12 +88,20 @@ For each proposed host provide a separate table. Do not pool host strata.
 - B candidate source/tree/contract identity: `<values>`
 - B generated/installed package digest: `<values>`
 - A/B allowlisted hook-only diff verified: `<yes | no>`
-- Total pairs: `<n>`
-- Both reached G7: `<n>`
+- Execution-provenance method ID/version and binding/precondition rule: `<predeclared value>`
+- Planned A runs / provenance-qualified A runs: `<counts>`
+- Planned B runs / provenance-qualified B runs: `<counts>`
+- Declared-arm mismatches A/B: `<counts>`
+- Execution session/reload/cache precondition failures A/B: `<counts>`
+- Unqualified execution provenance A/B by reason: `<redacted counts>`
+- Exclusions by reason: `<redacted counts>`
+- Total planned pairs: `<n>`
+- Both-arm-qualified matched pairs: `<n>`
+- Both provenance-qualified and reached G7: `<n>`
 - A-only stop / B-only stop / both stop: `<counts>`
-- Successful-G7 rate A/B: `<rates>`
+- Successful-G7 rate A/B over provenance-qualified runs: `<rates>`
 
-| Metric on matched successful-G7 pairs | A | B | Delta | Margin | Result |
+| Metric on both-arm-qualified matched successful-G7 pairs | A | B | Delta | Margin | Result |
 |---|---:|---:|---:|---:|---|
 | Median time-to-G7 seconds | `<v>` | `<v>` | `<%>` | `≤ +5%` | `<result>` |
 | p90 time-to-G7 seconds | `<v>` | `<v>` | `<%>` | `≤ +10%` | `<result>` |
@@ -100,9 +111,16 @@ For each proposed host provide a separate table. Do not pool host strata.
 | User questions | `<v>` | `<v>` | `<v>` | `0 classification-only` | `<result>` |
 | Subagent dispatches | `<v>` | `<v>` | `<v>` | `0 classification-only` | `<result>` |
 
-A B-only stop, lower B successful-G7 rate, unavailable required metric, or failed margin fails this host.
+Only pairs whose A and B runs independently satisfy the predeclared session/reload/cache precondition and
+match their declared arm and pinned installed package may enter the table. A declared-arm mismatch, a
+planned run left unqualified after any permitted same-batch replacement, a B-only stop, lower B
+successful-G7 rate, unavailable required metric, or failed margin fails this host. Any replacement must
+follow the predeclared rule without inspecting performance or quality outcomes. No waiver, manual
+acceptance, repository-local source read, or opposite-arm result may qualify a run.
 
 ## 7. Predeclared quality and user burden by host
+
+Use only Part 6's both-arm-qualified matched successful-G7 comparison set.
 
 | Host | B-only critical defects | Median score delta | B worse by ≥1 | B≤2 while A≥4 | Blocker-rate delta | Reply-turn delta | Approval-step delta | Summary-size delta | Result |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---|

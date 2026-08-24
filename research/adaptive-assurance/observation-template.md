@@ -16,7 +16,12 @@
 - Pinned generated-package digest: `<host-specific digest>`
 - Installed-package digest: `<host-specific digest>`
 - Installed package equals pinned generated package: `<yes | no | unverifiable>`
-- Installed-package execution provenance: `<authoritative host binding or trace | unverifiable>`
+- Execution-provenance method ID/version: `<predeclared host method>`
+- Execution session/reload/cache precondition satisfied: `<yes | no | unverifiable>`
+- Installed-package execution binding/readback: `<authoritative host evidence | unverifiable>`
+- Execution binding identifies pinned installed package: `<yes | no | unverifiable>`
+- Execution provenance qualified: `<yes | no>`
+- Execution-provenance exclusion reason: `<closed reason | none>`
 - Case ID: `<sanitized-id>`
 - Task category: `<docs | test | local-fix | config | feature | refactor | dependency | operations | other>`
 - Host: `<claude | codex | other>`
@@ -148,7 +153,8 @@ approval, integration choice, or require a third Standard topology.
 ## F. Integrity and disposition
 
 - [ ] Source, contract, generated package, and installed package identity are recorded and equal.
-- [ ] The installed-package execution provenance is authoritative and identifies the pinned installed package.
+- [ ] The predeclared execution-provenance method was applied unchanged, its session/reload/cache precondition was satisfied, and its authoritative binding identifies the pinned installed package.
+- [ ] Missing, unverifiable, mismatched, precondition-failed, or redaction-destroyed execution binding was not waived or manually accepted.
 - [ ] The declared cycle marker JSON and active-state preflight satisfy the fixture contract.
 - [ ] Prime-owned `.leanforge/` persistence was allowed and normal Prime files were produced, or a terminal blocker was recorded.
 - [ ] Every absent sidecar has an explicit allowed-absence reason. An unexplained absent sidecar makes this observation unusable.
@@ -161,8 +167,8 @@ approval, integration choice, or require a third Standard topology.
 - [ ] No raw prompt, proprietary source, secret, personal data, repository URL, or absolute path is included.
 - [ ] This record is not pooled with another source/package/host/model/settings revision.
 
-If any identity, fixture-state, or Prime-persistence integrity item above is unchecked, Usable safety
-observation must be `no`.
+If any identity, execution-provenance, fixture-state, or Prime-persistence integrity item above is
+unchecked, Usable safety observation must be `no`.
 
 - Usable safety observation: `<yes | no>`
 - Mode coverage: `<lite | standard | assurance | no>`

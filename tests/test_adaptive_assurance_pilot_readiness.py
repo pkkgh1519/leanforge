@@ -1,4 +1,5 @@
 import json
+import re
 import unittest
 from pathlib import Path
 from typing import Mapping
@@ -124,6 +125,180 @@ def collect_contract_files(root: Path) -> dict[str, str]:
     return files
 
 
+HOST_STUDY_REQUIRED_RULES = {
+    "protocol": (
+        (
+            "## Pinned study batch and installed identity",
+            "Before the batch opens, predeclare one execution-provenance method per host. "
+            "Give it a stable method ID and version, identify the authoritative command, UI, "
+            "trace, or readback, list the fields and deterministic comparison required to "
+            "bind that evidence to the installed-package digest, state fresh-session, reload, "
+            "and cache conditions, and define a redaction-safe retained artifact. Apply the "
+            "method unchanged to A and B. A method selected or relaxed after outcomes are "
+            "visible is invalid. Missing, unverifiable, mismatched, precondition-failed, or "
+            "redaction-destroyed binding is unqualified; no waiver or manual acceptance can "
+            "convert it to qualified evidence.",
+        ),
+        (
+            "### Arms and workload",
+            "Before each run, record the declared arm, pinned installed-package digest, "
+            "predeclared execution-provenance method ID and version, whether its fresh-session, "
+            "reload, and cache precondition was satisfied, authoritative binding or readback, "
+            "whether that binding identifies the pinned installed package for the declared arm, "
+            "provenance-qualified status, and exclusion reason. Both arms must independently "
+            "satisfy the precondition and identify their declared arm before a pair can enter "
+            "endpoint, latency, quality, or user-burden analysis. A missing, unverifiable, "
+            "mismatched, precondition-failed, or redaction-destroyed binding does not count "
+            "toward the planned repetition floor, remains in batch accounting, and may be "
+            "replaced only under a predeclared same-batch rerun rule applied without inspecting "
+            "its performance or quality outcome. No waiver, manual acceptance, repository-local "
+            "source read, or opposite-arm result can qualify it.",
+        ),
+        (
+            "### Endpoint integrity",
+            "Time-to-G7, quality, and user-burden statistics include only matched A/B pairs "
+            "where both runs are provenance-qualified for their declared arms and both reach G7 "
+            "successfully.",
+        ),
+        (
+            "## Part D: predeclared quality and user-burden comparison",
+            "For every paired case admitted by Part C's provenance and endpoint rules, record "
+            "critical defects:",
+        ),
+    ),
+    "observation": (
+        (
+            "## F. Integrity and disposition",
+            "If any identity, execution-provenance, fixture-state, or Prime-persistence "
+            "integrity item above is unchecked, Usable safety observation must be `no`.",
+        ),
+    ),
+    "report": (
+        (
+            "## 6. Host-stratified paired A/B shadow-tax benchmark",
+            "Only pairs whose A and B runs independently satisfy the predeclared "
+            "session/reload/cache precondition and match their declared arm and pinned installed "
+            "package may enter the table. A declared-arm mismatch, a planned run left unqualified "
+            "after any permitted same-batch replacement, a B-only stop, lower B successful-G7 "
+            "rate, unavailable required metric, or failed margin fails this host. Any replacement "
+            "must follow the predeclared rule without inspecting performance or quality outcomes. "
+            "No waiver, manual acceptance, repository-local source read, or opposite-arm result "
+            "may qualify a run.",
+        ),
+        (
+            "## 7. Predeclared quality and user burden by host",
+            "Use only Part 6's both-arm-qualified matched successful-G7 comparison set.",
+        ),
+    ),
+}
+
+HOST_STUDY_REQUIRED_FIELDS = {
+    ("protocol", "### Measurements"): (
+        "- declared arm: `A | B`;",
+        "- pinned installed-package digest for that arm;",
+        "- execution-provenance method ID and version;",
+        "- execution session/reload/cache precondition satisfied: `yes | no | unverifiable`;",
+        "- authoritative execution binding or readback;",
+        "- binding matches the declared arm's pinned installed package: `yes | no | unverifiable`;",
+        "- execution provenance qualified: `yes | no`;",
+        "- exclusion reason: `<closed reason | none>`;",
+    ),
+    ("protocol", "### Host-stratified shadow-tax gates"): (
+        "- declared-arm execution mismatches: exactly `0`;",
+        "- every planned A and B repetition is provenance-qualified after any permitted "
+        "same-batch replacement;",
+    ),
+    ("observation", "## A. Cohort, identity, and sealed prediction"): (
+        "- Execution-provenance method ID/version:",
+        "- Execution session/reload/cache precondition satisfied:",
+        "- Installed-package execution binding/readback:",
+        "- Execution binding identifies pinned installed package:",
+        "- Execution provenance qualified:",
+        "- Execution-provenance exclusion reason:",
+    ),
+    ("report", "## 1. Decision"): (
+        "- Predeclared execution-provenance method ID/version and binding/precondition rule by host:",
+        "- A/B executed-package binding and precondition verified by host:",
+    ),
+    ("report", "## 6. Host-stratified paired A/B shadow-tax benchmark"): (
+        "- Execution-provenance method ID/version and binding/precondition rule:",
+        "- Planned A runs / provenance-qualified A runs:",
+        "- Planned B runs / provenance-qualified B runs:",
+        "- Declared-arm mismatches A/B:",
+        "- Execution session/reload/cache precondition failures A/B:",
+        "- Unqualified execution provenance A/B by reason:",
+        "- Exclusions by reason:",
+        "- Both-arm-qualified matched pairs:",
+        "Metric on both-arm-qualified matched successful-G7 pairs",
+    ),
+}
+
+HOST_STUDY_INVERSION_PATTERNS = (
+    r"repository-local source skill (?:counts|may count) as installed-package provenance",
+    r"marker-loss state is an eligible small-delta smoke",
+    r"prime-owned `?\.leanforge/`? planning writes (?:are|must be) prohibited",
+    r"inline pseudo-documents (?:count|counts) as a completed prime observation",
+    r"(?:may|can) manually accept an? unqualified execution binding",
+    r"unqualified a/b pair (?:may|can) enter .* statistics",
+    r"unchecked execution-provenance item (?:may|can) still set usable safety observation to `yes`",
+    r"declared-arm mismatch (?:may|can) be waived",
+    r"installed-package smoke counts toward the 20-smoke floor even when execution provenance is absent",
+    r"execution session/reload/cache precondition failure (?:may|can) be waived",
+    r"(?:may|can) select a same-batch replacement after inspecting (?:its )?(?:performance|quality)",
+)
+
+
+def markdown_section(value: str, heading: str) -> str:
+    matches = list(
+        re.finditer(rf"^{re.escape(heading)}[ \t]*$", value, re.MULTILINE)
+    )
+    if len(matches) != 1:
+        raise AssertionError(
+            f"Markdown section cardinality drift: {heading}: {len(matches)}"
+        )
+    match = matches[0]
+    level = len(heading) - len(heading.lstrip("#"))
+    following = value[match.end():]
+    next_match = re.search(rf"^#{{1,{level}}}[ \t]+.+$", following, re.MULTILINE)
+    return following[: next_match.start()] if next_match else following
+
+
+def validate_host_study_semantics(
+    protocol: str, observation: str, report: str
+) -> None:
+    documents = {
+        "protocol": protocol,
+        "observation": observation,
+        "report": report,
+    }
+    for document, rules in HOST_STUDY_REQUIRED_RULES.items():
+        for heading, rule in rules:
+            section = normalize_text(markdown_section(documents[document], heading))
+            if section.count(normalize_text(rule)) != 1:
+                raise AssertionError(
+                    f"{document} {heading}: missing or duplicate canonical rule"
+                )
+    for (document, heading), fields in HOST_STUDY_REQUIRED_FIELDS.items():
+        section = normalize_text(markdown_section(documents[document], heading))
+        missing_or_duplicate = [
+            field for field in fields if section.count(normalize_text(field)) != 1
+        ]
+        if missing_or_duplicate:
+            raise AssertionError(
+                f"{document} {heading}: missing or duplicate fields: "
+                f"{missing_or_duplicate}"
+            )
+
+    combined = normalize_text("\n".join(documents.values()))
+    inversions = [
+        pattern
+        for pattern in HOST_STUDY_INVERSION_PATTERNS
+        if re.search(pattern, combined, re.IGNORECASE)
+    ]
+    if inversions:
+        raise AssertionError(f"host-study semantic inversions: {inversions}")
+
+
 class AdaptiveAssurancePilotReadinessTests(unittest.TestCase):
     def assert_terms(self, body: str, terms: tuple[str, ...], context: str) -> None:
         missing = [term for term in terms if normalize_text(term) not in body]
@@ -206,6 +381,10 @@ class AdaptiveAssurancePilotReadinessTests(unittest.TestCase):
                 "marketplace version label alone is not package identity",
                 "installed-package execution provenance",
                 "A repository-local source skill does not count as installed-package provenance.",
+                "predeclare one execution-provenance method per host",
+                "stable method ID and version",
+                "Apply the method unchanged to A and B.",
+                "no waiver or manual acceptance can convert it to qualified evidence",
                 "B candidate arm:",
                 "A shadow-disabled control arm:",
                 "A/B source diff is exactly the allowlisted hook removal",
@@ -268,9 +447,11 @@ class AdaptiveAssurancePilotReadinessTests(unittest.TestCase):
         self.assert_terms(
             body,
             (
-                "Time-to-G7 statistics include only matched A/B pairs where both runs reach G7 successfully.",
+                "Time-to-G7, quality, and user-burden statistics include only matched A/B pairs where both runs are provenance-qualified for their declared arms and both reach G7 successfully.",
+                "planned and provenance-qualified run counts",
+                "declared-arm mismatches",
                 "A terminal stop is never counted as a faster G7 result.",
-                "A B-only stop or lower successful-G7 rate fails the gate",
+                "A declared-arm mismatch, a planned repetition left unqualified after any permitted same-batch replacement, a B-only stop, or a lower successful-G7 rate fails the gate.",
                 "evaluate every proposed host independently",
                 "An aggregate result cannot mask a failed or unavailable host stratum.",
                 "median successful time-to-G7 regression: no more than `5%`",
@@ -319,7 +500,12 @@ class AdaptiveAssurancePilotReadinessTests(unittest.TestCase):
             observation,
             (
                 "Installed-package digest:",
-                "Installed-package execution provenance:",
+                "Execution-provenance method ID/version:",
+                "Execution session/reload/cache precondition satisfied:",
+                "Installed-package execution binding/readback:",
+                "Execution binding identifies pinned installed package:",
+                "Execution provenance qualified:",
+                "Execution-provenance exclusion reason:",
                 "Prime-owned `.leanforge/` writes permitted:",
                 "Sidecar absence disposition:",
                 "Pre-cycle sidecar removed and absence verified:",
@@ -332,7 +518,8 @@ class AdaptiveAssurancePilotReadinessTests(unittest.TestCase):
                 "Prime invocation to G7:",
                 "Conservative removable seconds:",
                 "Approval-step count:",
-                "The installed-package execution provenance is authoritative and identifies the pinned installed package.",
+                "The predeclared execution-provenance method was applied unchanged, its session/reload/cache precondition was satisfied, and its authoritative binding identifies the pinned installed package.",
+                "Missing, unverifiable, mismatched, precondition-failed, or redaction-destroyed execution binding was not waived or manually accepted.",
                 "An unexplained absent sidecar makes this observation unusable.",
                 "Usable safety observation must be `no`",
             ),
@@ -358,10 +545,150 @@ class AdaptiveAssurancePilotReadinessTests(unittest.TestCase):
                 "A material false negative has only two valid dispositions",
                 "It cannot be accepted, waived, or marked not Lite-relevant.",
                 "Execution provenance qualified",
+                "Provenance method ID/version",
+                "A/B arm execution provenance",
+                "Predeclared execution-provenance method ID/version and binding/precondition rule by host:",
+                "A/B executed-package binding and precondition verified by host:",
+                "Planned A runs / provenance-qualified A runs:",
+                "Planned B runs / provenance-qualified B runs:",
+                "Declared-arm mismatches A/B:",
+                "Execution session/reload/cache precondition failures A/B:",
+                "Unqualified execution provenance A/B by reason:",
+                "Both-arm-qualified matched pairs:",
                 "Usable smokes",
             ),
             "pilot-readiness report",
         )
+
+    def test_host_study_semantic_contract_is_closed(self):
+        validate_host_study_semantics(
+            PROTOCOL.read_text(encoding="utf-8"),
+            OBSERVATION.read_text(encoding="utf-8"),
+            REPORT.read_text(encoding="utf-8"),
+        )
+
+    def test_host_study_semantic_mutations_fail_closed(self):
+        protocol = PROTOCOL.read_text(encoding="utf-8")
+        observation = OBSERVATION.read_text(encoding="utf-8")
+        report = REPORT.read_text(encoding="utf-8")
+        mutations = (
+            (
+                "repository-local-provenance",
+                protocol + "\nA repository-local source skill counts as installed-package provenance.\n",
+                observation,
+                report,
+            ),
+            (
+                "marker-loss-eligible",
+                protocol + "\nA marker-loss state is an eligible small-delta smoke.\n",
+                observation,
+                report,
+            ),
+            (
+                "prime-persistence-inverted",
+                protocol + "\nPrime-owned `.leanforge/` planning writes are prohibited, and inline pseudo-documents count as a completed Prime observation.\n",
+                observation,
+                report,
+            ),
+            (
+                "manual-provenance-acceptance",
+                protocol + "\nA collector may manually accept an unqualified execution binding.\n",
+                observation,
+                report,
+            ),
+            (
+                "unqualified-pair-admitted",
+                protocol + "\nAn unqualified A/B pair may enter latency, quality, and user-burden statistics.\n",
+                observation,
+                report,
+            ),
+            (
+                "unchecked-observation-passes",
+                protocol,
+                observation + "\nAn unchecked execution-provenance item may still set Usable safety observation to `yes`.\n",
+                report,
+            ),
+            (
+                "declared-arm-mismatch-waived",
+                protocol,
+                observation,
+                report + "\nA declared-arm mismatch may be waived.\n",
+            ),
+            (
+                "provenance-free-smoke-counted",
+                protocol + "\nEvery installed-package smoke counts toward the 20-smoke floor even when execution provenance is absent.\n",
+                observation,
+                report,
+            ),
+            (
+                "execution-precondition-waived",
+                protocol + "\nAn execution session/reload/cache precondition failure may be waived.\n",
+                observation,
+                report,
+            ),
+            (
+                "outcome-aware-replacement",
+                protocol
+                + "\nA collector may select a same-batch replacement after inspecting its performance outcome.\n",
+                observation,
+                report,
+            ),
+            (
+                "missing-run-arm-field",
+                protocol.replace("- declared arm: `A | B`;\n", "", 1),
+                observation,
+                report,
+            ),
+            (
+                "missing-run-precondition-field",
+                protocol.replace(
+                    "- execution session/reload/cache precondition satisfied: `yes | no | unverifiable`;\n",
+                    "",
+                    1,
+                ),
+                observation,
+                report,
+            ),
+            (
+                "missing-observation-precondition-field",
+                protocol,
+                observation.replace(
+                    "- Execution session/reload/cache precondition satisfied: `<yes | no | unverifiable>`\n",
+                    "",
+                    1,
+                ),
+                report,
+            ),
+            (
+                "missing-qualified-pair-accounting",
+                protocol,
+                observation,
+                report.replace("- Both-arm-qualified matched pairs: `<n>`\n", "", 1),
+            ),
+            (
+                "missing-precondition-failure-accounting",
+                protocol,
+                observation,
+                report.replace(
+                    "- Execution session/reload/cache precondition failures A/B: `<counts>`\n",
+                    "",
+                    1,
+                ),
+            ),
+            (
+                "duplicate-report-section-shadowing",
+                protocol,
+                observation,
+                report
+                + "\n## 6. Host-stratified paired A/B shadow-tax benchmark\n\nA declared-arm mismatch may be waived.\n",
+            ),
+        )
+        for name, mutated_protocol, mutated_observation, mutated_report in mutations:
+            with self.subTest(mutation=name):
+                with self.assertRaises(AssertionError):
+                    validate_host_study_semantics(
+                        mutated_protocol, mutated_observation, mutated_report
+                    )
 
     def test_private_sanitized_benchmark_fixtures_are_permitted_but_public_raw_data_is_not(self):
         body = normalized(PROTOCOL)

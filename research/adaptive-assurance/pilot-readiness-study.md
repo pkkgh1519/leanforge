@@ -79,6 +79,14 @@ that the installed package executed. A repository-local source skill does not co
 provenance. If the host exposes no authoritative binding or trace, record the observation as unusable
 rather than inferring provenance from the response.
 
+Before the batch opens, predeclare one execution-provenance method per host. Give it a stable method ID
+and version, identify the authoritative command, UI, trace, or readback, list the fields and deterministic
+comparison required to bind that evidence to the installed-package digest, state fresh-session, reload,
+and cache conditions, and define a redaction-safe retained artifact. Apply the method unchanged to A and
+B. A method selected or relaxed after outcomes are visible is invalid. Missing, unverifiable, mismatched,
+precondition-failed, or redaction-destroyed binding is unqualified; no waiver or manual acceptance can
+convert it to qualified evidence.
+
 The paired A/B benchmark pins two identities separately:
 
 - **B candidate arm:** the candidate source commit/tree, contract blob, generated-package digest, and
@@ -264,18 +272,41 @@ benchmark prompts, and predeclared user answers. For a two-host study, run:
 Use fresh sessions, identical host/model/settings within each pair, and randomized A/B order. Do not
 pool materially different configurations.
 
+Before each run, record the declared arm, pinned installed-package digest, predeclared
+execution-provenance method ID and version, whether its fresh-session, reload, and cache precondition was
+satisfied, authoritative binding or readback, whether that binding identifies the pinned installed
+package for the declared arm, provenance-qualified status, and exclusion reason. Both arms must
+independently satisfy the precondition and identify their declared arm before a pair can enter endpoint,
+latency, quality, or user-burden analysis. A missing, unverifiable, mismatched, precondition-failed, or
+redaction-destroyed binding does not count toward the planned repetition floor, remains in batch
+accounting, and may be replaced only under a predeclared same-batch rerun rule applied without inspecting
+its performance or quality outcome. No waiver, manual acceptance, repository-local source read, or
+opposite-arm result can qualify it.
+
 ### Endpoint integrity
 
-Time-to-G7 statistics include only matched A/B pairs where both runs reach G7 successfully. A terminal
-stop is never counted as a faster G7 result. Record successful-G7 denominators and terminal-stop rates
-separately for A and B on every host. A B-only stop or lower successful-G7 rate fails the gate; mismatched
-endpoints are excluded from latency estimates and remain explicit failures or unevaluable pairs.
+Time-to-G7, quality, and user-burden statistics include only matched A/B pairs where both runs are
+provenance-qualified for their declared arms and both reach G7 successfully. A terminal stop is never
+counted as a faster G7 result. Record planned and provenance-qualified run counts, both-arm-qualified
+matched pairs, declared-arm mismatches, execution-precondition failures, unqualified bindings by reason,
+exclusions by reason, successful-G7 denominators, and terminal-stop rates separately for A and B on every
+host. A declared-arm mismatch, a planned repetition left unqualified after any permitted same-batch
+replacement, a B-only stop, or a lower successful-G7 rate fails the gate. Mismatched endpoints are
+excluded from latency estimates and remain explicit failures or unevaluable pairs.
 
 ### Measurements
 
-For every run, when available, record:
+For every run, record:
 
-- wall-clock from Prime invocation to G7, or separately to a terminal stop;
+- declared arm: `A | B`;
+- pinned installed-package digest for that arm;
+- execution-provenance method ID and version;
+- execution session/reload/cache precondition satisfied: `yes | no | unverifiable`;
+- authoritative execution binding or readback;
+- binding matches the declared arm's pinned installed package: `yes | no | unverifiable`;
+- execution provenance qualified: `yes | no`;
+- exclusion reason: `<closed reason | none>`;
+- wall-clock from Prime invocation to G7, or separately to a terminal stop, when available;
 - input/output token or closest host-provided usage measure;
 - tool-call count and files read;
 - subagent dispatch count;
@@ -289,6 +320,8 @@ For every run, when available, record:
 Predeclare margins before running the batch and evaluate every proposed host independently. An aggregate
 result cannot mask a failed or unavailable host stratum. The initial default gates per host are:
 
+- declared-arm execution mismatches: exactly `0`;
+- every planned A and B repetition is provenance-qualified after any permitted same-batch replacement;
 - additional classification-only user questions: exactly `0`;
 - additional classification subagents: exactly `0`;
 - additional broad repo scans attributable to classification: exactly `0`;
@@ -306,7 +339,7 @@ may narrow the pilot scope or remain `NO_GO`.
 Before collecting the batch, predeclare the blinded rubric, aggregation, and margins below. The reviewer
 does not know whether a 3-doc came from A or B.
 
-For every paired case record critical defects:
+For every paired case admitted by Part C's provenance and endpoint rules, record critical defects:
 
 - surviving user-owned ambiguity;
 - invalid graph or missing spec-to-task coverage;
@@ -327,8 +360,9 @@ Quality passes per proposed host only when:
 
 User burden passes only with zero classification-only questions, zero added approval steps, no increase
 in reply turns attributable to mode selection, and no more than 10% increase in median approval-summary
-size per host. Record question count, reply-turn count, and approval-step count for every paired run and
-report their host-stratified deltas. Missing required quality or burden data is `unevaluable`, not a pass.
+size per host. Record question count, reply-turn count, and approval-step count for every admitted paired
+run and report their host-stratified deltas. Missing required quality or burden data is `unevaluable`, not
+a pass.
 
 ## Part E: cohort-level potential value in one cost unit
 
@@ -373,6 +407,8 @@ Trusted Change before broader activation.
 - zero unresolved strict-Lite cases dependent on a gate proposed for removal;
 - representative, revision-pinned, Run-qualified, per-host safety coverage;
 - installed package identity and behavior-smoke coverage for every proposed host;
+- zero declared-arm execution mismatches and execution-provenance-qualified planned A/B repetitions for
+  every proposed host;
 - each host independently passes endpoint and shadow-tax non-inferiority;
 - each host independently passes the predeclared quality and user-burden margins;
 - each host independently passes the prevalence-weighted common-unit value gate;
