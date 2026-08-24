@@ -51,12 +51,30 @@ def run(args: Sequence[str], cwd: Path) -> bytes:
     except OSError as exc:
         raise StudyError(f"cannot execute {args[0]!r}: {exc}") from exc
     if result.returncode:
-        error = result.stderr.decode("utf-8", errors="replace").strip()
+        stdout = result.stdout.decode("utf-8", errors="replace").strip()
+        stderr = result.stderr.decode("utf-8", errors="replace").strip()
+        details = "\n".join(part for part in (stdout, stderr) if part)
         raise StudyError(
             f"command failed ({result.returncode}): {' '.join(args)}"
-            + (f"\n{error}" if error else "")
+            + (f"\n{details}" if details else "")
         )
     return result.stdout
+
+
+def bash_executable() -> str:
+    candidates: list[Path] = []
+    if os.name == "nt":
+        for env_name in ("ProgramFiles", "ProgramFiles(x86)"):
+            root = os.environ.get(env_name)
+            if root:
+                candidates.append(Path(root) / "Git" / "bin" / "bash.exe")
+    discovered = shutil.which("bash")
+    if discovered:
+        candidates.append(Path(discovered))
+    for candidate in candidates:
+        if candidate.is_file():
+            return str(candidate)
+    raise StudyError("Git Bash or bash is required to run build/build.sh")
 
 
 def git(repo: Path, *args: str) -> str:
@@ -85,6 +103,10 @@ def export_commit(repo: Path, commit: str, destination: Path) -> None:
         run(
             (
                 "git",
+                "-c",
+                "core.autocrlf=false",
+                "-c",
+                "core.eol=lf",
                 "archive",
                 "--format=tar",
                 "--output",
@@ -146,13 +168,21 @@ def tree_digest(root: Path) -> str:
 def build(root: Path) -> None:
     if not (root / "build/build.sh").is_file():
         raise StudyError("exported tree is missing build/build.sh")
-    run(("bash", "build/build.sh"), root)
+    run((bash_executable(), "build/build.sh"), root)
+
+
+def normalized_lf_bytes(value: bytes) -> bytes:
+    normalized = value.replace(b"\r\n", b"\n")
+    if b"\r" in normalized:
+        raise StudyError("grounds-gate.md contains an unsupported lone CR")
+    return normalized
 
 
 def strip_shadow(path: Path) -> tuple[bytes, bytes]:
     original = path.read_bytes()
+    normalized = normalized_lf_bytes(original)
     try:
-        text = original.decode("utf-8")
+        text = normalized.decode("utf-8")
     except UnicodeDecodeError as exc:
         raise StudyError("grounds-gate.md is not valid UTF-8") from exc
     marker = f"\n{SHADOW_HEADING}\n"

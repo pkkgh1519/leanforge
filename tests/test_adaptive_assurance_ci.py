@@ -12,6 +12,24 @@ class AdaptiveAssuranceCiContractTests(unittest.TestCase):
         self.assertEqual(1, ci.count("uses: actions/checkout@v4"))
         self.assertEqual(1, ci.count("fetch-depth: 0"))
 
+    def test_windows_ci_exercises_the_full_suite_with_autocrlf(self):
+        ci = (ROOT / ".github/workflows/windows.yml").read_text(encoding="utf-8")
+
+        self.assertEqual(1, ci.count("git config --global core.autocrlf true"))
+        self.assertEqual(1, ci.count("uses: actions/checkout@v4"))
+        self.assertEqual(1, ci.count("fetch-depth: 0"))
+        self.assertIn('python-version: "3.11"', ci)
+        self.assertEqual(
+            1,
+            ci.count("python -m unittest discover -s tests -v"),
+        )
+
+        configure = ci.index("git config --global core.autocrlf true")
+        checkout = ci.index("uses: actions/checkout@v4")
+        tests = ci.index("python -m unittest discover -s tests -v")
+        self.assertLess(configure, checkout)
+        self.assertLess(checkout, tests)
+
     def test_ci_prepares_and_reverifies_the_exact_shadow_disabled_control(self):
         ci = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
 

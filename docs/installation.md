@@ -45,6 +45,12 @@ After installation, the command palette should expose these commands:
 `Leanforge:Run TDD` is optional on both Claude Code and Codex; the core lifecycle is
 `Prime` -> `Run`. See [when to use it](troubleshooting.md#when-to-use-leanforgerun-tdd-instead-of-leanforgerun).
 
+To test an unreleased branch in Codex, do not treat the checked-out source or a
+version label as proof of execution. Use the commit-pinned, reversible local
+marketplace procedure in [Test an exact local Codex candidate](local-candidate-testing.md),
+then verify the active cache path against the generated package digest before
+running Prime or Run.
+
 ## First successful run
 
 Use a small, observable request first:

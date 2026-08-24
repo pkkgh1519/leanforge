@@ -79,6 +79,27 @@ cp src/skills/prime/references/grounds-gate.md codex/plugin/skills/prime/referen
 
 
 class AdaptiveAssuranceStudyControlTests(unittest.TestCase):
+    def test_prepare_ignores_ambient_autocrlf_during_commit_export(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            repo = create_fixture_repo(root)
+            run(["git", "config", "core.autocrlf", "true"], repo)
+
+            workspace = root / "workspace"
+            study.prepare_control(repo, workspace)
+
+            for relative in (
+                Path("build/build.sh"),
+                study.GROUND_REL,
+                study.CLAUDE_GROUND_REL,
+                study.CODEX_GROUND_REL,
+            ):
+                self.assertNotIn(
+                    b"\r",
+                    (workspace / "candidate" / relative).read_bytes(),
+                    relative.as_posix(),
+                )
+
     def test_prepare_and_verify_are_deterministic_and_closed(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

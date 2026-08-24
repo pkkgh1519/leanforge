@@ -1,0 +1,42 @@
+name: Windows regression
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  windows-regression:
+    runs-on: windows-latest
+    steps:
+      - name: Configure Windows checkout line endings
+        shell: pwsh
+        run: git config --global core.autocrlf true
+
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Build generated plugins
+        shell: bash
+        run: bash build/build.sh
+
+      - name: Run Windows regression suite
+        shell: pwsh
+        run: python -m unittest discover -s tests -v
+
+      - name: Check generated and working-tree drift
+        shell: pwsh
+        run: |
+          git diff --exit-code -- claude codex
+          if (git status --porcelain --untracked-files=all) {
+            git status --short
+            exit 1
+          }
+          git diff --check
