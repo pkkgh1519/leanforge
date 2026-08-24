@@ -43,7 +43,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          cat transport/.github/chatgpt-transport/minfix.part00 \
+          cat transport/.github/chatgpt-transport/minfix.part00a \
+              transport/.github/chatgpt-transport/minfix.part00b \
               transport/.github/chatgpt-transport/minfix.part01 \
               transport/.github/chatgpt-transport/minfix.part02 \
               > "$RUNNER_TEMP/minfix.diff.gz.b64"
