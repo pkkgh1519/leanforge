@@ -1,9 +1,9 @@
 ---
 name: run
 description: >
-  Execute a refined 3-doc (handoff, spec, plan) produced by Prime:
-  wave-based parallel implementation with right-sized verification (test-first where it fits),
-  spec-first review, and integration gates. Use when the user invokes the `Run` skill after `Prime` wrote the 3-doc. Requires git.
+  Implement and verify an approved Leanforge change contract, returning the actual change, captured
+  evidence, remaining risks, and a user-owned integration choice. Use when the user invokes the
+  `Run` skill after `Prime` prepared the contract. Requires git.
 disable-model-invocation: true
 allowed-tools: Read, Edit, Write, Bash, Grep, Glob, Agent, SendMessage, AskUserQuestion
 ---
@@ -64,6 +64,30 @@ Compatibility-only (non-operative legacy assertion): ~~Force-load `references/ha
 }
 ```
 <!-- leanforge:run-semantic:RUN-OUTPUT-SEMANTICS:end -->
+
+## Final result contract
+
+<!-- leanforge:run-final-result-contract:start -->
+
+At successful completion, use four clearly labeled sections in the user's language:
+
+1. **Change** — the actual code, configuration, test, or verified external result, plus the branch
+   and commit when applicable.
+2. **Verification** — the commands or observations, captured results, exit codes, and runtime
+   evidence that support completion.
+3. **Remaining risk** — unresolved concerns, intentionally unverified scope, and recovery state;
+   state that there is none only when the evidence supports it.
+4. **Integration** — the user-owned next choice: merge, PR/push, or feature-branch handoff. Never
+   imply integration happened without authoritative readback.
+
+After recovery is exhausted at a terminal blocker, use the same four sections. **Change** records
+completed or preserved state, or explicitly says none; **Verification** records the evidence for the
+stop; **Remaining risk** names the blocker and recovery state; **Integration** states that the result
+is not integration-ready and gives only safe user-owned choices.
+
+Do not replace these sections with 3-doc counts, reviewer/worktree/wave details, mode labels, or
+other internal plumbing.
+<!-- leanforge:run-final-result-contract:end -->
 
 ## Input and preconditions
 

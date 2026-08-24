@@ -4,15 +4,15 @@
 
 # Leanforge v1.9.0
 
-### Intent-to-implementation for Claude Code & Codex.
+### From a software goal to a reviewed, verified change ready to integrate.
 
 [![CI](https://github.com/pkkgh1519/leanforge/actions/workflows/ci.yml/badge.svg)](https://github.com/pkkgh1519/leanforge/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/pkkgh1519/leanforge)](https://github.com/pkkgh1519/leanforge/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-Leanforge turns vague product intent into a reviewed executable design contract,
-runs implementation with evidence gates, and leaves durable project memory for
-future agents.
+Leanforge asks only for decisions the user owns, turns them into an approval-ready
+change contract, then implements and verifies the result. You receive the actual
+change, evidence, remaining risks, and a user-owned integration choice.
 
 [Repository](https://github.com/pkkgh1519/leanforge) · [Release notes](https://github.com/pkkgh1519/leanforge/releases) · [한국어](https://github.com/pkkgh1519/leanforge/blob/main/README_KO.md)
 
@@ -59,14 +59,14 @@ After install, the command palette should expose:
    /leanforge:prime Build a minimal booking flow for a single service business.
    ```
 
-2. Review the generated spec, plan, and handoff before implementation begins.
+2. Review the approval summary and inspect the contract details that carry product decisions.
 3. Execute the approved contract.
 
    ```text
    /leanforge:run
    ```
 
-4. Expect a final summary with the implemented changes, checks run, evidence, and project harness updates when applicable.
+4. Expect four clearly labeled result sections: **Change**, **Verification**, **Remaining risk**, and **Integration**.
 
 ### Use Leanforge when
 
@@ -80,7 +80,7 @@ After install, the command palette should expose:
 - [Installation](docs/installation.md)
 - [Troubleshooting](docs/troubleshooting.md)
 - [Dryforge to Leanforge migration](docs/migration-dryforge-to-leanforge.md)
-- [Examples](examples/README.md)
+- [Examples](examples/README.md), including a [completed trusted-change package](examples/trusted-change-package/README.md)
 - [Contributing](CONTRIBUTING.md)
 - [Support](SUPPORT.md)
 - [Security](SECURITY.md)
@@ -120,15 +120,15 @@ rationale **at the path every future session reads first**.
 ## Three commands: design, execute, onboard
 
 ```
-  /leanforge:prime <INPUT> ──▶  /leanforge:run  ──▶  working code + project harness
+  /leanforge:prime <INPUT> ──▶  /leanforge:run  ──▶  verified change + evidence + integration choice
                               └─ /leanforge:set (one-time onboarding)
 ```
 
 | Command | Consumes | Produces |
 |---|---|---|
-| `Leanforge:Prime` (`/leanforge:prime`) | anything — one line to full documents | a reviewed, executable design contract |
-| `Leanforge:Run` (`/leanforge:run`) | the approved contract | verified code + the project harness |
-| `Leanforge:Set` (`/leanforge:set`) | an existing codebase | the project harness (one-time) |
+| `Leanforge:Prime` (`/leanforge:prime`) | a software goal, documents, or notes | an approval-ready change contract |
+| `Leanforge:Run` (`/leanforge:run`) | the approved contract | the verified change, evidence, remaining risks, and integration choice |
+| `Leanforge:Set` (`/leanforge:set`) | an existing codebase | durable project context for future changes (one-time) |
 
 ---
 

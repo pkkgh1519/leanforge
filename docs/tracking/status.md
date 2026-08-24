@@ -15,6 +15,7 @@ Leanforge의 1차 성과는 최소한의 사용자 노력으로 완성된 신뢰
 - **Shadow observation integrity:** sidecar freshness, closed Lite fact partition, `unknown_material_risk` fail-closed 경계를 검증한다.
 - **Pilot-readiness study contract:** pinned source·contract·generated/installed package identity, blinded safety observation, removable-gate intervention, installed-host smoke, paired A/B shadow tax, predeclared quality, user burden, prevalence-weighted value를 함께 평가한다.
 - **Generated parity CI:** build 뒤 tracked drift, untracked output, 전체 unittest, whitespace를 순서대로 차단한다.
+- **사용자 결과 표면:** marketplace·skill discovery·온보딩·Run 최종 보고를 검증된 변경, 증거, 남은 위험, 사용자 소유 통합 선택에 맞췄다. `leanforge.product-outcome.minimum-v1`의 고정 7개 검사에서 기존 표면은 1/7, 후보 표면은 7/7을 기록했고, 3-doc 우선 문구·남은 위험 누락·generated drift·검증 누락·무측정 속도 주장을 넣은 known-opposite mutation은 모두 거부된다. 이 결과는 정적 제품 계약과 완료 예시의 정합성만 증명하며 installed-host 실행이나 Time to Trusted Change 개선은 증명하지 않는다.
 
 ## Adaptive Assurance의 고정 경계
 
@@ -43,8 +44,9 @@ Leanforge의 1차 성과는 최소한의 사용자 노력으로 완성된 신뢰
 - `research/adaptive-assurance/pilot-readiness-study.md`
 - `research/adaptive-assurance/observation-template.md`
 - `research/adaptive-assurance/pilot-readiness-report-template.md`
+- `research/product-outcome/minimum-experiment.md`
 
-최종 판정은 `GO_TO_PHASE_2_DESIGN_REVIEW` 또는 `NO_GO`다. GO도 Lite activation을 승인하지 않는다.
+제품 결과 정적 실험의 다음 단계는 설치된 Claude Code·Codex에서 prompt→captured run→checks 흐름을 재현하고 TTTC·질문 수·읽기 부담·재작업·critical defect를 동일한 paired population으로 측정하는 것이다. Adaptive Assurance 최종 판정은 `GO_TO_PHASE_2_DESIGN_REVIEW` 또는 `NO_GO`이며, GO도 Lite activation을 승인하지 않는다.
 
 ## 차단 사항
 

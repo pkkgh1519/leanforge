@@ -25,6 +25,7 @@ Plugin identity는 `leanforge`, 배포 저장소는 `pkkgh1519/leanforge`다. Cl
 - **호출:** Claude Code와 Codex의 `/leanforge:run`.
 - **입력:** 사용자가 승인한 실행 계약, 현재 Git branch/commit/worktree 사실, 프로젝트 검증 명령.
 - **출력:** feature branch의 검증된 실제 변경 또는 외부 결과, 실행한 명령과 exit code, review·integration 결과, 잔여 위험과 사용자에게 남은 통합 선택.
+- **최종 보고 형식:** 성공과 복구가 소진된 terminal blocker 모두 사용자 언어로 명확히 구분한 **변경**, **검증**, **남은 위험**, **통합** 네 구역을 사용한다. 성공 시 실제 변경 또는 외부 결과, 관찰된 명령·출력·exit code와 runtime evidence, 미검증 범위·concern·복구 상태, 사용자 소유의 merge·PR/push·branch handoff 선택을 각각 담는다. blocker 시에는 완료·보존된 상태 또는 변경 없음, 중단을 증명하는 evidence, blocker·복구 상태, 통합 불가와 안전한 다음 선택을 같은 구역에 기록한다.
 - **제품 경계:** 내부 plumbing보다 결과와 증거를 우선한다. 완료 요약은 사용자가 무엇이 바뀌었고 왜 믿을 수 있으며 무엇을 선택해야 하는지 알 수 있어야 한다.
 - **오류:** 승인 계약 부재·불일치, malformed dependency graph, active state 충돌, child의 `BLOCKED`/`NEEDS_CONTEXT`, 검증 실패, 미처분 concern은 완료가 아니라 중단 또는 사용자 질문으로 반환한다.
 

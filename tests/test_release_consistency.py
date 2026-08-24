@@ -183,8 +183,8 @@ class ReleaseConsistencyTests(unittest.TestCase):
         def add_unrelated_versions(fixture: Path) -> None:
             replace_once(
                 fixture / "README.md",
-                "### Intent-to-implementation for Claude Code & Codex.",
-                "### Intent-to-implementation for Claude Code & Codex.\n\n"
+                "### From a software goal to a reviewed, verified change ready to integrate.",
+                "### From a software goal to a reviewed, verified change ready to integrate.\n\n"
                 "Migration notes may mention Leanforge v0.0.1 in body text.",
             )
             for rel in ("platform/claude/plugin.json", "platform/codex/plugin.json"):

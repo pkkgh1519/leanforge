@@ -1,10 +1,9 @@
 ---
 name: set
 description: >
-  Convert an existing project into the Leanforge documentation system: read the codebase,
-  elicit what code can't reveal, and generate a project harness (CLAUDE.md / AGENTS.md +
-  docs/ + per-module AGENTS.md). Use when the user invokes the `Set` skill on an
-  existing project. Requires git.
+  Capture durable project context from an existing codebase and user-held rules so future agents can
+  make trusted changes without rediscovering settled decisions. Use when the user invokes the `Set`
+  skill on an existing project. Requires git.
 ---
 
 # Leanforge:Set

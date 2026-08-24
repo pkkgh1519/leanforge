@@ -53,14 +53,18 @@ Use a small, observable request first:
 /leanforge:prime Build a minimal booking flow for a single service business.
 ```
 
-Review the generated spec, plan, and handoff. After approval, run:
+Review the approval summary and the contract details that carry product decisions. After approval, run:
 
 ```text
 /leanforge:run
 ```
 
-A successful run should report the implemented changes, checks run, evidence,
-and project harness updates when applicable.
+A successful run reports four clearly labeled sections in the user's language:
+**Change**, **Verification**, **Remaining risk**, and **Integration**. The sections
+contain the actual result, captured evidence, unverified scope or concerns, and
+the user-owned merge, PR/push, or branch-handoff choice. A terminal blocker uses
+the same sections to preserve partial state, prove the stop, name the blocker,
+and state that the result is not ready to integrate.
 
 ## Version notes
 

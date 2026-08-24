@@ -1,10 +1,9 @@
 ---
 name: run-tdd
 description: >
-  Execute the Leanforge Run workflow with selective TDD guidance. Use when the user invokes
-  run-tdd, Leanforge:Run TDD, or asks to run Leanforge:Run while automatically applying TDD to
-  observable behavior changes. This is a wrapper: Leanforge:Run remains the primary execution
-  authority, and TDD is subordinate verification guidance for suitable implementation tasks.
+  Implement and verify an approved Leanforge change with selective TDD for observable behavior.
+  Use when the user invokes run-tdd, Leanforge:Run TDD, or asks to run Leanforge:Run with automatic
+  TDD discipline. This is a wrapper: Leanforge:Run remains the primary execution authority.
 ---
 
 # Leanforge:Run TDD

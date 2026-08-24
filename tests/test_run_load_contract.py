@@ -1612,8 +1612,8 @@ class RunLoadContractTests(unittest.TestCase):
                         prompt_text = generated_prompt.read_text(encoding="utf-8")
                         generated_prompt.write_text(
                             prompt_text.replace(
-                                "execute the 3-doc in .leanforge/.",
-                                "execute the approved 3-doc in .leanforge/.",
+                                "implement and verify the approved change in .leanforge/.",
+                                "implement and verify the approved product change in .leanforge/.",
                             ),
                             encoding="utf-8",
                         )

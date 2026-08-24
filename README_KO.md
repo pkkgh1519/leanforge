@@ -4,13 +4,13 @@
 
 # Leanforge v1.9.0
 
-### 의도를 먼저 정리하고, 증거로 구현을 검증합니다.
+### 소프트웨어 목표를 검토·검증된 통합 가능한 변경으로.
 
 [![CI](https://github.com/pkkgh1519/leanforge/actions/workflows/ci.yml/badge.svg)](https://github.com/pkkgh1519/leanforge/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/pkkgh1519/leanforge)](https://github.com/pkkgh1519/leanforge/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-Leanforge는 Claude Code와 Codex를 위한 플러그인 하네스입니다. 모호한 요청을 바로 코드로 밀어붙이지 않고, 먼저 검토 가능한 실행 계약으로 정리한 뒤 증거를 남기며 구현합니다. 다음 에이전트가 이어받을 수 있는 프로젝트 맥락도 함께 남깁니다.
+Leanforge는 사용자가 결정해야 할 것만 확인해 승인 가능한 변경 계약으로 정리한 뒤, 실제 변경을 구현하고 검증합니다. 마지막에는 **변경**, **검증 증거**, **남은 위험**, **사용자가 소유하는 통합 선택**을 돌려주며, 실제로 바뀐 프로젝트 지식만 다음 에이전트를 위해 남깁니다.
 
 [Repository](https://github.com/pkkgh1519/leanforge) · [Release notes](https://github.com/pkkgh1519/leanforge/releases) · [English](https://github.com/pkkgh1519/leanforge/blob/main/README.md)
 
@@ -57,14 +57,14 @@ codex plugin add leanforge@leanforge
    /leanforge:prime 1인 서비스 사업자를 위한 최소 예약 흐름을 만들어 줘.
    ```
 
-2. 생성된 spec, plan, handoff를 검토하고 승인합니다.
+2. 승인 요약을 검토하고 제품 결정을 담은 계약 세부사항을 확인합니다.
 3. 승인한 계약을 실행합니다.
 
    ```text
    /leanforge:run
    ```
 
-4. 마지막 요약에서 변경된 파일, 실행한 검증, 확인된 증거, 필요한 프로젝트 하네스 업데이트를 확인합니다.
+4. 마지막 결과의 네 구역인 **변경**, **검증**, **남은 위험**, **통합**을 확인합니다.
 
 ### 이런 경우에 쓰세요
 
@@ -78,7 +78,7 @@ codex plugin add leanforge@leanforge
 - [설치 가이드](docs/installation.md)
 - [문제 해결](docs/troubleshooting.md)
 - [Dryforge에서 Leanforge로 마이그레이션](docs/migration-dryforge-to-leanforge.md)
-- [예제](examples/README.md)
+- [예제](examples/README.md), [완료된 trusted-change 패키지](examples/trusted-change-package/README.md) 포함
 - [기여 가이드](CONTRIBUTING.md)
 - [지원](SUPPORT.md)
 - [보안 정책](SECURITY.md)
@@ -102,15 +102,15 @@ Leanforge는 이 두 지점에 개입합니다. 코드를 쓰기 전에 열려 �
 ## 세 가지 명령: 설계, 실행, 온보딩
 
 ```
-  /leanforge:prime <입력> ──▶  /leanforge:run  ──▶  동작하는 코드 + 프로젝트 하네스
+  /leanforge:prime <입력> ──▶  /leanforge:run  ──▶  검증된 변경 + 증거 + 통합 선택
                               └─ /leanforge:set (1회성 온보딩)
 ```
 
 | 명령 | 입력 | 산출 |
 |---|---|---|
-| `Leanforge:Prime` (`/leanforge:prime`) | 한 줄 아이디어부터 긴 문서까지 | 검토를 거친 실행 계약 |
-| `Leanforge:Run` (`/leanforge:run`) | 승인된 계약 | 검증된 코드와 프로젝트 하네스 |
-| `Leanforge:Set` (`/leanforge:set`) | 기존 코드베이스 | 프로젝트 하네스 초기화 |
+| `Leanforge:Prime` (`/leanforge:prime`) | 소프트웨어 목표, 문서, 메모 | 승인 가능한 변경 계약 |
+| `Leanforge:Run` (`/leanforge:run`) | 승인된 계약 | 검증된 변경, 증거, 남은 위험, 통합 선택 |
+| `Leanforge:Set` (`/leanforge:set`) | 기존 코드베이스 | 다음 변경을 위한 지속 가능한 프로젝트 문맥 |
 
 ---
 

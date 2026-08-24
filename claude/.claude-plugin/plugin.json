@@ -1,6 +1,6 @@
 {
   "name": "leanforge",
-  "description": "Intent-to-implementation: from a goal, design docs, notes, or a mix, elicit and validate intent into a grounded 3-doc, then orchestrate dependency-aware parallel execution with right-sized review.",
+  "description": "Turn a software goal into an approved change contract, then implement and verify the change with evidence, remaining risks, and a user-owned integration choice.",
   "version": "1.9.0",
   "license": "MIT",
   "keywords": [

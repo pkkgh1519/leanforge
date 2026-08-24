@@ -1,10 +1,10 @@
 ---
 name: prime
 description: >
-  From any input — a natural-language goal, existing docs (spec / plan / brain-dump), notes, or a
-  mix — interactively elicit and validate intent and produce an execution-ready 3-doc (handoff, spec,
-  plan) for Run, replacing third-party brainstorming + planning in one skill. Input format is open;
-  the input is material, not ground truth. Use when the user invokes the `Prime` skill. Requires git.
+  Turn a software goal, existing docs, notes, or a mix into an approval-ready change contract that
+  preserves user-owned decisions and lets Run execute without re-guessing intent. Input format is
+  open; the input is material, not ground truth. Use when the user invokes the `Prime` skill.
+  Requires git.
 disable-model-invocation: true
 allowed-tools: Read, Edit, Write, Bash, Grep, Glob, Agent, AskUserQuestion
 ---

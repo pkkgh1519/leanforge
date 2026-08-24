@@ -1,7 +1,7 @@
 interface:
   display_name: "Leanforge:Set"
-  short_description: "Convert an existing project into the Leanforge documentation system."
-  default_prompt: "Use /leanforge:set to create a documentation harness for this project."
+  short_description: "Capture durable project context for trusted future changes."
+  default_prompt: "Use /leanforge:set to capture durable project context for this project."
 
 policy:
   allow_implicit_invocation: false

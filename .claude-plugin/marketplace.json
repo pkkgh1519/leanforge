@@ -1,13 +1,13 @@
 {
   "name": "leanforge",
-  "description": "Say what you want to build. Leanforge turns it into a plan, then executes it.",
+  "description": "Turn a software goal into a reviewed, verified change ready to integrate.",
   "owner": {
     "name": "pkkgh1519"
   },
   "plugins": [
     {
       "name": "leanforge",
-      "description": "Intent-to-implementation: Prime, then Run.",
+      "description": "Clarify the decisions, implement the change, prove it, and leave integration to the user.",
       "author": {
         "name": "pkkgh1519"
       },
