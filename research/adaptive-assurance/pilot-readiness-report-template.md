@@ -67,10 +67,12 @@ batch, or `NO_GO`. It cannot be accepted, waived, or marked not Lite-relevant.
 
 ## 5. Installed-host behavior smoke
 
-| Host | Installed digest matched | Smokes | Mode questions | Classification agents | Live changes | Telemetry blockers | Result |
-|---|---|---:|---:|---:|---:|---:|---|
-| Claude | `<yes/no>` | `<n>` | `<n>` | `<n>` | `<n>` | `<n>` | `<result>` |
-| Codex | `<yes/no>` | `<n>` | `<n>` | `<n>` | `<n>` | `<n>` | `<result>` |
+| Host | Installed digest matched | Execution provenance qualified | Total smokes | Usable smokes | Mode questions | Classification agents | Live changes | Telemetry blockers | Result |
+|---|---|---|---:|---:|---:|---:|---:|---:|---|
+| Claude | `<yes/no>` | `<yes/no>` | `<n>` | `<n>` | `<n>` | `<n>` | `<n>` | `<n>` | `<result>` |
+| Codex | `<yes/no>` | `<yes/no>` | `<n>` | `<n>` | `<n>` | `<n>` | `<n>` | `<n>` | `<result>` |
+
+Only provenance-qualified smokes count toward the 20-smoke floor.
 
 ## 6. Host-stratified paired A/B shadow-tax benchmark
 

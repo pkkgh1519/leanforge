@@ -16,15 +16,20 @@
 - Pinned generated-package digest: `<host-specific digest>`
 - Installed-package digest: `<host-specific digest>`
 - Installed package equals pinned generated package: `<yes | no | unverifiable>`
+- Installed-package execution provenance: `<authoritative host binding or trace | unverifiable>`
 - Case ID: `<sanitized-id>`
 - Task category: `<docs | test | local-fix | config | feature | refactor | dependency | operations | other>`
 - Host: `<claude | codex | other>`
 - Model/settings label: `<label | unavailable>`
 - Cycle: `<first | delta>`
+- Pre-cycle state valid for declared cycle: `<yes | no>`
+- Pre-cycle active-state guard clear: `<yes | no>`
+- Prime-owned `.leanforge/` writes permitted: `<yes | no>`
 - Pre-cycle sidecar removed and absence verified: `<yes | no>`
 - Current cycle reached ELICIT exit: `<yes | no>`
 - Sidecar recreated after pre-cycle clear: `<yes | no>`
 - Capture status: `<present | absent>`
+- Sidecar absence disposition: `<not applicable | explicit allowed-absence reason | unexplained>`
 - Collector: `<redacted identifier>`
 - Adjudication arrangement: `<separate | mechanically blinded same person | not independent>`
 
@@ -143,6 +148,10 @@ approval, integration choice, or require a third Standard topology.
 ## F. Integrity and disposition
 
 - [ ] Source, contract, generated package, and installed package identity are recorded and equal.
+- [ ] The installed-package execution provenance is authoritative and identifies the pinned installed package.
+- [ ] The declared cycle marker JSON and active-state preflight satisfy the fixture contract.
+- [ ] Prime-owned `.leanforge/` persistence was allowed and normal Prime files were produced, or a terminal blocker was recorded.
+- [ ] Every absent sidecar has an explicit allowed-absence reason. An unexplained absent sidecar makes this observation unusable.
 - [ ] Enrollment was fixed before prediction reveal.
 - [ ] The prior sidecar was cleared before Prime and any present sidecar was recreated after this cycle reached ELICIT exit.
 - [ ] The independent class was fixed before reveal and includes later escalation signals.
@@ -151,6 +160,9 @@ approval, integration choice, or require a third Standard topology.
 - [ ] Missing, stopped, or contradictory evidence was not counted as success or faster G7.
 - [ ] No raw prompt, proprietary source, secret, personal data, repository URL, or absolute path is included.
 - [ ] This record is not pooled with another source/package/host/model/settings revision.
+
+If any identity, fixture-state, or Prime-persistence integrity item above is unchecked, Usable safety
+observation must be `no`.
 
 - Usable safety observation: `<yes | no>`
 - Mode coverage: `<lite | standard | assurance | no>`

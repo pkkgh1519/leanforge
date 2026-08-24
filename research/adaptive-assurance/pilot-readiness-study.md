@@ -72,6 +72,13 @@ parity, and compare each installed package digest with its pinned generated pack
 an unverifiable installed package makes that host observation unusable. A marketplace version label
 alone is not package identity.
 
+Also capture installed-package execution provenance from the host's selected-plugin binding, skill-load
+trace, or another authoritative host readback. The provenance must identify the same installed package
+whose digest was pinned. Merely reading byte-equivalent source from the repository does not establish
+that the installed package executed. A repository-local source skill does not count as installed-package
+provenance. If the host exposes no authoritative binding or trace, record the observation as unusable
+rather than inferring provenance from the response.
+
 The paired A/B benchmark pins two identities separately:
 
 - **B candidate arm:** the candidate source commit/tree, contract blob, generated-package digest, and
@@ -102,6 +109,20 @@ Record every eligible Prime cycle, including absent sidecars, terminal blockers,
 unevaluable outcomes. An exclusion is allowed only for a predeclared objective reason and remains in the
 report by reason. An unexpected prediction, inconvenient result, or difficult adjudication is not an
 exclusion reason.
+
+Predeclare and verify the fixture's Prime cycle state before enrollment. For a declared delta case, a
+valid `.leanforge/status.json` is present before Prime starts. It JSON-parses to exactly
+`{ "initialized": true }`. A first-cycle fixture has neither the marker nor a Leanforge-shaped harness.
+A marker-loss state is not an eligible small-delta smoke or benchmark fixture. The fixture also has no
+`.leanforge/run.json`, registered Leanforge worktree, active root 3-doc, or conflicting `.dryforge/`
+state that would invoke Prime's active-state guard. The cycle-state fixture is byte-identical across A
+and B. Do not ask Prime to infer or repair fixture state during a behavior smoke or paired benchmark run.
+
+The stimulus must preserve normal Prime persistence. Prime-owned `.leanforge/` planning and shadow
+writes are allowed and required when their normal completion conditions are met; a "do not modify
+files" instruction must be narrowed to product files rather than Prime state. Product, test, config,
+dependency, and generated-package files remain read-only. A run that returns inline pseudo-documents
+without the normal Prime files is not a completed Prime observation.
 
 Before invoking Prime for each enrolled cycle, remove any existing advisory
 `.leanforge/assurance-shadow.json` and verify the path is absent. This pre-cycle clear has no execution
@@ -206,6 +227,11 @@ intervention. Synthetic fixtures are test oracles and do not count as real obser
 Run at least 20 installed-package behavior smokes across the proposed host scope. When both hosts are in
 scope, include at least 10 Claude Code and 10 Codex smokes. Each smoke first confirms that the installed
 package digest equals the pinned generated-package digest.
+
+Each smoke records authoritative installed-package execution provenance tying the host's selected skill
+or plugin load to that same pinned installed package. A digest match without this binding is unusable and
+does not count toward the 20-smoke floor. Repository-local source reads do not substitute for the
+installed-package binding.
 
 Each smoke checks that:
 
