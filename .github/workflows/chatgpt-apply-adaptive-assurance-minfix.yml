@@ -1,0 +1,116 @@
+name: ChatGPT Apply Verified Adaptive Assurance Minfix
+
+on:
+  pull_request:
+    branches:
+      - Leanforge/v1.9.0-contract-foundation
+    types:
+      - opened
+      - reopened
+      - synchronize
+
+permissions:
+  contents: write
+
+jobs:
+  apply-verified-minfix:
+    if: github.head_ref == 'chatgpt-export-leanforge-v1.9.0'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      TARGET_BRANCH: agent/adaptive-assurance-harness-cycle-fix
+      EXPECTED_PARENT: 5ee31e6647f94f69dce6ad2e2b2ccd970746d0b3
+      EXPECTED_TREE: 2383c1d6b0d4264752b25ebb0ac63789e6daabcb
+      PATCH_GZIP_SHA256: 66f31f74c5815c4881dbb5df3b80929ef41714882689eb629d825bc4f9d31b2d
+      PATCH_SHA256: 3d71069de5bd9627bace23692f0d67182a823fdfdf4fb3b83a0af800c1596772
+    steps:
+      - name: Checkout transport payload
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          path: transport
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Checkout exact target branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TARGET_BRANCH }}
+          path: target
+          fetch-depth: 0
+
+      - name: Assemble and verify patch payload
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat transport/.github/chatgpt-transport/minfix.part00 \
+              transport/.github/chatgpt-transport/minfix.part01 \
+              transport/.github/chatgpt-transport/minfix.part02 \
+              > "$RUNNER_TEMP/minfix.diff.gz.b64"
+          test "$(wc -c < "$RUNNER_TEMP/minfix.diff.gz.b64")" = "10540"
+          base64 --decode "$RUNNER_TEMP/minfix.diff.gz.b64" > "$RUNNER_TEMP/minfix.diff.gz"
+          echo "$PATCH_GZIP_SHA256  $RUNNER_TEMP/minfix.diff.gz" | sha256sum --check --strict
+          gzip --decompress --stdout "$RUNNER_TEMP/minfix.diff.gz" > "$RUNNER_TEMP/minfix.diff"
+          echo "$PATCH_SHA256  $RUNNER_TEMP/minfix.diff" | sha256sum --check --strict
+
+      - name: Apply exact patch and verify tree
+        shell: bash
+        working-directory: target
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EXPECTED_PARENT"
+          git apply --check "$RUNNER_TEMP/minfix.diff"
+          git apply --index "$RUNNER_TEMP/minfix.diff"
+          git diff --cached --check
+          test "$(git write-tree)" = "$EXPECTED_TREE"
+          test "$(git diff --cached --name-only | sort)" = "$(printf '%s\n' \
+            research/adaptive-assurance/observation-template.md \
+            research/adaptive-assurance/pilot-readiness-report-template.md \
+            research/adaptive-assurance/pilot-readiness-study.md \
+            tests/test_adaptive_assurance_pilot_readiness.py | sort)"
+
+      - name: Run focused Adaptive Assurance tests
+        shell: bash
+        working-directory: target
+        run: |
+          set -euo pipefail
+          python -m unittest tests.test_adaptive_assurance_pilot_readiness -v
+
+      - name: Run complete regression suite
+        shell: bash
+        working-directory: target
+        run: |
+          set -euo pipefail
+          python -m unittest discover -s tests -v
+
+      - name: Build and verify generated parity
+        shell: bash
+        working-directory: target
+        run: |
+          set -euo pipefail
+          bash build/build.sh
+          git diff --exit-code -- claude codex
+          git diff --check
+          test "$(git write-tree)" = "$EXPECTED_TREE"
+
+      - name: Commit and fast-forward target branch
+        shell: bash
+        working-directory: target
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "test: close adaptive assurance execution provenance"
+          test "$(git rev-parse HEAD^)" = "$EXPECTED_PARENT"
+          test "$(git rev-parse HEAD^{tree})" = "$EXPECTED_TREE"
+          git push origin "HEAD:refs/heads/$TARGET_BRANCH"
+          {
+            echo "### Adaptive Assurance minfix applied"
+            echo
+            echo "- Parent: \`$(git rev-parse HEAD^)\`"
+            echo "- Commit: \`$(git rev-parse HEAD)\`"
+            echo "- Tree: \`$(git rev-parse HEAD^{tree})\`"
+            echo "- Focused tests: passed"
+            echo "- Full suite: passed"
+            echo "- Build/generated parity: passed"
+          } >> "$GITHUB_STEP_SUMMARY"
