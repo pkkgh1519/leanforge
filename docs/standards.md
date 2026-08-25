@@ -9,7 +9,7 @@
 
 ## 정본과 생성물
 
-- 공통 워크플로 의미는 `src/skills/`에서만 직접 수정한다. 호스트별 manifest, Claude frontmatter 입력, Codex `openai.yaml`은 `platform/`에서만 직접 수정한다.
+- 공통 워크플로 의미는 `src/skills/`에서 직접 수정한다. 단, Run orchestration의 ordered authoring source는 `src/instruction-blocks/run/orchestration/`가 소유하고 explicit sync로 materialized `src/skills/run/references/orchestration.md`를 만든다. 호스트별 manifest, Claude frontmatter 입력, Codex `openai.yaml`은 `platform/`에서만 직접 수정한다.
 - `claude/`와 `codex/plugin/`은 `bash build/build.sh`의 출력이다. 직접 편집한 generated diff는 허용되지 않으며, 정본 또는 오버레이를 고친 뒤 전체 build로 재생성해야 한다.
 - `harness-format.md`의 Run↔Set 사본, `harness-review.md`의 Run↔Set 사본, `foundation-format.md`의 Run↔Prime 사본은 각각 byte-identical이어야 한다.
 
@@ -22,6 +22,7 @@
 ## Build와 호환성
 
 - `build/build.sh`는 Bash 3.2에서 실행 가능해야 한다. associative array 등 Bash 4+ 전용 문법을 도입하지 않는다.
+- Build는 ordered Run blocks와 materialized monolith의 mismatch를 자동 수리하지 않고 실패해야 한다. Source-archive 검증도 manifest rewrite로 pinned Full baseline을 우회할 수 없어야 한다.
 - release version guard는 Git 명령 없이 동작해야 한다. source archive에서도 같은 검증을 수행할 수 있어야 한다.
 - Bash 3.2 호환을 계속 주장하는 build 변경은 `bash --version`이 3.2인 실제 환경에서 build와 focused release test가 통과한 증거를 요구한다. 최신 Bash의 성공이나 정적 검토로 대체하지 않는다.
 

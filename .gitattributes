@@ -37,3 +37,7 @@ tests/test_codex_candidate_marketplace.py text eol=lf
 docs/adaptive-assurance-phase1.md text eol=lf
 docs/local-candidate-testing.md text eol=lf
 research/adaptive-assurance/** text eol=lf
+src/instruction-blocks/** text eol=lf
+tools/run_orchestration_blocks.py text eol=lf
+tests/test_run_orchestration_blocks.py text eol=lf
+.github/workflows/bash-3.2.yml text eol=lf

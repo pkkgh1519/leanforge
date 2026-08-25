@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # build.sh — regenerate both platform plugins from the single canonical source.
 #
-#   src/skills/        canonical, platform-neutral skills (single source of truth)
+#   src/skills/        canonical platform-neutral skills; Run orchestration.md is a derived compatibility monolith
+#   src/instruction-blocks/ canonical ordered Run orchestration blocks
 #   platform/claude/   claude-only frontmatter values + plugin.json + LICENSE
 #   platform/codex/    codex-only openai.yaml + plugin.json + LICENSE
 #   README.md          repo-root README (+ README_KO.md) — GitHub landing only, NOT bundled into plugins
@@ -16,6 +17,27 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 SRC="$ROOT/src/skills"
 PLAT="$ROOT/platform"
+
+# The Run orchestration blocks are the canonical source. Refuse stale or mutated
+# compatibility output rather than repairing it during a build; explicit sync is
+# a separate authoring action. Keep the packaged monolith byte-identical to the
+# reviewed Full Assurance baseline until a later load-graph release activates blocks.
+PYTHON_BIN="${PYTHON:-}"
+if [ -z "$PYTHON_BIN" ]; then
+  for candidate in python python3; do
+    if command -v "$candidate" >/dev/null 2>&1 \
+      && "$candidate" -c 'import sys; raise SystemExit(sys.version_info < (3, 10))' >/dev/null 2>&1; then
+      PYTHON_BIN="$(command -v "$candidate")"
+      break
+    fi
+  done
+fi
+if [ -z "$PYTHON_BIN" ] \
+  || ! "$PYTHON_BIN" -c 'import sys; raise SystemExit(sys.version_info < (3, 10))' >/dev/null 2>&1; then
+  echo "✗ Python 3.10+ is required to verify Run orchestration blocks" >&2
+  exit 1
+fi
+"$PYTHON_BIN" "$ROOT/tools/run_orchestration_blocks.py" verify --repo "$ROOT" --no-git-baseline >/dev/null
 
 # Per-skill allowed-tools for the Claude build. These skills perform file edits,
 # shell validation, and/or subagent dispatch. Run additionally gets SendMessage for

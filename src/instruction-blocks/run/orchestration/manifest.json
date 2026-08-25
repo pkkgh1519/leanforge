@@ -1,0 +1,97 @@
+{
+  "schema_version": 1,
+  "split_id": "leanforge.run.orchestration-blocks.v1",
+  "authority": "ordered_blocks",
+  "compatibility_mode": "materialized_monolith",
+  "output": {
+    "path": "src/skills/run/references/orchestration.md",
+    "bytes": 36790,
+    "sha256": "e9aaca31d8b31d4a473ff9b9268b96b1eefe768a28bf2254ce8eff2228d79f03"
+  },
+  "baseline": {
+    "commit": "e5b3cbc4778be190bd2c3c4477450e8f3c34e0cb",
+    "tree": "b87ec08e9c840c4d585e9cc7d89a9826a98c2c5f",
+    "path": "src/skills/run/references/orchestration.md",
+    "blob_sha1": "f2fd63356adb0ba47e806e87802392b0f8ce6d4a",
+    "bytes": 36790,
+    "sha256": "e9aaca31d8b31d4a473ff9b9268b96b1eefe768a28bf2254ce8eff2228d79f03",
+    "load_graph_path": "src/skills/run/references/load-graph.json",
+    "load_graph_blob_sha1": "4d619bd160c334e2497c8f16de077c0428f8073a"
+  },
+  "runtime_baseline": [
+    {
+      "path": "src/skills/run/SKILL.md",
+      "blob_sha1": "7bba81a50fe399f49275d981d9ec765ca180d82f",
+      "bytes": 26071,
+      "sha256": "76786dc604c3be1a6e634015f7666df0a505b0be2c8cab84fb9ebccf06de75d2"
+    },
+    {
+      "path": "src/skills/run/references/load-graph.json",
+      "blob_sha1": "4d619bd160c334e2497c8f16de077c0428f8073a",
+      "bytes": 4084,
+      "sha256": "e956bc0eed66c111422a9e62e5c02037a19411a29f224f9244a8c3a4dd448d4d"
+    },
+    {
+      "path": "src/skills/run/references/semantic-contract.json",
+      "blob_sha1": "ba98ce4fadf4c173c774cb342455a3bef085f6ee",
+      "bytes": 21600,
+      "sha256": "1fe9818bbb91101007bd4b87fdb325c7c606515406ac3eec475cb2805cfb4dac"
+    }
+  ],
+  "blocks": [
+    {
+      "path": "src/instruction-blocks/run/orchestration/00-preamble-and-verification.md",
+      "start_heading": "# orchestration.md \u2014 wave lifecycle (force-load)",
+      "bytes": 2081,
+      "sha256": "1089c3ffdbd746d5cac89b742dbcdda09eec8a715793149c1f032ee0be557c32"
+    },
+    {
+      "path": "src/instruction-blocks/run/orchestration/10-routing-and-dispatch-roi.md",
+      "start_heading": "## Wave scheduling",
+      "bytes": 7815,
+      "sha256": "6cb123f73458153dd4ba8553bd7a69bfbaa3e5fb89653d53c83273a4660ca3f4"
+    },
+    {
+      "path": "src/instruction-blocks/run/orchestration/20-sequential-execution.md",
+      "start_heading": "## Sequential wave \u2014 execution",
+      "bytes": 3473,
+      "sha256": "571770dc6a4ce473b4710ea6b06943b3162a20d647e5b18910ed5485fd112e50"
+    },
+    {
+      "path": "src/instruction-blocks/run/orchestration/30-parallel-worktree-constraints.md",
+      "start_heading": "## Parallel wave \u2014 dispatch constraints (safety, non-negotiable; unordered)",
+      "bytes": 6117,
+      "sha256": "0a68c1fb752f90ca0a6a3d6b6013f5446b53dfc3b2c4d03e61f6ed073d52ccf0"
+    },
+    {
+      "path": "src/instruction-blocks/run/orchestration/40-agent-status-and-context.md",
+      "start_heading": "## Agent status protocol",
+      "bytes": 2433,
+      "sha256": "c94358bd7a56d757949508a48e542ad451a3ef55a9e0bff45dd3d322dc1a4b3e"
+    },
+    {
+      "path": "src/instruction-blocks/run/orchestration/50-sequential-wave-lifecycle.md",
+      "start_heading": "### Sequential wave (single task)",
+      "bytes": 1830,
+      "sha256": "aadd1ef49c6c5dcf4f2de0e2aabfcb226e5ac10eeeb32530ecd68f0c2a61071b"
+    },
+    {
+      "path": "src/instruction-blocks/run/orchestration/60-parallel-wave-lifecycle.md",
+      "start_heading": "### Parallel wave (multiple tasks)",
+      "bytes": 2168,
+      "sha256": "4e4008730d9c640e05251879f5c83b9676c78433dc1dfaac6fb2e414dea212ec"
+    },
+    {
+      "path": "src/instruction-blocks/run/orchestration/70-wave-advancement-and-concerns.md",
+      "start_heading": "### Advancing waves",
+      "bytes": 3972,
+      "sha256": "e95d0dfdfe5943cc352b9c8eff10562d32e130b1a7444688f40b6a61d13efada"
+    },
+    {
+      "path": "src/instruction-blocks/run/orchestration/80-remediation-and-failure.md",
+      "start_heading": "### Fix-dispatch and lightweight fix",
+      "bytes": 6901,
+      "sha256": "b5c0a9413c2eece74d7211290d8442eb7eed88919b1598b23b3b3cfd281dbe83"
+    }
+  ]
+}

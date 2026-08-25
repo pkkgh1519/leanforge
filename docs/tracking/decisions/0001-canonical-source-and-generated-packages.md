@@ -6,7 +6,7 @@ Claude Code와 Codex는 같은 워크플로 의미를 사용하지만 manifest, 
 
 ## 결정
 
-공통 스킬과 reference는 `src/skills/`를 단일 정본으로 둔다. Host 차이는 `platform/claude/`와 `platform/codex/` 입력에 한정하고, `build/build.sh`만 `claude/`와 `codex/plugin/`을 쓴다. Generated package는 commit하지만 직접 편집하지 않는다.
+공통 runtime 스킬과 reference는 `src/skills/`를 정본으로 둔다. Run orchestration은 ordered authoring source를 `src/instruction-blocks/`에 두고 명시적 sync로 runtime compatibility monolith를 materialize한다. Host 차이는 `platform/claude/`와 `platform/codex/` 입력에 한정하고, `build/build.sh`만 `claude/`와 `codex/plugin/`을 쓴다. Generated package는 commit하지만 직접 편집하지 않는다.
 
 ## 대안
 
@@ -15,4 +15,4 @@ Claude Code와 Codex는 같은 워크플로 의미를 사용하지만 manifest, 
 
 ## 결과
 
-공통 의미 변경은 정본 한 곳에서 시작하며 build와 parity test가 두 배포면을 검증한다. Build 없이 generated package만 고친 변경은 허용되지 않는다. Host별로 공통 본문을 다르게 발전시키는 선택은 불가능하며, 필요한 차이는 명시적 overlay 또는 build-time injection으로 표현해야 한다.
+공통 의미 변경은 owning source 한 곳에서 시작하며 build와 parity test가 두 배포면을 검증한다. Run orchestration은 block source와 materialized monolith의 exact reconstruction을 먼저 검증한다. Build 없이 generated package만 고친 변경은 허용되지 않는다. Host별로 공통 본문을 다르게 발전시키는 선택은 불가능하며, 필요한 차이는 명시적 overlay 또는 build-time injection으로 표현해야 한다.

@@ -26,7 +26,7 @@ codex plugin add leanforge@leanforge
 
 ## 기여자 준비
 
-Git, Bash, Python, Perl이 PATH에 있어야 한다. CI 기준 Python은 3.12이며 테스트는 Python 표준 라이브러리 `unittest`만 사용하므로 별도 package 설치는 필요 없다. 새 checkout은 다음 순서로 준비한다.
+Git, Bash, Python 3.10 이상, Perl이 PATH에 있어야 한다. CI 기준 Python은 3.12이며 테스트는 Python 표준 라이브러리 `unittest`만 사용하므로 별도 package 설치는 필요 없다. 새 checkout은 다음 순서로 준비한다.
 
 ```text
 git clone https://github.com/pkkgh1519/leanforge.git
@@ -41,11 +41,11 @@ python -m unittest discover -s tests -v
 git diff --check
 ```
 
-Build가 먼저인 이유는 테스트와 설치 패키지가 정본에서 재생성된 같은 상태를 검사해야 하기 때문이다.
+Build가 먼저인 이유는 테스트와 설치 패키지가 정본에서 재생성된 같은 상태를 검사해야 하기 때문이다. Run orchestration block을 편집한 경우에는 build 전에 `python tools/run_orchestration_blocks.py sync --repo .`를 명시적으로 실행한다. 일반 build는 stale monolith를 자동으로 고치지 않고 실패한다.
 
 ## 변경 검증
 
-공통 스킬 또는 host overlay 변경 뒤에는 다음 명령을 그대로 실행한다.
+공통 스킬 또는 host overlay 변경 뒤에는 다음 명령을 그대로 실행한다. Run orchestration source block을 바꿨다면 첫 줄 전에 `python tools/run_orchestration_blocks.py sync --repo .`를 실행하고, 모든 경우 `python tools/run_orchestration_blocks.py verify --repo .`로 pinned reconstruction을 확인한다.
 
 ```text
 bash build/build.sh

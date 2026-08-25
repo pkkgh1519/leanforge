@@ -2,11 +2,11 @@
 
 ## 범위
 
-`src/skills/`는 Prime, Run, Set, Run TDD의 공통 Markdown 계약과 reference를 소유한다. Claude/Codex manifest, host interface metadata, 생성 패키지, repository release 문서는 이 모듈의 소유가 아니다.
+`src/skills/`는 Prime, Run, Set, Run TDD의 공통 Markdown 계약과 runtime reference를 소유한다. `src/instruction-blocks/`는 Run orchestration의 ordered authoring source를 소유하고, 닫힌 manifest에서 materialized compatibility monolith를 만든다. Claude/Codex manifest, host interface metadata, 생성 패키지, repository release 문서는 이 모듈의 소유가 아니다.
 
 ## 경계
 
-- 공통 행동 의미는 이 디렉터리에서 수정한다. `claude/`와 `codex/plugin/`의 대응 파일을 직접 고치지 않는다.
+- 공통 행동 의미는 이 디렉터리에서 수정한다. Run orchestration은 `src/instruction-blocks/run/orchestration/`의 ordered blocks와 manifest를 수정하고 explicit sync로 `src/skills/run/references/orchestration.md`를 materialize한다. `claude/`와 `codex/plugin/`의 대응 파일을 직접 고치지 않는다.
 - Host별 권한·표시 이름·호출 정책을 공통 계약에 섞지 않는다. 공통 의미가 아닌 차이는 `platform/` 입력 또는 build-time injection으로 남긴다.
 - Prime은 승인 계약 생산, Run은 실행, Set은 기존 프로젝트 온보딩, Run TDD는 Run의 선택적 TDD 래퍼라는 역할을 서로 침범하지 않는다.
 
@@ -16,10 +16,11 @@
 - Execution graph는 producer가 소유하고 consumer는 유효한 graph만 실행한다. Consumer가 dependency나 regeneration barrier를 임의로 재설계해서는 안 된다.
 - 승인 전 입력은 검토 재료이며 실행 권위가 아니다. 평가 불가능한 결과나 미처분 concern은 성공이 아니다.
 - Run TDD는 Run보다 우선하지 않으며 관찰 가능한 행동 변경이 아닌 작업에 가짜 RED 단계를 요구하지 않는다.
+- v1.9.1 block-preserving split에서 materialized orchestration, Run SKILL, load graph와 semantic contract는 검증된 Full baseline과 byte-identical해야 하며 source blocks는 plugin package나 runtime load graph에 들어가지 않는다.
 
 ## 구현 패턴
 
-공통 규칙은 한 owning `SKILL.md` 또는 reference에 두고, 여러 skill이 실제로 독립 패키징해야 하는 reference만 명시적 물리 사본으로 유지한다. Dispatch prompt는 task 계약, worktree pin, verification, structured return을 완결된 형태로 전달하며 child가 사용자에게 직접 묻거나 다시 위임하지 않게 한다.
+공통 규칙은 한 owning `SKILL.md` 또는 reference에 두고, 여러 skill이 실제로 독립 패키징해야 하는 reference만 명시적 물리 사본으로 유지한다. Run orchestration block을 바꿀 때는 `python tools/run_orchestration_blocks.py sync --repo .`를 명시적으로 실행한 뒤 verify와 build를 수행하며, build가 stale monolith를 암묵적으로 고치게 만들지 않는다. Dispatch prompt는 task 계약, worktree pin, verification, structured return을 완결된 형태로 전달하며 child가 사용자에게 직접 묻거나 다시 위임하지 않게 한다.
 
 ## 테스트
 

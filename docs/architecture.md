@@ -17,7 +17,7 @@ Adaptive Assurance는 사용자 command나 별도 제품 단계가 아니라 내
 
 ## 구성과 의존 방향
 
-플러그인의 실행 계약은 Markdown 스킬과 참조 문서로 구성된다. 공통 의미는 `src/skills/`가 소유하고, `platform/claude/`와 `platform/codex/`는 호스트가 요구하는 manifest·메타데이터·권한 차이만 추가한다. `build/build.sh`는 이 두 입력을 소비해 설치 가능한 `claude/`와 `codex/plugin/` 패키지를 만든다. 생성 패키지는 정본을 향해 역으로 의존하지 않으며, 생성 패키지의 변경이 정본으로 복사되는 흐름은 허용되지 않는다.
+플러그인의 실행 계약은 Markdown 스킬과 참조 문서로 구성된다. 공통 runtime 의미는 `src/skills/`가 소유한다. Run orchestration은 편집 가능한 ordered source를 `src/instruction-blocks/`에 두고, 명시적 sync가 기존 runtime monolith를 materialize한다. `platform/claude/`와 `platform/codex/`는 호스트가 요구하는 manifest·메타데이터·권한 차이만 추가한다. `build/build.sh`는 materialized `src/skills/`와 platform 입력을 검증·소비해 설치 가능한 `claude/`와 `codex/plugin/` 패키지를 만든다. 생성 패키지는 정본을 향해 역으로 의존하지 않으며, generated 변경이 정본으로 복사되는 흐름은 허용되지 않는다.
 
 ```text
 사용자 요청
@@ -25,12 +25,15 @@ Adaptive Assurance는 사용자 command나 별도 제품 단계가 아니라 내
   → 공통 스킬 계약이 입력·Git 사실·검증 결과를 처리
   → 필요한 로컬 Git 변경과 검증 증거를 사용자에게 반환
 
+src/instruction-blocks/run/orchestration
+            └─ explicit sync ─→ src/skills/run/references/orchestration.md
+
 src/skills ─┐
-            ├─ build/build.sh ─→ claude
+            ├─ verify + build/build.sh ─→ claude
 platform/claude ┘
 
 src/skills ─┐
-            ├─ build/build.sh ─→ codex/plugin
+            ├─ verify + build/build.sh ─→ codex/plugin
 platform/codex ┘
 ```
 
@@ -45,7 +48,7 @@ Claude 패키지는 공통 `SKILL.md` 본문에 Claude 전용 `disable-model-inv
 | Set | 기존 프로젝트의 지속 가능한 운영 문맥을 생성·갱신 | 초기: 기존 저장소 증거 + 사용자 결정 → durable project knowledge; 이후: 실제로 변경된 durable knowledge → 문서 갱신 |
 | Run TDD | Run 위에 행동 변경용 선택적 TDD 규율을 추가 | Run 계약 → 행동 단위 RED·GREEN·리팩터 검증 |
 | Adaptive Assurance | 이미 grounded된 위험 사실에서 필요한 최소 절차를 advisory 또는 pilot로 선택 | 제품 guardrail + Prime/Run 경계 → 내부 mode; 사용자 선택 금지 |
-| build | 정본과 호스트 오버레이를 두 설치 패키지로 변환 | `src/skills` + `platform` → generated packages |
+| build | ordered Run blocks와 materialized monolith의 exact identity를 검증하고 정본·호스트 오버레이를 두 설치 패키지로 변환 | `src/instruction-blocks` + `src/skills` + `platform` → verified generated packages |
 | contract tests | 워크플로·복구·배포면 불변조건을 실행 가능한 예로 고정 | source + generated + CI/build 계약 → pass/fail |
 
 Set의 첫 실행은 현재 delivery cycle에서 바뀐 내용이 없어도 기존 코드·문서·dependencies·conventions·module boundaries를 읽어 초기 durable context를 만든다. 바뀐 지식만 갱신한다는 no-churn 규칙은 초기 bootstrap 이후의 유지보수에 적용한다.

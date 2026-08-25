@@ -85,7 +85,13 @@ class ReleaseConsistencyTests(unittest.TestCase):
         with tempfile.TemporaryDirectory(prefix="leanforge-release-guard-") as temp:
             fixture = Path(temp) / "repo"
             fixture.mkdir()
-            for rel in ("build/build.sh", "README.md", "README_KO.md", "CHANGELOG.md"):
+            for rel in (
+                "build/build.sh",
+                "tools/run_orchestration_blocks.py",
+                "README.md",
+                "README_KO.md",
+                "CHANGELOG.md",
+            ):
                 destination = fixture / rel
                 destination.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(ROOT / rel, destination)
@@ -155,6 +161,35 @@ class ReleaseConsistencyTests(unittest.TestCase):
 
         self.assertEqual(0, completed.returncode, completed.stderr)
         self.assertIn(f"version OK: v{self.current_release}", completed.stdout)
+
+    def test_build_rejects_stale_orchestration_monolith_without_repair(self):
+        observed = {}
+
+        def drift_monolith(fixture: Path) -> None:
+            path = fixture / "src/skills/run/references/orchestration.md"
+            path.write_bytes(
+                path.read_bytes().replace(
+                    b"wave lifecycle",
+                    b"wave lifecyclf",
+                    1,
+                )
+            )
+
+        def inspect_monolith(fixture: Path, completed) -> None:
+            path = fixture / "src/skills/run/references/orchestration.md"
+            observed["monolith"] = path.read_bytes()
+
+        completed = self.run_isolated_build(
+            mutate=drift_monolith,
+            inspect=inspect_monolith,
+        )
+
+        self.assertNotEqual(0, completed.returncode)
+        self.assertIn(
+            "compatibility monolith differs from ordered block rendering",
+            completed.stderr,
+        )
+        self.assertIn(b"wave lifecyclf", observed["monolith"])
 
     def test_build_normalizes_codex_run_agent_overlay_to_lf(self):
         observed = {}

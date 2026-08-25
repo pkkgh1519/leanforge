@@ -31,9 +31,12 @@ project-root/
 │           ├── index.md              ← 기술 결정 색인
 │           ├── 0001-canonical-source-and-generated-packages.md ← 단일 정본과 생성 패키지
 │           ├── 0002-git-local-execution.md ← Git 로컬 실행 경계
-│           └── 0003-bash-3-2-compatibility.md ← Bash 3.2 호환성 보증
+│           ├── 0003-bash-3-2-compatibility.md ← Bash 3.2 호환성 보증
+│           └── 0004-run-orchestration-block-source.md ← ordered block source 경계
 ├── src/
-│   └── AGENTS.md                     ← 공통 스킬 정본 경계
+│   ├── AGENTS.md                     ← 공통 스킬·instruction block 정본 경계
+│   ├── skills/                       ← packaged runtime 계약 정본
+│   └── instruction-blocks/           ← Run orchestration ordered authoring source
 ├── platform/
 │   └── AGENTS.md                     ← Claude·Codex host 오버레이 경계
 └── build/
@@ -42,7 +45,7 @@ project-root/
 
 ## 핵심 게이트
 
-- 공통 동작은 `src/skills/`, 호스트 차이는 `platform/`에서만 직접 고친다. `claude/`와 `codex/plugin/`은 직접 편집하지 않고 `bash build/build.sh`로 재생성한다.
+- 공통 runtime 동작은 `src/skills/`, Run orchestration의 ordered authoring source는 `src/instruction-blocks/`, 호스트 차이는 `platform/`에서만 직접 고친다. `claude/`와 `codex/plugin/`은 직접 편집하지 않고 `bash build/build.sh`로 재생성한다.
 - 릴리스 버전은 README 두 제목, CHANGELOG 첫 항목, canonical·generated manifest 네 개가 하나의 값이어야 한다. 누락·중복·불일치는 빌드 실패다.
 - 병합 전 빌드, tracked·untracked 생성물 드리프트, 전체 `unittest`, whitespace 검사를 모두 통과해야 한다.
 - 활성 로컬 상태나 worktree를 추측으로 덮어쓰거나 destructive Git 복구를 실행하지 않는다. main 통합과 외부 게시도 명시적 승인 없이는 수행하지 않는다.

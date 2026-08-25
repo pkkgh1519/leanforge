@@ -5,3 +5,4 @@
 | 0001 | 공통 정본과 build-generated 설치 패키지를 분리한다 | 채택 |
 | 0002 | 실행 상태와 격리를 로컬 Git 경계 안에 둔다 | 채택 |
 | 0003 | 지원을 표방하는 동안 Bash 3.2 실제 실행 증거를 요구한다 | 채택 |
+| 0004 | Run orchestration의 ordered source blocks와 호환 monolith를 분리한다 | 채택 |
