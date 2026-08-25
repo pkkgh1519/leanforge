@@ -94,16 +94,20 @@ class RunOrchestrationBlockSplitTests(unittest.TestCase):
         for surface in RUNTIME_SURFACES:
             with self.subTest(surface=surface):
                 historical_paths = tuple(
-                    line
-                    for line in git(
-                        "ls-tree", "-r", "--name-only", BASELINE_COMMIT, surface
-                    ).decode("utf-8").splitlines()
-                    if line
+                    sorted(
+                        line
+                        for line in git(
+                            "ls-tree", "-r", "--name-only", BASELINE_COMMIT, surface
+                        ).decode("utf-8").splitlines()
+                        if line
+                    )
                 )
                 current_paths = tuple(
-                    path.relative_to(ROOT).as_posix()
-                    for path in sorted((ROOT / surface).rglob("*"))
-                    if path.is_file()
+                    sorted(
+                        path.relative_to(ROOT).as_posix()
+                        for path in (ROOT / surface).rglob("*")
+                        if path.is_file()
+                    )
                 )
                 self.assertEqual(historical_paths, current_paths)
                 for relative in historical_paths:
