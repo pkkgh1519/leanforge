@@ -1,7 +1,7 @@
 interface:
   display_name: "Leanforge:Run"
   short_description: "Implement and verify an approved Leanforge change."
-  default_prompt: "Use /leanforge:run to implement and verify the approved change in .leanforge/."
+  default_prompt: "Implement and verify the approved Leanforge change in .leanforge/."
 
 policy:
   allow_implicit_invocation: false

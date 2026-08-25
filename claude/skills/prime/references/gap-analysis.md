@@ -26,9 +26,12 @@ automatically a *covered* one — the form marker is what keeps a thin mention f
   topology?
 - **Convention depth** — do the rules carry a violation criterion, or are they preferences?
 
-Output per axis: a **sufficient / insufficient** read + a concrete pointer to what is thin. An
-insufficient axis feeds ELICIT's open question set. Unlike a structural fix, this does **not** auto-fill —
-depth is added through dialogue, never invented.
+Output per axis: a **sufficient / insufficient** read + a concrete pointer to what is thin. Coverage
+may come from explicit current-request intent, authoritative repository evidence for an unchanged fact, or
+a reasoned `N/A`; the absence of user dialogue is not itself insufficiency. An insufficient axis first
+returns to ELICIT's fixed disposition order. Read narrow repository evidence when the fact is derivable,
+record `N/A` when genuinely inapplicable, and ask only if a load-bearing user-owned gap survives. Depth is
+added through dialogue only for such a surviving decision, never as a mandatory first-cycle interview.
 
 ## Three gap probes — generate the "unsaid"
 

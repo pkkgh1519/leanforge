@@ -18,8 +18,8 @@ Include:
 - client: Claude Code or Codex;
 - Leanforge version or tag, if known;
 - operating system;
-- command used, such as `/leanforge:prime`, `/leanforge:run`, or
-  `/leanforge:set`;
+- host entry point used, such as Claude Code `/leanforge:prime` or Codex `/skills`, `$prime`, or the
+  desktop skill picker;
 - what you expected;
 - what happened instead;
 - relevant logs or screenshots with secrets removed;

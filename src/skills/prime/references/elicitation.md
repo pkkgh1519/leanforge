@@ -129,16 +129,19 @@ remove current normative conflict handling.
 The cycle changes *what you must understand*, never *how rigorously you avoid guessing.* Delta is
 **not** "lighter" — the intent for this task must be just as fully realized as in a first cycle.
 
-- **First cycle (no harness): a forced foundation design.** You must establish the project's
-  foundation — its domain model and its technical decisions — from scratch, because nothing holds it
-  yet. Force-load `project-scoping.md` (CALIBRATE: character → depth), then run the **domain extraction**
-  (`project-design-domain.md`) and the **technical presentation** (`project-design-technical.md`).
-  **Their floors are non-negotiable, not loop-optional:** the domain **breadth guard** (you may not
-  close without asking "are there other major entities/features/rules?"), the domain **depth floor**
-  (every concept has its four facts; every rule is testable), and the technical **no-silent-decision**
-  rule (every load-bearing technical decision settled by the user, presented as options). These are
-  the structures that *force* understanding over guessing while the foundation is being laid — do not
-  dilute them into a light pass. Scope = project foundation + this task.
+<!-- leanforge:prime:FIRST-CYCLE-EVIDENCE-DISPOSITION:start -->
+- **First cycle (no harness): Foundation artifact required; Foundation interview is not.** Absence of
+  `.leanforge/status.json` proves only that Leanforge has not yet persisted a harness. It does not erase
+  project knowledge already established by the request, repository instructions, code, manifests, tests, or
+  documentation. Always produce the four-section Foundation, and close each applicable foundation slot in
+  this order: explicit user intent → authoritative repository evidence for unchanged current facts →
+  reasoned `N/A` when the dimension does not apply → one user question only for a surviving load-bearing
+  user-owned decision. Existing language/framework, public signatures to preserve, test strategy, local
+  module boundaries, and current conventions are derivable when the slice keeps them unchanged; do not
+  re-present them as greenfield choices. Greenfield or materially unfixed domain/technical shape still
+  requires CALIBRATE, domain extraction, and technical presentation. The breadth/depth floors remain, but
+  they are evidence floors, not mandatory-question quotas.
+<!-- leanforge:prime:FIRST-CYCLE-EVIDENCE-DISPOSITION:end -->
 - **Delta (harness exists): task intent within the foundation — with the same rigor.** Do **not**
   re-run foundation design (the harness holds the domain model, conventions, stack — read the floor
   from it, don't re-ask what it answers), and do not re-elicit product strategy. For a candidate about
@@ -164,8 +167,10 @@ load-bearing decisions this design is *obligated to answer*, then account for ea
 
 **1. Name the entities first (a manifest).** List every entity, actor, state-holder, and external
 system the goal touches — you cannot enumerate a decision for an entity you never named, so this
-bounds the surface. (The breadth guard, materialized: before closing, also ask "is there one we
-haven't named?")
+bounds the surface. Materialize the breadth guard as an internal evidence-backed inventory. Ask the user
+about a missing entity only when the inventory exposes a concrete load-bearing user-owned gap; never ask a
+ceremonial "is there one we haven't named?" question after the request and repository already close the
+slice.
 
 **2. Walk four lenses over each entity and each colliding pair to surface obligation-slots** — a slot
 is *a question the design must answer or it isn't a design*:
@@ -188,11 +193,17 @@ none, your lenses are incomplete for *this* domain — name the new one, don't f
 *asking* is expensive, user-facing, and minimal. Resolve each slot in this **fixed order** before it
 may become a question:
 1. **The user-model grounds it** (said / derived from the model / a chosen option)? → realize it,
-   **don't ask** (the derivable — see "Build a model of the user").
-2. **A tuning value inside an already-settled mechanism** (conventional default / tuned-later, no user
+   **don't ask**.
+2. **Authoritative repository evidence grounds an unchanged current fact** (existing stack, signature,
+   verify command, module boundary, convention, or preserved behavior)? → record the evidence-backed fact,
+   **don't ask**. Repository evidence cannot invent desired new behavior, but it can settle what the user
+   explicitly asked to preserve.
+3. **The dimension is genuinely inapplicable** to the current project/slice? → record `N/A` plus the
+   reason, **don't ask**.
+4. **A tuning value inside an already-settled mechanism** (conventional default / tuned-later, no user
    preference)? → record a sensible default **marked tunable**, **don't ask** (D4 / §5).
-3. **Survives both = `assumed`** (load-bearing, model-silent — you'd pick it as a stranger). This is
-   the guess. → **ask** it (domain = extract, technical = present).
+5. **Survives all four = `assumed`** (load-bearing and user-owned — you'd pick it as a stranger). This
+   is the guess. → **ask** it (domain = extract, technical = present).
 
 So the surface is enumerated *exhaustively* (completeness) while questions stay *minimal* (D4, §12):
 only `assumed` slots become questions. **An `assumed` slot may not survive into the spec** — that is
@@ -241,7 +252,7 @@ can't even enumerate sensible options) is better asked as **plain text**. (Techn
 questions, where the option space is legitimately yours, don't need the mandatory open option — there
 the recommendation is the point.)
 
-## Mandatory: the load-bearing technical shape is surfaced (first cycle / unfixed stack)
+## Mandatory: unresolved load-bearing technical shape is surfaced (first cycle / unfixed stack)
 
 A spec needs a target technical shape, and greenfield has no code to derive it from. So before leaving
 you MUST have **presented** the load-bearing technical shape — persistence, interface/delivery form,
@@ -274,8 +285,10 @@ Stop and proceed to SPEC **only when all hold** (not merely when the user says "
    - **The test per value:** *does the user genuinely have a preference on it, or is it a conventional
      default / something they'd tune later?* Preference → ground; default/tunable → the executor infers.
      (What is a "mechanism" vs a "tuning value" is judged per project at runtime — never a fixed list.)
-3. **Load-bearing technical shape presented** (first cycle / unfixed stack), and the first-cycle
-   foundation floors met (breadth guard, depth floor, no open technical decision).
+3. **Load-bearing technical shape grounded** (first cycle / unfixed stack): unchanged current facts may
+   be repository-grounded; only unresolved new or changed choices require presentation. The first-cycle
+   foundation floors are met through evidence-backed breadth/depth dispositions with no open user-owned
+   technical decision and no ceremonial confirmation question.
 4. **No material gap remains** — only trivia the user need not decide.
 
 A clean record of this is simply the spec itself: every load-bearing decision appears as a settled

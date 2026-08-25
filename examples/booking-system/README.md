@@ -10,8 +10,9 @@ repository to see how Leanforge shapes the work.
 
 ## 1. Start with the prompt
 
-Invoke `Leanforge:Prime` (`/leanforge:prime`), then paste the prompt body from
-[prime-prompt.md](prime-prompt.md).
+Invoke `Leanforge:Prime`, then paste the prompt body from
+[prime-prompt.md](prime-prompt.md). Use `/leanforge:prime` on Claude Code; on Codex select the installed
+`prime` skill through `/skills`, `$prime`, or the desktop skill picker.
 
 ## 2. Decisions Prime should force or record
 
@@ -48,9 +49,8 @@ The exact AC list should follow the approved spec, not this example verbatim.
 
 After reviewing and approving the generated spec, plan, and handoff:
 
-```text
-/leanforge:run
-```
+Use `/leanforge:run` on Claude Code, or select the installed `run` skill through `/skills`, `$run`,
+or the desktop skill picker on Codex.
 
 A useful final Run report should include:
 

@@ -9,22 +9,25 @@ seeds the floor; the loop then closes the axes in gap-driven order, see `elicita
 **Floor, not ceiling.** This sets the floor and the guardrails; how you reach the user's confirmed
 read of the project is your judgment.
 
-## The mechanism — your judgment + user confirmation
+## The mechanism — evidence-grounded read, confirmation only when needed
 
-Do **not** freeze scope from the user's opening description. A project's real character emerges
-through dialogue, and you update your read in real time as it does (it started as "a personal
-note-taker" but a workspace/sharing feature appears → re-read it as a collaboration tool). Before the
-loop deepens into the foundation axes, present your final read explicitly and get the user to confirm
-it.
+Do **not** freeze scope from the user's opening description, but do not manufacture a calibration
+interview either. Form the project-character read from the user's goal **and** the existing repository.
+A first cycle without a Leanforge harness can still be an established project whose purpose, audience,
+scale, language, tests, and constraints are already evident.
 
-Flow: **tentative read → dialogue → update → final presentation → user confirmation.**
+Flow: **tentative read → repository/user evidence → update → confirm only a surviving load-bearing
+ambiguity.**
 
-- Form a tentative read from the opening description.
-- Through dialogue, pin the project's purpose, audience, scale, and hard constraints — updating the
-  read as new character surfaces.
-- Before leaving calibration, present: *"This project is [character] at [scale]. I'll take the domain
-  to [depth] and the technical decisions to [depth]."* — and get confirmation before deepening the
-  axes.
+- Form a tentative read from the opening description and the cheapest authoritative repository map.
+- Preserve explicit user constraints; derive unchanged current facts from code, docs, manifests, tests, and
+  repository instructions.
+- Present the project-character read for confirmation only when changing that read would materially alter
+  the Current Delivery Slice, foundation depth, or a user-owned product decision. For a closed, narrow
+  change in an established repository, record the evidence-backed read silently and continue.
+- Never ask the user to choose Prime/direct implementation or to confirm facts the request and repository
+  already establish. Do not ask for a broader product vision, audience, or future scope when the current
+  repository role and requested slice are sufficient and those answers would not change this contract.
 
 ## Project character controls depth — not a formal grade
 
@@ -52,13 +55,16 @@ user decide — proceed if they need it, scale down if they agree it is overkill
 
 Capture the hard constraints — technical (a platform that must be targeted, a dependency that must
 be used or avoided) and business (a deadline, a compliance boundary, a cost limit) — because they
-bound every later decision. These are user-held; ask for them, don't assume them.
+bound every later decision. Preserve constraints stated by the user and derive existing technical limits
+from authoritative repository evidence. Ask only when a material user-held constraint remains unknown; do
+not ask for hypothetical constraints with no concrete site or consequence.
 
 ## Completion bar
 
-Calibration is done when the project's character and the depth direction are **confirmed by the
-user**, so the loop can deepen the foundation axes against that floor. An unconfirmed read is not a
-basis for design — present and confirm before proceeding.
+Calibration is done when the project's character and depth direction are either **explicitly
+confirmed by the user** or **grounded by the request plus authoritative repository evidence** with no
+surviving load-bearing ambiguity. Confirmation is required for unresolved user-owned character or scope,
+not as a ritual for an already settled existing project.
 
 ## Universality guard
 

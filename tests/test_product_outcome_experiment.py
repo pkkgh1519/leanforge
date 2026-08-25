@@ -23,7 +23,7 @@ class ProductOutcomeExperimentTests(unittest.TestCase):
     def test_current_repository_passes_the_minimum_product_outcome_experiment(self):
         result = experiment.evaluate(ROOT)
         self.assertTrue(result["passed"], result)
-        self.assertEqual({"passed": 7, "total": 7}, result["score"])
+        self.assertEqual({"passed": 9, "total": 9}, result["score"])
 
     def test_three_doc_first_marketplace_copy_is_rejected(self):
         overrides = self.mutate(
@@ -33,6 +33,24 @@ class ProductOutcomeExperimentTests(unittest.TestCase):
         )
         result = experiment.evaluate(ROOT, overrides)
         self.assertFalse(self.check(result, "marketplace-outcome-promise")["passed"])
+
+    def test_codex_plugin_slash_command_regression_is_rejected(self):
+        overrides = self.mutate(
+            "platform/codex/plugin.json",
+            "$prime",
+            "/leanforge:prime",
+        )
+        result = experiment.evaluate(ROOT, overrides)
+        self.assertFalse(self.check(result, "codex-skill-entry-contract")["passed"])
+
+    def test_closed_first_cycle_mode_question_regression_is_rejected(self):
+        overrides = self.mutate(
+            "src/skills/prime/SKILL.md",
+            "**zero**",
+            "at least one",
+        )
+        result = experiment.evaluate(ROOT, overrides)
+        self.assertFalse(self.check(result, "prime-zero-question-first-cycle-contract")["passed"])
 
     def test_final_result_without_remaining_risk_is_rejected(self):
         overrides = self.mutate("src/skills/run/SKILL.md", "3. **Remaining risk**", "3. **Notes**")

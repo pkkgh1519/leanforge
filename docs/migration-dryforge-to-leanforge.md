@@ -10,7 +10,7 @@ state directory is `.leanforge/`. Older repositories may still contain
 |---|---|
 | Marketplace source | `pkkgh1519/leanforge` |
 | Plugin identity | `leanforge` |
-| User-facing command prefix | `Leanforge:*` and `/leanforge:*` |
+| User-facing entry point | Claude Code `/leanforge:*`; Codex installed skills via `/skills`, `$skill`, or the desktop skill picker |
 | Canonical state directory | `.leanforge/` |
 | Legacy state directory | `.dryforge/`, read only for guarded compatibility migration |
 
@@ -18,11 +18,11 @@ state directory is `.leanforge/`. Older repositories may still contain
 
 Use the current Leanforge lifecycle:
 
-| Current command | Use for |
-|---|---|
-| `Leanforge:Prime` (`/leanforge:prime`) | Create the reviewed spec, plan, and handoff. |
-| `Leanforge:Run` (`/leanforge:run`) | Execute the approved contract. |
-| `Leanforge:Set` (`/leanforge:set`) | Onboard an existing codebase into the project harness. |
+| Skill | Claude Code | Codex | Use for |
+|---|---|---|---|
+| `Leanforge:Prime` | `/leanforge:prime` | select `prime` with `/skills` or `$prime` | Create the reviewed spec, plan, and handoff. |
+| `Leanforge:Run` | `/leanforge:run` | select `run` with `/skills` or `$run` | Execute the approved contract. |
+| `Leanforge:Set` | `/leanforge:set` | select `set` with `/skills` or `$set` | Onboard an existing codebase into the project harness. |
 
 ## Automatic compatibility migration
 
@@ -54,10 +54,9 @@ worktrees from being overwritten by a rename migration.
 
 1. Commit or back up any work you care about before migration.
 2. Install Leanforge from `pkkgh1519/leanforge`.
-3. Run the Leanforge command that matches your next action:
-   - `/leanforge:prime` for a new design cycle;
-   - `/leanforge:run` to execute an approved contract;
-   - `/leanforge:set` to onboard an existing codebase.
+3. Invoke the Leanforge skill that matches your next action. On Claude Code use the `/leanforge:*`
+   command; on Codex select the installed skill through `/skills`, `$prime` / `$run` / `$set`, or the
+   desktop skill picker.
 4. If Leanforge reports active legacy state, finish, resume, or deliberately
    abandon that legacy run first.
 5. Retry the Leanforge command.

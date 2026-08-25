@@ -13,12 +13,13 @@ an invariant (see "First-cycle precondition" below).
 
 ## Purpose
 
-The first cycle's CALIBRATE/DESIGN produces project-wide foundation knowledge that does *not* belong in
-spec.md. spec.md carries only **this task's** execution contract; the **project-wide** foundation —
-the confirmed outcome and meaningful target, full domain model, architecture decisions, security
-model, conventions, and future scope — goes in the handoff's Project Foundation. This split keeps
-`Run` from over-implementing (it executes the task's spec, not the whole project) while giving it
-durable project context.
+The first cycle produces durable project foundation knowledge that does *not* belong in `spec.md`.
+`spec.md` carries only **this task's** execution contract; the Foundation carries the confirmed outcome,
+meaningful target, evidence-supported domain model, grounded technical shape, applicable security/
+operations/conventions, and confirmed future scope. On an established repository, this may be derived from
+the request plus authoritative code/docs/manifests/tests with zero foundation questions. Do not invent or
+interview for unrelated hypothetical future scope merely to make the Foundation look exhaustive. This split
+keeps `Run` from over-implementing while giving it durable context.
 
 ## Structure — four fixed sections
 
@@ -27,16 +28,18 @@ sections after harness files invites box-filling (reward-hacking) when `Run` lat
 keep the Foundation about the *project*, and let `Run` map it to files.
 
 - **Section 1 — Project identity.** What, for whom, at what scale, under what constraints (the
-  CALIBRATE result), including the user-confirmed broader outcome and meaningful target when one
-  exists.
-- **Section 2 — Domain model.** Entities, relationships, state transitions, rules, invariants, edge
-  cases (the domain-design result) — the **whole project's** domain, as context. The thickest section.
+  evidence-grounded CALIBRATE result), including the user-confirmed broader outcome and meaningful target
+  when one exists.
+- **Section 2 — Domain model.** Applicable entities, relationships, state transitions, rules,
+  invariants, and edge cases supported by confirmed intent and repository evidence — durable project
+  context, not a speculative interview about unrelated future features. The thickest applicable section.
   (Do **not** label individual entities `[implementation target]` / `[project context]` — those
   per-entity tags are clutter, and the distinction is already carried where it belongs: `spec.md` holds
   *this task's WHAT* (what `Run` implements), and the Foundation as a whole is non-executable context.
   `Run` builds the spec, reads the Foundation as context — no per-entity tag needed.)
-- **Section 3 — Technical decisions.** Architecture, security model, conventions, operations (the
-  technical-design result). **Only decisions the user confirmed.**
+- **Section 3 — Technical decisions.** Architecture, applicable security model, conventions, and
+  operations: user-confirmed new/changed choices plus authoritative repository-backed facts the slice
+  preserves.
 - **Section 4 — Future scope.** Preserve two meanings when present: **concrete remaining outcomes**
   are user-confirmed target outcomes not delivered by the Current Delivery Slice; **future
   directions** are user-confirmed durable value or capability directions that are not current

@@ -20,6 +20,12 @@ CODEX_SHORT_DESCRIPTION = "Turn a software goal into a verified change ready to 
 FINAL_RESULT_START = "<!-- leanforge:run-final-result-contract:start -->"
 FINAL_RESULT_END = "<!-- leanforge:run-final-result-contract:end -->"
 FINAL_RESULT_LABELS = ("Change", "Verification", "Remaining risk", "Integration")
+PRIME_INVOCATION_START = "<!-- leanforge:prime-invocation-precedence:start -->"
+PRIME_INVOCATION_END = "<!-- leanforge:prime-invocation-precedence:end -->"
+PRIME_FAST_PATH_START = "<!-- leanforge:prime-closed-input-fast-path:start -->"
+PRIME_FAST_PATH_END = "<!-- leanforge:prime-closed-input-fast-path:end -->"
+PRIME_FIRST_CYCLE_START = "<!-- leanforge:prime:FIRST-CYCLE-EVIDENCE-DISPOSITION:start -->"
+PRIME_FIRST_CYCLE_END = "<!-- leanforge:prime:FIRST-CYCLE-EVIDENCE-DISPOSITION:end -->"
 PRIMARY_COPY_FORBIDDEN = ("3-doc", "grounded 3-doc", "any input")
 UNSUPPORTED_PERFORMANCE_PATTERNS = (
     re.compile(r"\b(?:always|every task)\b.{0,30}\bfaster\b", re.IGNORECASE),
@@ -165,6 +171,108 @@ def _check_skill_outcomes(view: RepositoryView) -> Check:
     )
 
 
+def _check_codex_skill_entry(view: RepositoryView) -> Check:
+    manifest = view.json("platform/codex/plugin.json")
+    generated = view.json("codex/plugin/.codex-plugin/plugin.json")
+    interface = manifest.get("interface", {}) if isinstance(manifest.get("interface"), dict) else {}
+    prompts = "\n".join(str(value) for value in interface.get("defaultPrompt", []))
+    yaml_paths = {
+        "platform/codex/skills/prime/agents/openai.yaml": "Prepare an approval-ready change contract",
+        "platform/codex/skills/run/agents/openai.yaml": "Implement and verify the approved Leanforge change",
+        "platform/codex/skills/set/agents/openai.yaml": "Capture durable project context",
+        "platform/codex/skills/run-tdd/agents/openai.yaml": "Implement and verify the approved change with selective TDD",
+    }
+    yaml_ok = all(
+        outcome in view.text(relative) and "/leanforge:" not in view.text(relative)
+        for relative, outcome in yaml_paths.items()
+    )
+    docs_ok = all(
+        _contains_all(view.text(relative), ("/skills", "$prime"))
+        for relative in ("README.md", "README_KO.md", "docs/installation.md", "docs/troubleshooting.md", "docs/contracts.md")
+    )
+    passed = (
+        manifest == generated
+        and "$prime" in prompts
+        and "$run" in prompts
+        and "/leanforge:" not in prompts
+        and yaml_ok
+        and docs_ok
+        and "they do not create `/leanforge:*` slash commands" in view.text("docs/installation.md")
+        and "Claude Code와 Codex의 `/leanforge:prime`" not in view.text("docs/contracts.md")
+    )
+    return Check(
+        "codex-skill-entry-contract",
+        passed,
+        "Codex surfaces use installed skill selection rather than unsupported plugin slash commands"
+        if passed
+        else f"manifest_parity={manifest == generated}, prompts={prompts!r}, yaml_ok={yaml_ok}, docs_ok={docs_ok}",
+    )
+
+
+def _check_prime_question_economy(view: RepositoryView) -> Check:
+    prime = view.text("src/skills/prime/SKILL.md")
+    invocation = " ".join(_extract_between(prime, PRIME_INVOCATION_START, PRIME_INVOCATION_END).split())
+    fast_path = " ".join(_extract_between(prime, PRIME_FAST_PATH_START, PRIME_FAST_PATH_END).split())
+    elicitation = view.text("src/skills/prime/references/elicitation.md")
+    first_cycle = " ".join(
+        _extract_between(elicitation, PRIME_FIRST_CYCLE_START, PRIME_FIRST_CYCLE_END).split()
+    )
+    required = (
+        _contains_all(
+            invocation,
+            (
+                "already the user's planning choice",
+                "never justify a Prime-versus-Run mode question",
+                "Do not ask the user to choose Prime",
+            ),
+        ),
+        _contains_all(
+            fast_path,
+            (
+                "ask **zero** questions",
+                "authoritative repository evidence for an unchanged fact",
+                "write `.leanforge/spec.md`, `.leanforge/plan.md`, and `.leanforge/handoff.md`",
+                "prose-only pseudo-contract",
+            ),
+        ),
+        _contains_all(
+            first_cycle,
+            (
+                "Foundation artifact required; Foundation interview is not",
+                "one user question only for a surviving load-bearing user-owned decision",
+                "evidence floors, not mandatory-question quotas",
+            ),
+        ),
+        "finish with zero questions" in view.text("src/skills/prime/references/project-design-domain.md"),
+        "the absence of user dialogue is not itself insufficiency" in view.text("src/skills/prime/references/gap-analysis.md"),
+        "zero** avoidable user questions" in view.text("src/skills/prime/references/first-cycle-review.md"),
+        "zero foundation questions" in view.text("src/skills/prime/references/foundation-format.md"),
+    )
+    forbidden = (
+        "If invocation also requests implementation",
+        "ask whether to update planning documents or switch to Run/direct implementation",
+        "before closing, also ask \"is there one we haven't named?\"",
+    )
+    forbidden_found = [term for term in forbidden if term in prime or term in elicitation]
+    generated_prime = (
+        view.text("claude/skills/prime/SKILL.md"),
+        view.text("codex/plugin/skills/prime/SKILL.md"),
+    )
+    generated_match = all(
+        " ".join(_extract_between(body, PRIME_INVOCATION_START, PRIME_INVOCATION_END).split()) == invocation
+        and " ".join(_extract_between(body, PRIME_FAST_PATH_START, PRIME_FAST_PATH_END).split()) == fast_path
+        for body in generated_prime
+    )
+    passed = all(required) and not forbidden_found and generated_match
+    return Check(
+        "prime-zero-question-first-cycle-contract",
+        passed,
+        "Explicit Prime invocation and evidence-closed first cycles proceed to persisted 3-doc without avoidable questions"
+        if passed
+        else f"required={required}, forbidden={forbidden_found}, generated_match={generated_match}",
+    )
+
+
 def _check_final_result_contract(view: RepositoryView) -> Check:
     run = view.text("src/skills/run/SKILL.md")
     section = _extract_between(run, FINAL_RESULT_START, FINAL_RESULT_END)
@@ -265,6 +373,8 @@ def evaluate(root: Path, overrides: Mapping[str, str] | None = None) -> dict:
         _check_readme_outcome(view),
         _check_marketplace_outcome(view),
         _check_skill_outcomes(view),
+        _check_codex_skill_entry(view),
+        _check_prime_question_economy(view),
         _check_final_result_contract(view),
         _check_consumer_contract(view),
         _check_golden_cycle(view),
@@ -273,7 +383,7 @@ def evaluate(root: Path, overrides: Mapping[str, str] | None = None) -> dict:
     passed_count = sum(check.passed for check in checks)
     return {
         "schema_version": 1,
-        "experiment_id": "leanforge.product-outcome.minimum-v1",
+        "experiment_id": "leanforge.product-outcome.minimum-v2",
         "root": str(root.resolve()),
         "passed": passed_count == len(checks),
         "score": {"passed": passed_count, "total": len(checks)},

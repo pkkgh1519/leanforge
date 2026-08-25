@@ -1,7 +1,7 @@
 interface:
   display_name: "Leanforge:Set"
   short_description: "Capture durable project context for trusted future changes."
-  default_prompt: "Use /leanforge:set to capture durable project context for this project."
+  default_prompt: "Capture durable project context for this project without rediscovering settled decisions."
 
 policy:
   allow_implicit_invocation: false

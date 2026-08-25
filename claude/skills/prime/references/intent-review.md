@@ -20,8 +20,11 @@ what is actually at risk in *this* intent decide where to push.
 
 Pressing the whole intent inflates cost for little gain. Aim where the risk lives:
 
-- **Press the assumptions and the non-derivable decisions** — the things the code/material did not
-  settle. Code-derived, already-grounded content is low risk — skip it.
+- **Press the assumptions and the non-derivable decisions** — the things the explicit current request
+  and authoritative repository evidence did not settle. Requirements and constraints stated in the current
+  Prime request are already user-owned decisions unless contradictory or marked provisional; do not turn
+  them back into confirmation questions. Repository-derived, already-grounded unchanged content is low risk
+  — skip it.
 - **Confirm the load-bearing technical shape was surfaced.** For greenfield (or any intent the code
   did not pin), the persistence approach, interface/delivery form, and any plan-defining technical
   choice must actually have been surfaced and settled. An un-surfaced shape is a material gap (only the

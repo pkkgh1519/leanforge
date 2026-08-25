@@ -8,21 +8,21 @@
 
 ## 공통 식별자와 접근
 
-Plugin identity는 `leanforge`, 배포 저장소는 `pkkgh1519/leanforge`다. Claude Code와 Codex의 command는 사용자가 명시적으로 호출하는 대화형 쓰기 기능이다. 제품은 HTTP API, background service, event stream을 제공하지 않으며 별도 인증 token을 발급하지 않는다. 설치와 저장소 접근 권한은 각 호스트 및 Git provider가 소유한다.
+Plugin identity는 `leanforge`, 배포 저장소는 `pkkgh1519/leanforge`다. Claude Code는 `/leanforge:*` command를 노출하고, Codex는 설치된 skill을 `/skills`, `$skill` mention 또는 데스크톱 skill picker로 명시 선택한다. 두 호스트 모두 사용자가 명시적으로 시작하는 대화형 쓰기 기능이며, Codex에 plugin-defined `/leanforge:*` slash command가 생긴다고 가정하지 않는다. 제품은 HTTP API, background service, event stream을 제공하지 않으며 별도 인증 token을 발급하지 않는다. 설치와 저장소 접근 권한은 각 호스트 및 Git provider가 소유한다.
 
 ## Command 카탈로그
 
 ### Prime
 
-- **호출:** Claude Code와 Codex의 `/leanforge:prime`.
+- **호출:** Claude Code의 `/leanforge:prime`, 또는 Codex의 설치된 `prime` skill (`/skills`, `$prime`, 데스크톱 skill picker).
 - **입력:** 자연어 목표, 기존 설계 문서, 메모, 저장소 증거의 조합.
 - **출력:** 사용자가 이해하고 승인할 수 있는 의도·요구사항·실행 순서 계약, 간결한 승인 요약, 사용자만 결정할 수 있는 중요한 미확정 질문.
-- **제품 경계:** repository-derived 기술 판단과 내부 mode 선택을 사용자에게 되묻지 않는다. Prime 산출물은 Run이 대화를 재추론하지 않고 실행할 수 있어야 한다.
+- **제품 경계:** repository-derived 기술 판단과 내부 mode 선택을 사용자에게 되묻지 않는다. 명시적으로 Prime을 호출한 사실이 workflow 선택이다. 요청의 `고쳐줘`, `추가해줘`, `구현해줘` 같은 동사는 원하는 소프트웨어 결과를 뜻하며 Prime/direct mode 질문을 만들지 않는다. 현재 요청이 이미 확정한 요구사항과 repository-derived 보존 사실을 되묻지 않고, 실제로 남은 사용자 소유 결정만 질문한다. 결정 표면이 닫히면 같은 invocation에서 `.leanforge/handoff.md`, `.leanforge/spec.md`, `.leanforge/plan.md`를 실제로 쓴다. Prime 산출물은 Run이 대화를 재추론하지 않고 실행할 수 있어야 한다.
 - **오류:** Git 저장소가 아니거나, 자료 간 중요한 충돌이 사용자 결정 없이 해소될 수 없거나, 실행 계약의 graph가 유효하지 않으면 실행 준비 완료를 주장하지 않는다.
 
 ### Run
 
-- **호출:** Claude Code와 Codex의 `/leanforge:run`.
+- **호출:** Claude Code의 `/leanforge:run`, 또는 Codex의 설치된 `run` skill (`/skills`, `$run`, 데스크톱 skill picker).
 - **입력:** 사용자가 승인한 실행 계약, 현재 Git branch/commit/worktree 사실, 프로젝트 검증 명령.
 - **출력:** feature branch의 검증된 실제 변경 또는 외부 결과, 실행한 명령과 exit code, review·integration 결과, 잔여 위험과 사용자에게 남은 통합 선택.
 - **최종 보고 형식:** 성공과 복구가 소진된 terminal blocker 모두 사용자 언어로 명확히 구분한 **변경**, **검증**, **남은 위험**, **통합** 네 구역을 사용한다. 성공 시 실제 변경 또는 외부 결과, 관찰된 명령·출력·exit code와 runtime evidence, 미검증 범위·concern·복구 상태, 사용자 소유의 merge·PR/push·branch handoff 선택을 각각 담는다. blocker 시에는 완료·보존된 상태 또는 변경 없음, 중단을 증명하는 evidence, blocker·복구 상태, 통합 불가와 안전한 다음 선택을 같은 구역에 기록한다.
@@ -31,7 +31,7 @@ Plugin identity는 `leanforge`, 배포 저장소는 `pkkgh1519/leanforge`다. Cl
 
 ### Set
 
-- **호출:** Claude Code와 Codex의 `/leanforge:set`.
+- **호출:** Claude Code의 `/leanforge:set`, 또는 Codex의 설치된 `set` skill (`/skills`, `$set`, 데스크톱 skill picker).
 - **입력:** 기존 저장소의 코드·문서와 코드로 알 수 없는 사용자 결정.
 - **출력:** 두 호스트의 동일한 프로젝트 진입 지침, 프로젝트 문서, 의미 있는 module별 작업 지침.
 - **제품 경계:** 다음 작업에서 반복 설명·재발견을 줄이는 durable knowledge만 보존한다. per-change 기록이나 바뀌지 않은 지식을 갱신하기 위한 문서 churn을 만들지 않는다.
@@ -39,7 +39,7 @@ Plugin identity는 `leanforge`, 배포 저장소는 `pkkgh1519/leanforge`다. Cl
 
 ### Run TDD
 
-- **호출:** Claude Code와 Codex의 `/leanforge:run-tdd`.
+- **호출:** Claude Code의 `/leanforge:run-tdd`, 또는 Codex의 설치된 `run-tdd` skill (`/skills`, `$run-tdd`, 데스크톱 skill picker).
 - **입력:** Run과 같은 승인 계약. 관찰 가능한 행동 변경 task에는 acceptance behavior와 검증 seam이 필요하다.
 - **출력:** Run 결과에 행동 단위 RED→GREEN→refactor와 acceptance evidence를 추가한다.
 - **오류:** Run 자체의 precondition이 실패하면 래퍼도 실패한다. 행동 test가 구현 세부 문자열, skipped test, 약화된 assertion에 의존하면 acceptance evidence로 인정하지 않는다. 문서·단순 설정·mechanical 작업에는 가짜 RED 단계를 만들지 않는다.

@@ -3,19 +3,26 @@
 This page covers the common installation and first-run failure modes for
 Leanforge.
 
-## Command does not appear after install
+## Skill or command does not appear after install
 
 1. Confirm the marketplace source is `pkkgh1519/leanforge`.
 2. Re-run the install command for your client.
-3. Restart the client if the command palette caches plugin metadata.
+3. Restart the client and open a new session after installation or an update.
 4. Check that the installed plugin identity is `leanforge`, not an older name.
 
-Expected commands:
+Host-specific entry points:
 
-- `Leanforge:Prime` (`/leanforge:prime`)
-- `Leanforge:Run` (`/leanforge:run`)
-- `Leanforge:Set` (`/leanforge:set`)
-- `Leanforge:Run TDD` (`/leanforge:run-tdd`) — optional, available on both Claude Code and Codex
+- **Claude Code:** `/leanforge:prime`, `/leanforge:run`, `/leanforge:set`, and optional
+  `/leanforge:run-tdd`.
+- **Codex CLI:** open `/skills` or type `$` and select `prime`, `run`, `set`, or `run-tdd`; when the
+  names are unambiguous, `$prime`, `$run`, `$set`, and `$run-tdd` explicitly mention them.
+- **ChatGPT desktop Codex surface:** select the corresponding installed Leanforge skill from the
+  plugin/skill picker in a fresh conversation.
+
+Codex plugins do not create `/leanforge:*` slash commands. An `Unrecognized command` response to
+`/leanforge:prime` in Codex is an invocation mismatch, not evidence that the installed skill is absent.
+For an unreleased candidate, also verify the active cache path and package digest with
+[the local candidate procedure](local-candidate-testing.md) before attributing behavior to that branch.
 
 ## When to use `Leanforge:Run TDD` instead of `Leanforge:Run`
 

@@ -31,46 +31,57 @@ codex plugin marketplace add pkkgh1519/leanforge
 codex plugin add leanforge@leanforge
 ```
 
-## Verify the install
+## Verify the install and invoke the skills
 
-After installation, the command palette should expose these commands:
+### Claude Code
 
-| Command | Purpose |
-|---|---|
-| `Leanforge:Prime` (`/leanforge:prime`) | Turn intent into a reviewed executable design contract. |
-| `Leanforge:Run` (`/leanforge:run`) | Execute the approved contract with evidence gates. |
-| `Leanforge:Set` (`/leanforge:set`) | Onboard an existing codebase into the project harness. |
-| `Leanforge:Run TDD` (`/leanforge:run-tdd`) | Optional wrapper around `Run` that adds selective TDD discipline for behavior-changing work. |
+The command palette should expose:
 
-`Leanforge:Run TDD` is optional on both Claude Code and Codex; the core lifecycle is
-`Prime` -> `Run`. See [when to use it](troubleshooting.md#when-to-use-leanforgerun-tdd-instead-of-leanforgerun).
+| Skill | Claude Code command | Purpose |
+|---|---|---|
+| `Leanforge:Prime` | `/leanforge:prime` | Turn intent into a reviewed executable design contract. |
+| `Leanforge:Run` | `/leanforge:run` | Execute the approved contract with evidence gates. |
+| `Leanforge:Set` | `/leanforge:set` | Onboard an existing codebase into the project harness. |
+| `Leanforge:Run TDD` | `/leanforge:run-tdd` | Optional wrapper around `Run` with selective TDD discipline. |
 
-To test an unreleased branch in Codex, do not treat the checked-out source or a
-version label as proof of execution. Use the commit-pinned, reversible local
-marketplace procedure in [Test an exact local Codex candidate](local-candidate-testing.md),
-then verify the active cache path against the generated package digest before
-running Prime or Run.
+### Codex
+
+Codex plugins bundle skills; they do not create `/leanforge:*` slash commands. In Codex CLI, use
+`/skills` or type `$` to select the installed Leanforge skill. When names are unambiguous, mention
+`$prime`, `$run`, `$set`, or `$run-tdd` directly. In the ChatGPT desktop Codex surface, select the
+corresponding skill from the installed plugin/skill picker. Start a new session after installation or
+an update.
+
+`Leanforge:Run TDD` is optional on both hosts; the core lifecycle is `Prime` -> `Run`. See
+[when to use it](troubleshooting.md#when-to-use-leanforgerun-tdd-instead-of-leanforgerun).
+
+To test an unreleased branch in Codex, do not treat the checked-out source or a version label as proof
+of execution. Use the commit-pinned, reversible local marketplace procedure in
+[Test an exact local Codex candidate](local-candidate-testing.md), then verify the active cache path
+against the generated package digest before running Prime or Run.
 
 ## First successful run
 
-Use a small, observable request first:
+Use a small, observable request first. On Claude Code:
 
 ```text
 /leanforge:prime Build a minimal booking flow for a single service business.
 ```
 
-Review the approval summary and the contract details that carry product decisions. After approval, run:
+On Codex CLI, select the Leanforge Prime skill with `/skills` or use:
 
 ```text
-/leanforge:run
+$prime Build a minimal booking flow for a single service business.
 ```
 
+Review the approval summary and the contract details that carry product decisions. After approval,
+use `/leanforge:run` on Claude Code or `$run` on Codex.
+
 A successful run reports four clearly labeled sections in the user's language:
-**Change**, **Verification**, **Remaining risk**, and **Integration**. The sections
-contain the actual result, captured evidence, unverified scope or concerns, and
-the user-owned merge, PR/push, or branch-handoff choice. A terminal blocker uses
-the same sections to preserve partial state, prove the stop, name the blocker,
-and state that the result is not ready to integrate.
+**Change**, **Verification**, **Remaining risk**, and **Integration**. The sections contain the actual
+result, captured evidence, unverified scope or concerns, and the user-owned merge, PR/push, or
+branch-handoff choice. A terminal blocker uses the same sections to preserve partial state, prove the
+stop, name the blocker, and state that the result is not ready to integrate.
 
 ## Version notes
 

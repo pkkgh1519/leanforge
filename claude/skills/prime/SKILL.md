@@ -75,14 +75,27 @@ where the input came from. The 3-doc contract is in `references/output-format.md
 - **Cycle branch.** `.leanforge/status.json` present means delta: load the harness as context but leave
   differences for DECOMPOSE/ELICIT. Absent means first cycle: load foundation references during ELICIT.
   The harness is evidence, never an output template.
+<!-- leanforge:prime-invocation-precedence:start -->
+- **Explicit Prime invocation owns the workflow.** Invoking the `Prime` skill is already the user's
+  planning choice. Imperative task verbs such as *build*, *fix*, *implement*, *change*, *add*, or *update*
+  describe the desired software outcome; they do **not** request direct implementation and never justify a
+  Prime-versus-Run mode question. Leave Prime only when the same turn explicitly asks to bypass or skip the
+  contract and implement immediately without approval, or when an active-state safety conflict requires a
+  user choice. A true Prime-versus-bypass contradiction gets one focused clarification, never a generic mode
+  menu. Do not ask the user to choose Prime after the host has already invoked this skill.
+<!-- leanforge:prime-invocation-precedence:end -->
 - **User-facing output.** From the first line, use the user's language natively. Speak only for a needed
   question, a real blocker, or the final result/summary. Keep reading, writing, dispatch, and transitions
   silent; use plain language and omit internal mechanism, stage/risk labels, tool names, and jargon.
 
 ## Input & preconditions
 
-- Invocation: the user invokes the `Prime` skill. The input may be a goal, file path(s), prose, a mix,
-  or empty. If it is empty or only says to use the skill, ask what they want to build or change.
+- **Invocation precedence.** The user invoked the `Prime` skill, so remain in Prime unless the same turn
+  explicitly requests bypassing planning/approval and immediate direct implementation. A normal software-goal
+  imperative is input to Prime, not a second workflow request. Explicit requirements and constraints in the
+  current request are settled user intent unless they conflict with one another or are clearly marked
+  provisional; never ask the user to reconfirm them. The input may be a goal, file path(s), prose, a mix, or
+  empty. If it is empty or only says to use the skill, ask what they want to build or change.
 - **git required.** If needed, offer `git init` plus an initial commit; without HEAD, Run cannot create
   worktrees. Stop if git is unavailable.
 - **State directory.** `.leanforge/` is canonical. If it is absent and legacy `.dryforge/` has no
@@ -94,8 +107,9 @@ where the input came from. The 3-doc contract is in `references/output-format.md
   `.leanforge/` (plus explicitly approved git initialization or state-repair metadata). It
   never edits product source, tests, config, dependencies, external state, generated artifacts, or docs
   elsewhere; it runs no mutating implementation/install/generation/server/import/verification command.
-  It does not touch `.gitignore` or commit. If invocation also requests implementation, stop before
-  project writes and ask whether to update planning documents or switch to Run/direct implementation.
+  It does not touch `.gitignore` or commit. Do not offer Run/direct implementation merely because the
+  goal uses implementation verbs. If the same turn explicitly requests both Prime and bypassing Prime for
+  immediate implementation, stop before project writes and ask one contradiction-specific question.
 - **Active run / active 3-doc guard.** Before writing, check `.leanforge/run.json`, worktrees, and root
   `.leanforge/{handoff,spec,plan}.md`. Prose is not completion evidence; do not overwrite, archive, or
   discard active state silently; ask whether to resume or abandon the run, repair the active 3-doc,
@@ -140,8 +154,11 @@ become questions.
    still complete—documents; behavior, data, auth, workflow, compatibility, runtime, or config can make
    a one-line change high-blast.
 3. `.leanforge/status.json` present → delta: load `CLAUDE.md` / `AGENTS.md` and `docs/` as context only.
-   Absent → first cycle. If the marker is absent but a Leanforge-shaped harness exists, ask whether to
-   trust it as existing context or regenerate; active run/approval state must be resolved first.
+   Absent → first cycle. **First cycle means no durable Leanforge harness, not no project knowledge.** On an
+   existing repository, preserve authoritative code, docs, manifests, tests, and conventions as foundation
+   evidence instead of reopening them as user choices. If the marker is absent but a Leanforge-shaped harness
+   exists, ask whether to trust it as existing context or regenerate; active run/approval state must be
+   resolved first.
 4. For existing code, read the cheapest map: repository instructions, file tree, manifests, verify
    scripts, and pointed-at directories. Stop broad reading once blast radius, preserved contract, one
    representative pattern, and verify commands are known. Greenfield may skip most reading.
@@ -181,9 +198,13 @@ grounded; model-silent means close the gap.
 
 **Scope by cycle — first establishes the foundation, delta works within it; both EQUALLY rigorous
 (delta is not "lighter").**
-- **First cycle:** run CALIBRATE, domain extraction, and technical presentation. Enforce the references'
-  breadth guard, depth floor, and no-silent-technical-decision rule. Scope is foundation + current task;
-  produce all four Foundation sections.
+- **First cycle:** always produce the four-section Foundation, but do **not** force a foundation
+  interview. Evidence precedes questions: preserve explicit user constraints first, then derive unchanged
+  project character, domain rules, stack, conventions, and verify commands from authoritative repository
+  evidence; mark genuinely inapplicable dimensions `N/A` with a reason. Run CALIBRATE/domain extraction/
+  technical presentation only for load-bearing user-owned decisions that remain unresolved, especially on
+  greenfield or materially unfixed projects. Meet the evidence-aware breadth/depth floor without asking for
+  confirmation that the request and repository already supply. Scope is foundation + current task.
 - **Delta (harness exists):** do **not** re-run foundation design (read the floor from the harness;
   don't re-ask what it answers) — and do not re-elicit product strategy. For a recorded outcome or
   future direction, reopen a user decision only when the proposed task would materially contradict,
@@ -199,13 +220,27 @@ TECHNICAL, and CONTRACT lenses to each entity and collision. Enumerate exhaustiv
 grounded → realize; a tuning value inside a settled mechanism → mark deferred-tunable; otherwise mark
 `assumed` and ask via EXTRACT/PRESENT after `grounds-gate.md`. Use at most four questions/options per
 structured prompt, lead with a recommendation, and fall back to plain text if the tool fails. On a
-first cycle/unfixed stack, present persistence, interface, and—when shared state exists—the
-concurrency/consistency model; a stack name alone is insufficient.
+first cycle, present persistence, interface, and—when shared state exists—the concurrency/consistency model
+**only when the request and repository do not already pin the preserved technical shape**. Do not re-present
+unchanged repository facts as fresh choices; a stack name alone is insufficient when a material choice truly
+remains open.
+
+<!-- leanforge:prime-closed-input-fast-path:start -->
+**Closed-input fast path.** After ORIENT, DECOMPOSE, and the decision-surface accounting, ask **zero**
+questions when every load-bearing slot is already settled by explicit current-request intent,
+authoritative repository evidence for an unchanged fact, a reasoned `N/A`, or a genuinely tunable default.
+A first cycle, an imperative verb, or the absence of a Leanforge harness is never by itself a reason to ask.
+When this condition holds, proceed in the same invocation through the required independent checks and write
+`.leanforge/spec.md`, `.leanforge/plan.md`, and `.leanforge/handoff.md`; do not return a questionnaire,
+workflow menu, or prose-only pseudo-contract instead. If a real user-owned decision remains, ask only that
+surviving decision and resume authoring after the answer without repeating settled questions.
+<!-- leanforge:prime-closed-input-fast-path:end -->
 
 **Exit bar (observable) — write the spec only when no `assumed` slot survives** (full bar in
 `elicitation.md`): the surface is accounted — every load-bearing slot is `grounded`, `deferred-tunable`,
 or asked-and-answered (a mechanism's *preference-values*, not just its yes/no, included); first-cycle
-foundation floors met; no material gap remains. A thin input *raises* the bar (ask more), never lowers it.
+foundation floors met; no material gap remains. A thin input raises the bar only when it leaves real
+load-bearing decisions unresolved; a concise but complete request does not manufacture questions.
 
 ## intent-completeness — independent guess-hunt before SPEC — `references/intent-completeness.md`
 
@@ -255,8 +290,9 @@ Write `.leanforge/handoff.md` with document roles/conflict resolution, project-r
 locations, non-derivable hard gates, and residual intentionality. On first cycle, assemble governing
 sections around the already-written Foundation and label it `Non-executable project context`; the
 Foundation is durable context, never mutation authority, and delta has no Foundation. Write all three
-docs under `.leanforge/`, without `.gitignore` changes or commits. If an input file is untracked inside
-the repo, advise moving or ignoring it; never delete it.
+docs under `.leanforge/`, without `.gitignore` changes or commits. If the elicitation surface is closed,
+file persistence is mandatory in this invocation; never substitute chat-only drafts or ask whether to
+continue. If an input file is untracked inside the repo, advise moving or ignoring it; never delete it.
 
 **Completion bar:** handoff written (+ first cycle: Foundation assembled), the three files in
 `.leanforge/`, git untouched.

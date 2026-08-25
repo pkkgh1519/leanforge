@@ -1,7 +1,7 @@
 interface:
   display_name: "Leanforge:Run TDD"
   short_description: "Implement and verify an approved change with selective TDD."
-  default_prompt: "Use /leanforge:run-tdd to implement and verify the approved change with selective TDD for behavior changes."
+  default_prompt: "Implement and verify the approved change with selective TDD for behavior changes."
 
 policy:
   allow_implicit_invocation: false

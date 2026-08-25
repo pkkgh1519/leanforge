@@ -15,7 +15,7 @@ Leanforge의 1차 성과는 최소한의 사용자 노력으로 완성된 신뢰
 - **Shadow observation integrity:** sidecar freshness, closed Lite fact partition, `unknown_material_risk` fail-closed 경계를 검증한다.
 - **Pilot-readiness study contract:** pinned source·contract·generated/installed package identity, blinded safety observation, removable-gate intervention, installed-host smoke, paired A/B shadow tax, predeclared quality, user burden, prevalence-weighted value를 함께 평가한다.
 - **Generated parity CI:** build 뒤 tracked drift, untracked output, 전체 unittest, whitespace를 순서대로 차단한다.
-- **사용자 결과 표면:** marketplace·skill discovery·온보딩·Run 최종 보고를 검증된 변경, 증거, 남은 위험, 사용자 소유 통합 선택에 맞췄다. `leanforge.product-outcome.minimum-v1`의 고정 7개 검사에서 기존 표면은 1/7, 후보 표면은 7/7을 기록했고, 3-doc 우선 문구·남은 위험 누락·generated drift·검증 누락·무측정 속도 주장을 넣은 known-opposite mutation은 모두 거부된다. 이 결과는 정적 제품 계약과 완료 예시의 정합성만 증명하며 installed-host 실행이나 Time to Trusted Change 개선은 증명하지 않는다.
+- **사용자 결과·Prime 진입 표면:** marketplace·skill discovery·온보딩·Run 최종 보고를 검증된 변경, 증거, 남은 위험, 사용자 소유 통합 선택에 맞췄다. Windows installed-host 실험에서 Codex `/leanforge:*` 진입 가정과 Prime의 mode/first-cycle 질문 팽창이 드러나, Codex는 `/skills`·`$skill`·desktop picker로 분리하고 명시적 Prime 호출 우선순위, evidence-closed first cycle의 질문 0·3-doc persistence 계약을 추가했다. `leanforge.product-outcome.minimum-v2`의 고정 9개 검사에서 직전 표면은 7/9, 후보 표면은 9/9이며 관련 known-opposite mutation을 거부한다. 이 결과는 정적 계약만 증명하며 installed-host 재실행과 Time to Trusted Change 개선은 아직 증명하지 않는다.
 
 ## Adaptive Assurance의 고정 경계
 

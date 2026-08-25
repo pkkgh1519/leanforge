@@ -20,8 +20,9 @@ Must convey (structure is the agent's to design — 3 hard gates or 30):
 - **Hard gates**: non-negotiable constraints the executing agent cannot derive from code alone.
 - Intent decided while authoring but not captured in spec/plan.
 - **First cycle only (no project harness yet):** the handoff **carries** a **Project Foundation**
-  section — the project-wide foundation (full domain model, technical decisions, future scope) that
-  seeds the harness `Run` creates at the end. `Prime` produces it through its first-cycle ELICIT loop
+  section — the durable foundation (evidence-supported domain model, grounded technical shape,
+  confirmed future scope) that seeds the harness `Run` creates at the end. `Prime` produces it through
+  its first-cycle ELICIT loop
   and writes it at the SPEC step (`foundation-format.md`). It is **required** in a first cycle — there
   is no degrade path; `Run` treats a missing Foundation in a first cycle as a precondition violation and
   stops (`foundation-format.md`, "First-cycle precondition"). Omit it in later cycles (the harness has

@@ -16,7 +16,9 @@ it doing the completeness work, the late 3-doc-gate finds little.
 
 - **Independent (A=A).** The hunter must **not** have authored the dialogue — its value is that it
   isn't invested in the author's defaults. It is dispatched as a fresh subagent and **defaults to
-  skeptical**: a load-bearing decision is a *guess* unless the intent shows it grounded in the user.
+  skeptical**: a user-owned load-bearing decision is a guess unless grounded in the user; an unchanged
+  current technical/domain fact may instead be grounded in authoritative repository evidence. The reviewer
+  must distinguish these classes rather than routing every existing fact back to the user.
 - **Now (before SPEC), not at the gate.** A guess caught here is **closed by the user** (the dialogue
   is still open). A guess caught at the 3-doc-gate is caught *after* the whole 3-doc is built, when the
   cheap move is to patch the document — which bakes the agent's guess in instead of getting the user's
@@ -38,7 +40,9 @@ that did **not author** the intent. On Codex, set `fork_turns: "none"` explicitl
 - **The mandate — audit the decision surface** (`elicitation.md`). Three audits:
   1. **Disposition audit** — for each slot marked `grounded` or `deferred-tunable`, is that defensible
      from the dialogue, or did the agent **rubber-stamp a guess as "grounded"**? Flag any disposition
-     you cannot trace to what the user said, their stated goal/values, or an option they chose.
+     you cannot trace to what the user said, their stated goal/values, an option they chose, or—only for
+     an unchanged fact the slice preserves—authoritative repository evidence. A reasoned `N/A` is also a
+     valid disposition when the dimension genuinely does not apply.
   2. **Residual-enumeration audit** — independently walk the lenses (structural / behavioral /
      technical / contract) over the named entities and colliding pairs and find any **obligation-slot
      the producer never enumerated** (the dangerous A=A miss — e.g. an entity's *cardinality* settled
@@ -49,7 +53,8 @@ that did **not author** the intent. On Codex, set `fork_turns: "none"` explicitl
      future direction? If staged delivery moves requested value outside current execution, did the
      user confirm that slice after seeing the deferred value and consequence? Mere non-implementation
      of a future direction is not a conflict and must not trigger a strategy interview.
-  Aim especially at: technical decisions presented as settled (was the user given the choice?); a
+  Aim especially at: **new or changed** technical decisions presented as settled (was the user given the
+  choice?), while rejecting false findings that merely re-present an unchanged repository-fixed stack; a
   mechanism settled with a **preference-value** silently filled (which side wins a contested case, how
   strict a policy is); edge/interaction dispositions no one chose; **structural** decisions
   (cardinality/composition/identity) resolved silently.

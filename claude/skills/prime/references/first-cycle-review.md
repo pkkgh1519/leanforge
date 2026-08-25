@@ -20,12 +20,14 @@ risk-proportional judgment.
 - **Domain too shallow** — entity *names* present, but rules / invariants / edge-case dispositions
   missing. A concept without its four facts (what it is / does / cannot do / how it ends) is a name,
   not a model.
-- **Domain too narrow** — a core feature/entity is missing — the trace of closing without asking the
-  user "are there others?" (the breadth guard was skipped).
-- **Technical decision left open** — a "decide later" / "TBD" survives. An open load-bearing technical
-  question is a gap (the executor will fill it arbitrarily).
-- **Security generality** — "security considered" with no project-specific policy (auth approach,
-  authorization model, audit scope).
+- **Domain too narrow** — a core applicable feature/entity is missing after the producer's evidence-backed breadth inventory. The absence of a ceremonial "are there others?" question is not itself a defect.
+- **Technical grounding invalid** — a new/changed load-bearing choice remains open, or an unchanged fact is
+  claimed repository-grounded without authoritative evidence. Do not require user confirmation for a
+  preserved existing stack merely because this is the first Leanforge cycle.
+- **Security disposition invalid** — an applicable security surface has only a generality, or `N/A` is
+  asserted without a concrete reason.
+- **Question inflation** — the workflow asks Prime-versus-direct mode, repeats a settled choice, or routes a
+  repository-grounded/trivial fact back to the user.
 - **Scoping mismatch** — the design is heavier or lighter than the project's confirmed character.
 - **Outcome erosion** — Project identity or Future scope silently narrows, replaces, or invents the
   user-confirmed outcome or meaningful target state.
@@ -35,10 +37,12 @@ risk-proportional judgment.
 
 ## Floor
 
-- Every domain concept meets `project-design-domain.md`'s depth floor.
-- Every technical decision is closed by user confirmation (no open question).
-- **Zero** vague modifiers.
-- Design depth is consistent with the CALIBRATE character profile.
+- Every applicable domain concept meets `project-design-domain.md`'s depth floor or carries a reasoned
+  `N/A`.
+- Every new/changed user-owned technical decision is closed by user confirmation; every preserved current
+  fact is backed by repository evidence.
+- **Zero** vague modifiers and **zero** avoidable user questions.
+- Design depth is consistent with the evidence-grounded CALIBRATE character profile.
 - **Outcome alignment** — Project identity and Future scope preserve the confirmed outcome and target
   at the altitude the user confirmed, without adding unconfirmed strategy.
 - **Non-leakage** — `spec.md`, `plan.md`, and the Execution Graph contain only the Current Delivery

@@ -100,17 +100,29 @@ digest without active-path binding is insufficient.
 
 ## Run the product test
 
-Use a new chat and a disposable Git repository. Record:
+Use a new chat and a disposable Git repository. In Codex CLI, open `/skills` or type `$` and select
+the installed Leanforge skill; when names are unambiguous, `$prime` and `$run` explicitly mention the
+skills. In the ChatGPT desktop Codex surface, use the installed plugin/skill picker or the host's
+`SkillUserInput` path. Do **not** enter `/leanforge:prime` or `/leanforge:run`: Codex does not create
+those plugin-defined slash commands.
+
+Record:
 
 - candidate commit and tree;
 - candidate marketplace name;
 - staged and active package digests;
+- the exact skill-selection/readback method;
 - host and Codex version;
 - fresh-session, reload, and cache conditions;
 - Prime/Run transcript and command evidence.
 
-Stop rather than run the product test when active identity is mismatched or
-unverifiable.
+For the closed existing-repository golden case, explicit Prime selection is already the workflow choice.
+The implementation verbs in the goal must not trigger a Prime-versus-direct mode question. When the
+request plus repository evidence close every load-bearing slot, expect zero user questions and actual
+`.leanforge/handoff.md`, `.leanforge/spec.md`, and `.leanforge/plan.md` files in the same invocation.
+A separate decision-ownership case should still ask the one deliberately omitted load-bearing decision.
+
+Stop rather than run the product test when active identity is mismatched or unverifiable.
 
 ## Restore the previous installation
 

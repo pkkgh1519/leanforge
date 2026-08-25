@@ -33,9 +33,9 @@ class LeanforgeRenameContractTests(unittest.TestCase):
         self.assertEqual("pkkgh1519", claude_manifest["author"]["name"])
 
         prompts = "\n".join(codex_manifest["interface"]["defaultPrompt"])
-        for call in ("/leanforge:prime", "/leanforge:run"):
-            self.assertIn(call, prompts)
-        self.assertNotIn("/leanforge:harness", prompts)
+        for skill in ("$prime", "$run"):
+            self.assertIn(skill, prompts)
+        self.assertNotIn("/leanforge:", prompts)
 
     def test_docs_use_leanforge_distribution_path_without_homepage_site(self):
         for rel in ("README.md", "README_KO.md"):

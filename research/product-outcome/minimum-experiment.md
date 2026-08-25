@@ -2,7 +2,7 @@
 
 ## Identity
 
-- Experiment ID: `leanforge.product-outcome.minimum-v1`
+- Experiment ID: `leanforge.product-outcome.minimum-v2`
 - Baseline tree: the product surface at `cbbb90758d28112a0918a1f999b841b9e8f7a7e6`
 - Candidate: the immediate product-outcome patch built on that tree
 - Evaluator: `tools/product_outcome_experiment.py`
@@ -10,25 +10,28 @@
 
 ## Question
 
-Does the candidate make Leanforge's public promise, command discovery, onboarding, and completed-result
-example agree with the authoritative product outcome: a verified change, captured evidence, remaining
-risk, and a user-owned integration choice?
+Does the candidate make Leanforge's public promise, host-specific skill entry, Prime question economy,
+onboarding, and completed-result example agree with the authoritative product outcome: an approval-ready
+contract, a verified change, captured evidence, remaining risk, and a user-owned integration choice?
 
 ## Predeclared deterministic checks
 
-The candidate must pass all seven checks. A partial score is failure.
+The candidate must pass all nine checks. A partial score is failure.
 
 1. English and Korean README introductions lead with the trusted-change outcome.
 2. Claude and Codex marketplace copy leads with the outcome, not `3-doc` or "any input" plumbing.
 3. Prime, Run, Set, and Run TDD descriptions state their user-facing outcome.
-4. Run requires four clearly labeled final-result sections: Change, Verification, Remaining risk, and Integration.
-5. Consumer and installation documentation expose the same four-part result contract.
-6. A sanitized completed cycle traces contract, actual change, evidence, remaining risk, and integration state.
-7. Public copy makes no unmeasured claim that every task is faster or cheaper.
+4. Codex surfaces use installed skill selection (`/skills`, `$skill`, or the desktop skill picker), not unsupported plugin-defined `/leanforge:*` slash commands.
+5. Explicit Prime invocation and an evidence-closed first cycle proceed with zero avoidable questions and persist the three `.leanforge/` contract files.
+6. Run requires four clearly labeled final-result sections: Change, Verification, Remaining risk, and Integration.
+7. Consumer and installation documentation expose the same four-part result contract.
+8. A sanitized completed cycle traces contract, actual change, evidence, remaining risk, and integration state.
+9. Public copy makes no unmeasured claim that every task is faster or cheaper.
 
-Known-opposite mutations must fail for at least: 3-doc-first marketplace copy, missing remaining-risk
-section, missing terminal-blocker preserved-state reporting, generated Run result drift, missing
-verification in the completed example, and an unmeasured "every task faster" claim.
+Known-opposite mutations must fail for at least: 3-doc-first marketplace copy, Codex slash-command
+regression, a mandatory mode question on a closed Prime cycle, missing remaining-risk section, missing
+terminal-blocker preserved-state reporting, generated Run result drift, missing verification in the
+completed example, and an unmeasured "every task faster" claim.
 
 ## Repository gates
 
@@ -46,7 +49,8 @@ git diff --check
 
 ## Interpretation boundary
 
-Passing means the product surfaces and example are internally aligned and mechanically guarded. It
-does not mean an installed Claude Code or Codex host invoked the plugin correctly, and it does not
-measure Time to Trusted Change, token cost, question count, user reading time, rework, or defect rate.
-Those claims require captured host runs and paired evaluation.
+Passing means the product surfaces, host-entry contract, Prime question-economy contract, and example
+are internally aligned and mechanically guarded. It does not prove that an installed Claude Code or Codex
+host obeyed those instructions. Installed-host persistence, actual question count, Time to Trusted Change,
+token cost, user reading time, rework, and defect rate still require captured host runs and paired
+evaluation.

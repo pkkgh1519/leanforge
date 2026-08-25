@@ -1,7 +1,7 @@
 interface:
   display_name: "Leanforge:Prime"
   short_description: "Prepare an approval-ready change contract."
-  default_prompt: "Use /leanforge:prime to prepare an approval-ready change contract for this software goal: "
+  default_prompt: "Prepare an approval-ready change contract for this software goal. Treat implementation verbs as the desired outcome, not a request to bypass Prime: "
 
 policy:
   allow_implicit_invocation: false
