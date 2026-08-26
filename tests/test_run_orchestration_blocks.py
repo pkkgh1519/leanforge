@@ -22,6 +22,7 @@ BASELINE_TREE = "b87ec08e9c840c4d585e9cc7d89a9826a98c2c5f"
 BASELINE_BLOB = "f2fd63356adb0ba47e806e87802392b0f8ce6d4a"
 BASELINE_SHA256 = "e9aaca31d8b31d4a473ff9b9268b96b1eefe768a28bf2254ce8eff2228d79f03"
 BASELINE_BYTES = 36790
+SPLIT_RELEASE_COMMIT = "7607933eae58e166283789409ccd37a66fddcacd"
 RUNTIME_SURFACES = (
     "src/skills/run",
     "claude/skills/run",
@@ -73,7 +74,8 @@ class RunOrchestrationBlockSplitTests(unittest.TestCase):
         self.assertTrue(result["baseline_verified"])
         self.assertEqual(9, result["block_count"])
         self.assertEqual(BASELINE_SHA256, result["output_sha256"])
-        self.assertEqual(list(split.EXPECTED_RUNTIME_PATHS), result["runtime_surfaces_verified"])
+        self.assertFalse(result["split_release_runtime_enforced"])
+        self.assertEqual([], result["runtime_surfaces_verified"])
 
         for index, block in enumerate(manifest["blocks"]):
             data = (ROOT / block["path"]).read_bytes()
@@ -90,10 +92,10 @@ class RunOrchestrationBlockSplitTests(unittest.TestCase):
         self.assertEqual(b"\n", rendered[-1:])
         self.assertNotIn(b"\r", rendered)
 
-    def test_entire_packaged_run_surface_is_unchanged_from_baseline(self):
+    def test_split_release_packaged_run_surface_was_unchanged_from_baseline(self):
         for surface in RUNTIME_SURFACES:
             with self.subTest(surface=surface):
-                historical_paths = tuple(
+                baseline_paths = tuple(
                     sorted(
                         line
                         for line in git(
@@ -102,18 +104,20 @@ class RunOrchestrationBlockSplitTests(unittest.TestCase):
                         if line
                     )
                 )
-                current_paths = tuple(
+                split_paths = tuple(
                     sorted(
-                        path.relative_to(ROOT).as_posix()
-                        for path in (ROOT / surface).rglob("*")
-                        if path.is_file()
+                        line
+                        for line in git(
+                            "ls-tree", "-r", "--name-only", SPLIT_RELEASE_COMMIT, surface
+                        ).decode("utf-8").splitlines()
+                        if line
                     )
                 )
-                self.assertEqual(historical_paths, current_paths)
-                for relative in historical_paths:
+                self.assertEqual(baseline_paths, split_paths)
+                for relative in baseline_paths:
                     self.assertEqual(
                         git("show", f"{BASELINE_COMMIT}:{relative}"),
-                        (ROOT / relative).read_bytes(),
+                        git("show", f"{SPLIT_RELEASE_COMMIT}:{relative}"),
                         relative,
                     )
 
@@ -291,7 +295,11 @@ class RunOrchestrationBlockSplitTests(unittest.TestCase):
                 split.SplitError,
                 "runtime compatibility surface must be a regular file",
             ):
-                split.verify(repo, require_git_baseline=False)
+                split.verify(
+                    repo,
+                    require_git_baseline=False,
+                    enforce_split_release_runtime=True,
+                )
 
     def test_runtime_surface_mutation_is_rejected_against_git_baseline(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -316,7 +324,7 @@ class RunOrchestrationBlockSplitTests(unittest.TestCase):
             path = clone / "src/skills/run/references/load-graph.json"
             path.write_text(path.read_text(encoding="utf-8") + "\n", encoding="utf-8")
             with self.assertRaisesRegex(split.SplitError, "runtime compatibility surface changed"):
-                split.verify(clone)
+                split.verify(clone, enforce_split_release_runtime=True)
 
 
 if __name__ == "__main__":

@@ -41,3 +41,7 @@ src/instruction-blocks/** text eol=lf
 tools/run_orchestration_blocks.py text eol=lf
 tests/test_run_orchestration_blocks.py text eol=lf
 .github/workflows/bash-3.2.yml text eol=lf
+tools/adaptive_assurance_pilot.py text eol=lf
+src/skills/prime/references/adaptive-assurance-live-pilot.md text eol=lf
+claude/skills/prime/references/adaptive-assurance-live-pilot.md text eol=lf
+codex/plugin/skills/prime/references/adaptive-assurance-live-pilot.md text eol=lf

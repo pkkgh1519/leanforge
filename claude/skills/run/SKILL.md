@@ -119,6 +119,28 @@ other internal plumbing.
   requirements and handoff hard gates; if a future direction legitimately constrains this slice,
   Prime has already written that narrow constraint there.
 
+## Adaptive profile preflight
+
+Full Assurance is the default. Treat `strict_lite_alpha` as authoritative only when the exact enabled
+canary file, current valid Lite shadow snapshot, and exact `.leanforge/assurance-profile.json` agree;
+require a delta cycle, one local file-diff task, risk `MECHANICAL` or `NONE`, no regeneration barrier,
+and `harness_sync: false`. Missing, malformed, stale, contradictory, or unevaluable evidence silently
+selects Full Assurance. Never ask the user to choose a profile.
+
+A valid alpha profile changes only two Full steps. It skips Prime's independent intent-completeness
+reviewer before this Run begins, and it may skip the later durable-harness synchronization only after
+completion verification and final-diff inspection prove that no architecture, durable/public contract,
+dependency, module, operations, or security knowledge changed. It still uses the already-existing direct
+route, never a fifth route; keeps its captured-evidence and commit requirements; runs full completion
+verification, runtime smoke when applicable, the fresh final review, recovery, final diff check, and the
+user-owned integration choice. Remove the current-cycle `.leanforge/assurance-profile.json` during
+successful archive.
+
+Any newly discovered scope, verification, recovery, external-state, security/data, destructive,
+durable-change, or intent risk promotes monotonically to Full before dependent work; never drop back to
+Lite in the same cycle. Promotion runs every remaining normal Full step, including harness synchronization
+when it has not already completed.
+
 ## Graph validation
 
 Before branch/worktree mutation, parse the Execution Graph under `references/graph-contract.md`.

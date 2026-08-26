@@ -1,4 +1,4 @@
-# Adaptive Assurance: shadow foundation and dormant Lite pilot
+# Adaptive Assurance: shadow foundation and Strict Lite alpha handoff
 
 ## Purpose
 
@@ -55,10 +55,10 @@ The shadow result has no execution authority. It cannot alter Prime stages, ques
 reviews, 3-doc output, user approval, Run routing/worktrees, verification topology, recovery, integration
 choice, or the current harness update policy.
 
-## Dormant Lite pilot contract
+## Strict Lite alpha contract
 
-`adaptive-assurance-lite-pilot.json` describes a future strict Lite path while keeping
-`activation: shadow`.
+`adaptive-assurance-lite-pilot.json` now defines a separately reviewed Strict Lite alpha canary with
+`activation: default_off`. The canary is inert unless the internal activation file is present and exact.
 
 The prospective Lite route keeps the existing Prime→Run 3-doc interface and hard execution boundaries,
 while identifying ceremony that a strictly eligible local reversible delta may not earn:
@@ -67,12 +67,13 @@ while identifying ceremony that a strictly eligible local reversible delta may n
 - Run keeps Git preflight, interrupted-run recovery guards, contract/graph validation, targeted task
   verification, one full completion verification, declared runtime smoke, final diff check, actual
   command/exit evidence, and user integration choice.
-- Future Lite candidates may omit the two Prime independent reviewers, a worktree, wave integration,
-  final independent reviewer, and harness synchronization only when no durable change exists.
+- Strict Lite alpha omits only the Prime intent-completeness reviewer and a proven no-op harness
+  synchronization. It keeps the 3-doc gate, existing direct route, full completion verification, final
+  independent review, recovery, and user integration choice.
 - Any discovered scope, verification, external-state, recovery, security/data, destructive, or
   user-intent risk promotes monotonically to the existing Full Assurance path.
 
-None of these Lite reductions are live.
+These reductions are available only behind the default-off internal canary activation file.
 
 ## First activation topology
 
@@ -138,15 +139,14 @@ reliably.
 
 ## Current activation boundary
 
-This branch still does **not**:
+The Strict Lite alpha canary is **default off** and internal. When enabled for a qualifying delta, it:
 
-- skip either Prime reviewer in live execution;
-- change Run route topology;
-- reduce task, integration, completion, smoke, or final-review gates;
-- make harness synchronization conditional in the live workflow;
-- alter recovery, approval, or integration behavior;
-- make study records execution authority;
-- claim actual Time to Trusted Change improvement.
+- skips only Prime's intent-completeness reviewer;
+- reuses the existing direct Run route rather than adding a route;
+- keeps completion verification, runtime smoke, final independent review, recovery, approval, and
+  integration ownership;
+- skips harness synchronization only after proving no durable project knowledge changed;
+- promotes monotonically to Full Assurance on uncertainty or new risk.
 
-Only a later, separately reviewed release may introduce a bounded Lite pilot. Phase 2 must then measure
-actual end-to-end net benefit before any broader activation.
+This candidate does not claim Time to Trusted Change improvement. Broader or default activation remains
+closed until installed-host paired measurement demonstrates net benefit and preserved safety.

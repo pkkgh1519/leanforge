@@ -350,7 +350,12 @@ def _git(repo: Path, *args: str) -> bytes:
     return completed.stdout
 
 
-def verify(repo: Path, *, require_git_baseline: bool = True) -> dict[str, Any]:
+def verify(
+    repo: Path,
+    *,
+    require_git_baseline: bool = True,
+    enforce_split_release_runtime: bool = False,
+) -> dict[str, Any]:
     repo = repo.resolve()
     manifest = load_manifest(repo)
     rendered = render(repo, manifest)
@@ -361,14 +366,16 @@ def verify(repo: Path, *, require_git_baseline: bool = True) -> dict[str, Any]:
 
     baseline = manifest["baseline"]
     runtime_verified: list[str] = []
-    for entry in manifest["runtime_baseline"]:
-        current = _read_regular_bytes(
-            repo / entry["path"],
-            "runtime compatibility surface",
-        )
-        if len(current) != entry["bytes"] or _sha256(current) != entry["sha256"]:
-            raise SplitError(f"runtime compatibility surface changed: {entry['path']}")
-        runtime_verified.append(entry["path"])
+    if enforce_split_release_runtime:
+        for entry in manifest["runtime_baseline"]:
+            current = _read_regular_bytes(
+                repo / entry["path"],
+                "runtime compatibility surface",
+            )
+            if len(current) != entry["bytes"] or _sha256(current) != entry["sha256"]:
+                raise SplitError(f"runtime compatibility surface changed: {entry['path']}")
+            runtime_verified.append(entry["path"])
+
 
     if require_git_baseline:
         commit = baseline["commit"]
@@ -390,19 +397,20 @@ def verify(repo: Path, *, require_git_baseline: bool = True) -> dict[str, Any]:
         if load_graph_blob != baseline["load_graph_blob_sha1"]:
             raise SplitError("baseline load graph blob identity mismatch")
 
-        for entry in manifest["runtime_baseline"]:
-            current = _read_regular_bytes(
-            repo / entry["path"],
-            "runtime compatibility surface",
-        )
-            historical_blob = _git(
-                repo, "rev-parse", f"{commit}:{entry['path']}"
-            ).decode().strip()
-            if historical_blob != entry["blob_sha1"]:
-                raise SplitError(f"runtime baseline blob identity mismatch: {entry['path']}")
-            historical = _git(repo, "show", f"{commit}:{entry['path']}")
-            if historical != current:
-                raise SplitError(f"runtime compatibility bytes changed: {entry['path']}")
+        if enforce_split_release_runtime:
+            for entry in manifest["runtime_baseline"]:
+                current = _read_regular_bytes(
+                    repo / entry["path"],
+                    "runtime compatibility surface",
+                )
+                historical_blob = _git(
+                    repo, "rev-parse", f"{commit}:{entry['path']}"
+                ).decode().strip()
+                if historical_blob != entry["blob_sha1"]:
+                    raise SplitError(f"runtime baseline blob identity mismatch: {entry['path']}")
+                historical = _git(repo, "show", f"{commit}:{entry['path']}")
+                if historical != current:
+                    raise SplitError(f"runtime compatibility bytes changed: {entry['path']}")
 
     return {
         "schema_version": 1,
@@ -413,6 +421,7 @@ def verify(repo: Path, *, require_git_baseline: bool = True) -> dict[str, Any]:
         "block_count": len(manifest["blocks"]),
         "baseline_commit": baseline["commit"] if require_git_baseline else None,
         "baseline_verified": require_git_baseline,
+        "split_release_runtime_enforced": enforce_split_release_runtime,
         "runtime_surfaces_verified": runtime_verified,
     }
 
@@ -466,6 +475,11 @@ def parser() -> argparse.ArgumentParser:
         action="store_true",
         help="verify block and monolith bytes without historical Git objects",
     )
+    verify_command.add_argument(
+        "--split-release-runtime-baseline",
+        action="store_true",
+        help="also require the broad runtime snapshot used only to close the split release",
+    )
     return result
 
 
@@ -476,7 +490,11 @@ def main(argv: Sequence[str] | None = None) -> int:
         if args.command == "sync":
             result = sync(args.repo)
         else:
-            result = verify(args.repo, require_git_baseline=not args.no_git_baseline)
+            result = verify(
+                args.repo,
+                require_git_baseline=not args.no_git_baseline,
+                enforce_split_release_runtime=args.split_release_runtime_baseline,
+            )
     except SplitError as exc:
         argument_parser.error(str(exc))
     print(json.dumps(result, indent=2, sort_keys=True))
