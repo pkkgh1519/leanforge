@@ -12,9 +12,10 @@ cd leanforge-canary-review
 Verify the evidence boundary before running product checks:
 
 ```bash
-test "$(git rev-parse HEAD^1)" = "e082b227450acf54c29f7573d2b5fabaeac4d681"
-test "$(git rev-parse 'HEAD^1^{tree}')" = "a7a648714c0e4a66e70735e21eb05bba8af03c17"
-git diff --name-only HEAD^1 HEAD
+base=e082b227450acf54c29f7573d2b5fabaeac4d681
+git merge-base --is-ancestor "$base" HEAD
+test "$(git rev-parse "$base^{tree}")" = "a7a648714c0e4a66e70735e21eb05bba8af03c17"
+git diff --name-only "$base" HEAD
 python -m json.tool canary-evidence/strict-lite-alpha-20260827/manifest.json >/dev/null
 bash build/build.sh
 git diff --exit-code -- claude codex
@@ -24,7 +25,7 @@ git status --short
 python tools/codex_candidate_marketplace.py digest --path codex/plugin
 ```
 
-The parent commit and Git tree are hard gates. The review commit may add only:
+The candidate base commit and Git tree are hard gates. The review branch may add only:
 
 - `.github/workflows/strict-lite-alpha-remote-review.yml`
 - `canary-evidence/strict-lite-alpha-20260827/**`
@@ -44,7 +45,7 @@ If the review environment cannot resolve or connect to GitHub, do not claim a di
 
 ## Review questions
 
-1. Does the branch parent match the declared candidate commit and Git tree?
+1. Does the branch contain the declared candidate commit and Git tree as its exact base ancestor?
 2. Is the branch delta restricted to the public evidence and branch-scoped workflow?
 3. Do clean build, generated-source drift checks, unit tests, and whitespace checks pass on fresh remote checkouts?
 4. Does the report avoid treating an operating-system working-tree digest as a universal source identity?

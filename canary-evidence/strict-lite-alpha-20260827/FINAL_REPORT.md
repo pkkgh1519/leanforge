@@ -78,6 +78,6 @@ The remote review must not treat a newly computed checkout digest as a universal
 
 ## Remote-review boundary
 
-This public branch contains the exact candidate source as its parent commit plus sanitized review evidence and a branch-scoped verification workflow. It intentionally excludes local candidate archives, plugin caches, fixture Git databases, raw host logs, credentials, and absolute user-machine paths.
+This public branch contains the exact candidate source as its base ancestor plus sanitized review evidence and a branch-scoped verification workflow. It intentionally excludes local candidate archives, plugin caches, fixture Git databases, raw host logs, credentials, and absolute user-machine paths.
 
-A remote reviewer can independently clone the branch, verify its parent commit/tree, confirm that only the evidence surface was added, and run clean build/tests on Linux or Windows. The installed-host activation and restoration transitions cannot be re-enacted from this public branch after the candidate was removed; those remain local evidence-backed attestations and must not be presented as remotely reproduced facts.
+A remote reviewer can independently clone the branch, verify its candidate base commit/tree, confirm that only the evidence surface was added, and run clean build/tests on Linux or Windows. The installed-host activation and restoration transitions cannot be re-enacted from this public branch after the candidate was removed; those remain local evidence-backed attestations and must not be presented as remotely reproduced facts.

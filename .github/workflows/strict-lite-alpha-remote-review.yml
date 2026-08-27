@@ -17,22 +17,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out exact review branch
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
-          fetch-depth: 2
+          fetch-depth: 0
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: "3.12"
 
-      - name: Verify candidate parent and evidence-only delta
+      - name: Verify candidate base and evidence-only delta
         shell: bash
         run: |
           set -euo pipefail
-          test "$(git rev-parse HEAD^1)" = "e082b227450acf54c29f7573d2b5fabaeac4d681"
-          test "$(git rev-parse 'HEAD^1^{tree}')" = "a7a648714c0e4a66e70735e21eb05bba8af03c17"
-          unexpected="$(git diff --name-only HEAD^1 HEAD | grep -Ev '^(\.github/workflows/strict-lite-alpha-remote-review\.yml|canary-evidence/strict-lite-alpha-20260827/)' || true)"
+          base="e082b227450acf54c29f7573d2b5fabaeac4d681"
+          git merge-base --is-ancestor "$base" HEAD
+          test "$(git rev-parse "$base^{tree}")" = "a7a648714c0e4a66e70735e21eb05bba8af03c17"
+          unexpected="$(git diff --name-only "$base" HEAD | grep -Ev '^(\.github/workflows/strict-lite-alpha-remote-review\.yml|canary-evidence/strict-lite-alpha-20260827/.*)$' || true)"
           test -z "$unexpected"
           python -m json.tool canary-evidence/strict-lite-alpha-20260827/manifest.json >/dev/null
 
@@ -52,13 +53,13 @@ jobs:
           set -euo pipefail
           mkdir -p remote-review-output
           git rev-parse HEAD > remote-review-output/review-commit.txt
-          git rev-parse HEAD^1 > remote-review-output/base-commit.txt
-          git rev-parse 'HEAD^1^{tree}' > remote-review-output/base-tree.txt
+          printf '%s\n' e082b227450acf54c29f7573d2b5fabaeac4d681 > remote-review-output/base-commit.txt
+          git rev-parse 'e082b227450acf54c29f7573d2b5fabaeac4d681^{tree}' > remote-review-output/base-tree.txt
           python tools/codex_candidate_marketplace.py digest --path codex/plugin > remote-review-output/linux-package-digest.json
           printf '%s\n' REMOTE_REVIEW_LINUX_PASS > remote-review-output/result.txt
 
       - name: Upload Linux verification evidence
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: strict-lite-alpha-linux-verification
           path: |
@@ -70,22 +71,24 @@ jobs:
     runs-on: windows-latest
     steps:
       - name: Check out exact review branch
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
-          fetch-depth: 2
+          fetch-depth: 0
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: "3.12"
 
-      - name: Verify candidate parent and evidence-only delta
+      - name: Verify candidate base and evidence-only delta
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-          if ((git rev-parse HEAD^1).Trim() -ne 'e082b227450acf54c29f7573d2b5fabaeac4d681') { throw 'candidate parent mismatch' }
-          if ((git rev-parse 'HEAD^1^{tree}').Trim() -ne 'a7a648714c0e4a66e70735e21eb05bba8af03c17') { throw 'candidate tree mismatch' }
-          $unexpected = @(git diff --name-only HEAD^1 HEAD | Where-Object { $_ -notmatch '^(\.github/workflows/strict-lite-alpha-remote-review\.yml|canary-evidence/strict-lite-alpha-20260827/)' })
+          $base = 'e082b227450acf54c29f7573d2b5fabaeac4d681'
+          git merge-base --is-ancestor $base HEAD
+          if ($LASTEXITCODE -ne 0) { throw 'candidate base is not an ancestor' }
+          if ((git rev-parse "$base`^{tree}").Trim() -ne 'a7a648714c0e4a66e70735e21eb05bba8af03c17') { throw 'candidate tree mismatch' }
+          $unexpected = @(git diff --name-only $base HEAD | Where-Object { $_ -notmatch '^(\.github/workflows/strict-lite-alpha-remote-review\.yml|canary-evidence/strict-lite-alpha-20260827/.*)$' })
           if ($unexpected.Count) { throw "unexpected branch paths: $($unexpected -join ', ')" }
           Get-Content -LiteralPath 'canary-evidence/strict-lite-alpha-20260827/manifest.json' -Raw | ConvertFrom-Json | Out-Null
 
@@ -110,13 +113,13 @@ jobs:
           $ErrorActionPreference = 'Stop'
           New-Item -ItemType Directory -Path 'remote-review-output' -Force | Out-Null
           git rev-parse HEAD | Set-Content -LiteralPath 'remote-review-output/review-commit.txt' -Encoding utf8
-          git rev-parse HEAD^1 | Set-Content -LiteralPath 'remote-review-output/base-commit.txt' -Encoding utf8
-          git rev-parse 'HEAD^1^{tree}' | Set-Content -LiteralPath 'remote-review-output/base-tree.txt' -Encoding utf8
+          'e082b227450acf54c29f7573d2b5fabaeac4d681' | Set-Content -LiteralPath 'remote-review-output/base-commit.txt' -Encoding utf8
+          git rev-parse 'e082b227450acf54c29f7573d2b5fabaeac4d681^{tree}' | Set-Content -LiteralPath 'remote-review-output/base-tree.txt' -Encoding utf8
           python tools/codex_candidate_marketplace.py digest --path codex/plugin | Set-Content -LiteralPath 'remote-review-output/windows-package-digest.json' -Encoding utf8
           'REMOTE_REVIEW_WINDOWS_PASS' | Set-Content -LiteralPath 'remote-review-output/result.txt' -Encoding utf8
 
       - name: Upload Windows verification evidence
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: strict-lite-alpha-windows-verification
           path: |
