@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "repository": "pkkgh1519/leanforge",
+  "review_branch": "audit/strict-lite-alpha-canary-20260827",
+  "candidate": {
+    "commit": "e082b227450acf54c29f7573d2b5fabaeac4d681",
+    "git_tree": "a7a648714c0e4a66e70735e21eb05bba8af03c17",
+    "windows_source_sha256": "4943add8d1cac9f8cc4fdde378e0ff50de146a714baeaf5992e9f47135379354",
+    "windows_staged_sha256": "4943add8d1cac9f8cc4fdde378e0ff50de146a714baeaf5992e9f47135379354",
+    "windows_active_sha256": "4943add8d1cac9f8cc4fdde378e0ff50de146a714baeaf5992e9f47135379354",
+    "local_digest_equality": true,
+    "plugin_binding": "leanforge@leanforge-candidate-e082b227450a"
+  },
+  "arms": {
+    "full": {
+      "result": "PASS",
+      "feature_tip": "fe59cf0cdf1fd790295d14eba98fa13433f17ae2"
+    },
+    "lite": {
+      "result": "PASS",
+      "effective_route": "full_assurance_hard_trigger",
+      "feature_tip": "22ac94c7758c6071114e9ba4f4261d1f5a2d525e"
+    },
+    "promotion": {
+      "result": "PROMOTION_PASS",
+      "starting_profile": "strict_lite_alpha",
+      "effective_profile": "full",
+      "monotonic_promotion": true,
+      "feature_tip": "8eeb28bdf469fae1912cdd078a5932845218064e"
+    }
+  },
+  "restoration": {
+    "result": "PASS",
+    "original_plugin": "leanforge@leanforge-study-b-7bef4b9",
+    "original_and_restored_sha256": "c67a80ff0ded7a548057957e22e67b414d123f660ec69f6e8791eb5ab75a9113",
+    "candidate_plugin_present": false,
+    "candidate_marketplace_present": false,
+    "candidate_cache_present": false
+  },
+  "verdict": "READY_FOR_NEXT_LITE_ITERATION",
+  "remote_reproduction_scope": [
+    "candidate source commit and Git tree",
+    "evidence-only branch boundary",
+    "clean generated-source build",
+    "repository tests on Linux and Windows",
+    "checkout-local package digest observation"
+  ],
+  "local_attestation_only": [
+    "installed candidate binding",
+    "active candidate cache digest",
+    "original plugin restoration"
+  ]
+}

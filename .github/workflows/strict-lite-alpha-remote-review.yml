@@ -1,0 +1,125 @@
+name: Strict Lite alpha remote review
+
+on:
+  push:
+    branches:
+      - audit/strict-lite-alpha-canary-20260827
+
+permissions:
+  contents: read
+
+concurrency:
+  group: strict-lite-alpha-remote-review-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  linux-source-verification:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out exact review branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Verify candidate parent and evidence-only delta
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD^1)" = "e082b227450acf54c29f7573d2b5fabaeac4d681"
+          test "$(git rev-parse 'HEAD^1^{tree}')" = "a7a648714c0e4a66e70735e21eb05bba8af03c17"
+          unexpected="$(git diff --name-only HEAD^1 HEAD | grep -Ev '^(\.github/workflows/strict-lite-alpha-remote-review\.yml|canary-evidence/strict-lite-alpha-20260827/)' || true)"
+          test -z "$unexpected"
+          python -m json.tool canary-evidence/strict-lite-alpha-20260827/manifest.json >/dev/null
+
+      - name: Build and run source verification
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash build/build.sh
+          git diff --exit-code -- claude codex
+          test -z "$(git status --porcelain --untracked-files=all)"
+          python -m unittest discover -s tests -v
+          git diff --check
+
+      - name: Capture Linux checkout-local digest
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p remote-review-output
+          git rev-parse HEAD > remote-review-output/review-commit.txt
+          git rev-parse HEAD^1 > remote-review-output/base-commit.txt
+          git rev-parse 'HEAD^1^{tree}' > remote-review-output/base-tree.txt
+          python tools/codex_candidate_marketplace.py digest --path codex/plugin > remote-review-output/linux-package-digest.json
+          printf '%s\n' REMOTE_REVIEW_LINUX_PASS > remote-review-output/result.txt
+
+      - name: Upload Linux verification evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: strict-lite-alpha-linux-verification
+          path: |
+            remote-review-output/*
+            canary-evidence/strict-lite-alpha-20260827/FINAL_REPORT.md
+            canary-evidence/strict-lite-alpha-20260827/manifest.json
+
+  windows-source-verification:
+    runs-on: windows-latest
+    steps:
+      - name: Check out exact review branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Verify candidate parent and evidence-only delta
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if ((git rev-parse HEAD^1).Trim() -ne 'e082b227450acf54c29f7573d2b5fabaeac4d681') { throw 'candidate parent mismatch' }
+          if ((git rev-parse 'HEAD^1^{tree}').Trim() -ne 'a7a648714c0e4a66e70735e21eb05bba8af03c17') { throw 'candidate tree mismatch' }
+          $unexpected = @(git diff --name-only HEAD^1 HEAD | Where-Object { $_ -notmatch '^(\.github/workflows/strict-lite-alpha-remote-review\.yml|canary-evidence/strict-lite-alpha-20260827/)' })
+          if ($unexpected.Count) { throw "unexpected branch paths: $($unexpected -join ', ')" }
+          Get-Content -LiteralPath 'canary-evidence/strict-lite-alpha-20260827/manifest.json' -Raw | ConvertFrom-Json | Out-Null
+
+      - name: Build and run source verification
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          bash build/build.sh
+          if ($LASTEXITCODE -ne 0) { throw 'build failed' }
+          git diff --exit-code -- claude codex
+          if ($LASTEXITCODE -ne 0) { throw 'generated-source drift' }
+          $dirty = @(git status --porcelain --untracked-files=all)
+          if ($dirty.Count) { throw "dirty checkout after build: $($dirty -join ', ')" }
+          python -m unittest discover -s tests -v
+          if ($LASTEXITCODE -ne 0) { throw 'unit tests failed' }
+          git diff --check
+          if ($LASTEXITCODE -ne 0) { throw 'whitespace check failed' }
+
+      - name: Capture Windows checkout-local digest
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          New-Item -ItemType Directory -Path 'remote-review-output' -Force | Out-Null
+          git rev-parse HEAD | Set-Content -LiteralPath 'remote-review-output/review-commit.txt' -Encoding utf8
+          git rev-parse HEAD^1 | Set-Content -LiteralPath 'remote-review-output/base-commit.txt' -Encoding utf8
+          git rev-parse 'HEAD^1^{tree}' | Set-Content -LiteralPath 'remote-review-output/base-tree.txt' -Encoding utf8
+          python tools/codex_candidate_marketplace.py digest --path codex/plugin | Set-Content -LiteralPath 'remote-review-output/windows-package-digest.json' -Encoding utf8
+          'REMOTE_REVIEW_WINDOWS_PASS' | Set-Content -LiteralPath 'remote-review-output/result.txt' -Encoding utf8
+
+      - name: Upload Windows verification evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: strict-lite-alpha-windows-verification
+          path: |
+            remote-review-output/*
+            canary-evidence/strict-lite-alpha-20260827/FINAL_REPORT.md
+            canary-evidence/strict-lite-alpha-20260827/manifest.json
