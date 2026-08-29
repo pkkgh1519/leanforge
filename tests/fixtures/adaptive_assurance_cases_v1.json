@@ -7,6 +7,7 @@
       "cycle": "delta",
       "facts": {
         "architecture_change": false,
+        "bounded_direct_execution": true,
         "clear_acceptance": true,
         "cross_module_wiring": false,
         "durable_contract_change": false,
@@ -33,6 +34,7 @@
       "cycle": "delta",
       "facts": {
         "architecture_change": false,
+        "bounded_direct_execution": true,
         "clear_acceptance": true,
         "cross_module_wiring": false,
         "durable_contract_change": false,
@@ -59,6 +61,7 @@
       "cycle": "delta",
       "facts": {
         "architecture_change": false,
+        "bounded_direct_execution": true,
         "clear_acceptance": true,
         "cross_module_wiring": false,
         "durable_contract_change": false,
@@ -85,6 +88,7 @@
       "cycle": "delta",
       "facts": {
         "architecture_change": false,
+        "bounded_direct_execution": true,
         "clear_acceptance": true,
         "cross_module_wiring": false,
         "durable_contract_change": false,
@@ -111,6 +115,7 @@
       "cycle": "delta",
       "facts": {
         "architecture_change": false,
+        "bounded_direct_execution": false,
         "clear_acceptance": true,
         "cross_module_wiring": false,
         "durable_contract_change": false,
@@ -137,6 +142,7 @@
       "cycle": "delta",
       "facts": {
         "architecture_change": false,
+        "bounded_direct_execution": false,
         "clear_acceptance": true,
         "cross_module_wiring": false,
         "durable_contract_change": false,
@@ -163,6 +169,7 @@
       "cycle": "delta",
       "facts": {
         "architecture_change": false,
+        "bounded_direct_execution": false,
         "clear_acceptance": true,
         "cross_module_wiring": true,
         "durable_contract_change": false,
@@ -189,6 +196,7 @@
       "cycle": "delta",
       "facts": {
         "architecture_change": false,
+        "bounded_direct_execution": false,
         "clear_acceptance": true,
         "cross_module_wiring": false,
         "durable_contract_change": false,
@@ -215,6 +223,7 @@
       "cycle": "delta",
       "facts": {
         "architecture_change": false,
+        "bounded_direct_execution": false,
         "clear_acceptance": true,
         "cross_module_wiring": false,
         "durable_contract_change": true,
@@ -243,6 +252,7 @@
       "cycle": "delta",
       "facts": {
         "architecture_change": true,
+        "bounded_direct_execution": false,
         "clear_acceptance": true,
         "cross_module_wiring": true,
         "durable_contract_change": true,
@@ -271,6 +281,7 @@
       "cycle": "delta",
       "facts": {
         "architecture_change": false,
+        "bounded_direct_execution": false,
         "clear_acceptance": true,
         "cross_module_wiring": false,
         "durable_contract_change": false,
@@ -299,6 +310,7 @@
       "cycle": "delta",
       "facts": {
         "architecture_change": true,
+        "bounded_direct_execution": false,
         "clear_acceptance": true,
         "cross_module_wiring": true,
         "durable_contract_change": true,
@@ -327,6 +339,7 @@
       "cycle": "first",
       "facts": {
         "architecture_change": false,
+        "bounded_direct_execution": true,
         "clear_acceptance": true,
         "cross_module_wiring": false,
         "durable_contract_change": false,
@@ -353,6 +366,7 @@
       "cycle": "delta",
       "facts": {
         "architecture_change": false,
+        "bounded_direct_execution": false,
         "clear_acceptance": true,
         "cross_module_wiring": false,
         "durable_contract_change": false,

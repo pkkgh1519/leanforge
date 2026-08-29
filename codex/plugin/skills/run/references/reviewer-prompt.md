@@ -1,7 +1,8 @@
 # reviewer-prompt.md — final review (spec + code + harness)
 
-After all waves merge, the integration gate passes, and the **harness has been created/updated**
-(`harness-lifecycle.md`), one reviewer subagent checks the **full diff on the base** (from initial
+After all waves merge, the integration gate passes, and the harness phase has either completed or
+been skipped by a still-valid Strict Lite profile (`harness-lifecycle.md`), one reviewer subagent
+checks the **full diff on the base** (from initial
 state to current) **plus the harness**. This is the single review pass — spec conformance, code
 quality, and (when the harness was created/updated this cycle) harness content and format.
 
@@ -16,6 +17,13 @@ not an implementer, does not own merge decisions, and only adds repository-speci
 > Escalate via your structured return; the orchestrator relays escalations to the user.
 
 ## Scope — four lenses, one pass
+
+When the orchestrator supplies a still-valid `strict_lite_alpha` profile, use the **bounded Lite final
+review** scope instead of the Full four-lens scope: check acceptance conformance, the complete product
+diff and changed paths, verification command/exit/evidence integrity, and whether any discovered risk
+was promoted and backfilled correctly. Stay a fresh independent leaf. Do not apply harness or broad
+cross-module lenses that the authoritative bounded-direct profile proves inapplicable. Any contradictory,
+uncertain, expanded, or risky fact invalidates this scope and requires the Full review below.
 
 **Lens 1: spec conformance.** Does the implementation do what the spec says — behavior, invariants,
 edge-case rules, API surface? Every spec requirement should be traceable to code in the diff. Flag

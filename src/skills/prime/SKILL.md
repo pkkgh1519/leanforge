@@ -127,10 +127,10 @@ Core principles  inline authoring + bounded non-authoring checks · understand-n
 ORIENT           absorb input + ground code/harness · branch on status.json     (no refs)
 evidence-grounding scout  evidence-grounding-scout.md  ← optional evidence collection after ORIENT (not review)
 DECOMPOSE        decompose.md
-ELICIT           elicitation.md · gap-analysis.md · intent-review.md · grounds-gate.md
+ELICIT           elicitation.md · gap-analysis.md · intent-review.md · grounds-gate.md · adaptive-assurance-live-pilot.md
        [first]+  project-scoping.md · project-design-domain.md · project-design-technical.md ·
                  first-cycle-review.md · foundation-format.md
-intent-completeness  intent-completeness.md  ← independent guess-hunt → loop to user (subagent)
+intent-completeness  intent-completeness.md  ← Full by default; strict_lite_alpha skips only this reviewer
 SPEC + REVIEW(A) output-format.md · review-fidelity.md            [first]+ foundation-format.md
 PLAN             output-format.md · dependency-calc.md · example-3doc.md
 HANDOFF          output-format.md · foundation-format.md
@@ -184,7 +184,7 @@ challengeable material, not spec truth.
 ## ELICIT — realize the user's intent — `references/elicitation.md`
 
 Force-load `references/elicitation.md`, `references/gap-analysis.md`, `references/intent-review.md`,
-`references/grounds-gate.md`. **First cycle additionally:** `references/project-scoping.md`,
+`references/grounds-gate.md`, `references/adaptive-assurance-live-pilot.md`. **First cycle additionally:** `references/project-scoping.md`,
 `references/project-design-domain.md`, `references/project-design-technical.md`,
 `references/first-cycle-review.md`, `references/foundation-format.md`.
 
@@ -242,13 +242,21 @@ load-bearing decisions unresolved; a concise but complete request does not manuf
 
 ## intent-completeness — independent guess-hunt before SPEC — `references/intent-completeness.md`
 
-Force-load the reference and dispatch a fresh general-purpose reviewer that did not author intent but
-can read the dialogue and decision surface. It audits whether dispositions are grounded, independently
-hunts omitted obligation-slots, and asks: does the proposed slice preserve the confirmed outcome,
-including applicable delta context, without unconfirmed narrowing or inflation? Tuning values are not
-gaps. Relay each finding to the user and close it through EXTRACT/PRESENT; locally re-walk the touched
-neighborhood once, then escalate rather than loop. This required intent review is separate from the
-optional evidence scout.
+Full Assurance force-loads the reference and dispatches a fresh general-purpose reviewer that did not
+author intent but can read the dialogue and decision surface. It audits whether dispositions are
+grounded, independently hunts omitted obligation-slots, and asks: does the proposed slice preserve the
+confirmed outcome, including applicable delta context, without unconfirmed narrowing or inflation?
+Tuning values are not gaps. Relay each finding to the user and close it through EXTRACT/PRESENT; locally
+re-walk the touched neighborhood once, then escalate rather than loop. This required Full review is
+separate from the optional evidence scout.
+
+A valid current-cycle `.leanforge/assurance-profile.json` with `profile: strict_lite_alpha` skips only
+this dispatch and its reference load when it also records `bounded_direct_execution: true`. Bounded
+direct execution means the grounded delivery shape is one local file-diff task, existing targeted
+verification is sufficient, no regeneration is needed, and no risk above `MECHANICAL` / `NONE` is
+indicated. Missing, invalid, stale, contradictory, or uncertain profile evidence uses Full Assurance.
+The 3-doc gate remains mandatory in both profiles, so Lite never replaces independent
+execution-readiness review with self-judgment. Never mention the profile or ask the user to select it.
 
 ## SPEC + REVIEW(A) — write ground truth, verify fidelity — `references/output-format.md`
 
@@ -279,6 +287,13 @@ spec↔task coverage. Validate the full contract, not YAML syntax: root keys are
 `regen_barriers`; `tasks` is a list of objects with `id`, `depends`, and optional `risk`; barriers use
 `after`/`run`; every `depends`/`after` id names a graph task; the dependency graph is acyclic; and plan
 body and graph task-id sets match. Task ids live in `tasks[].id`, never as root keys.
+
+Under an active `strict_lite_alpha` profile, `risk` is not optional: the graph must contain exactly one
+task, its risk must be `MECHANICAL` or `NONE`, and `regen_barriers` must be empty. If PLAN cannot prove
+that shape, delete the profile and return to ELICIT. Give a fresh intent-completeness reviewer the chat
+session and current decision surface, close every finding with the user, regenerate any affected SPEC
+and PLAN content, and continue as Full before the 3-doc gate. Never preserve the omission after its
+bounded direct execution premise fails, and never perform dependent work before approval.
 
 ## HANDOFF — governing doc + assemble — `references/output-format.md`
 

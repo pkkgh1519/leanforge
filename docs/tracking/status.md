@@ -12,6 +12,7 @@ Leanforge의 1차 성과는 최소한의 사용자 노력으로 완성된 신뢰
 - **Instruction load graph:** Run의 instruction path와 activation edge를 별도 graph로 정의하고 route·overlay·phase·profile별 transitive closure를 deterministic activation path로 검증한다.
 - **독립 검증 기반:** hand-authored scenario, known-opposite mutation, canonical·generated skill surface의 exact raw-byte baseline으로 semantic kernel과 load closure를 검증한다.
 - **Adaptive Assurance shadow foundation:** Prime은 ELICIT exit에서 advisory prediction을 기록하지만 Full Assurance 흐름을 바꾸지 않는다.
+- **Strict Lite alpha candidate:** 내부 activation 파일이 없으면 Full Assurance를 그대로 사용한다. 활성화된 bounded-direct qualifying delta에서만 Prime intent-completeness reviewer와 proven no-op harness sync를 생략한다. fresh final reviewer는 acceptance·diff·verification·promotion 범위로 줄이되, full completion verification·3-doc gate·recovery·integration ownership을 유지한다. Run 중 승격은 실행을 보존·중단하고 Prime으로 복귀해 intent review, 영향받은 3-doc 재생성·독립검토·명시적 재승인을 마친 뒤에만 Full로 재개하며 같은 cycle의 Lite 재진입을 금지한다. 원래 Prime 문맥이 없으면 Run은 중단 상태를 유지하고 사용자에게 기존 문맥 재개 또는 원본 재제공을 요구하며, 승인된 3-doc에서 누락된 의도를 재구성하지 않는다.
 - **Shadow observation integrity:** sidecar freshness, closed Lite fact partition, `unknown_material_risk` fail-closed 경계를 검증한다.
 - **Pilot-readiness study contract:** pinned source·contract·generated/installed package identity, blinded safety observation, removable-gate intervention, installed-host smoke, paired A/B shadow tax, predeclared quality, user burden, prevalence-weighted value를 함께 평가한다.
 - **Generated parity CI:** build 뒤 tracked drift, untracked output, 전체 unittest, whitespace를 순서대로 차단한다.
@@ -35,7 +36,8 @@ Leanforge의 1차 성과는 최소한의 사용자 노력으로 완성된 신뢰
 6. **Quality·사용자 부담 gate:** host별 blinded score와 critical defect, blocker rate, 질문·reply turn·approval step·summary size가 사전 고정된 non-inferiority margin을 통과해야 한다.
 7. **Potential-value gate:** 공통 단위는 wall-clock seconds다. 모든 enrolled cycle에 대해 nonqualifying case의 benefit을 0으로 두고 conservative removable seconds를 합산한 뒤 enrolled count로 나눈다. 이 weighted benefit이 같은 denominator의 shadow tax와 promotion/recovery cost 합계의 2배 이상이며 net seconds/cycle이 양수여야 한다.
 8. **Phase 2 design review:** 위 gate가 proposed host마다 독립적으로 통과할 때만 별도 reviewed release 설계로 이동한다. Phase 1.2 결과는 activation 권위가 아니다.
-9. **v1.9.1 block-preserving split:** Adaptive Assurance activation과 같은 릴리스에 묶지 않고 독립적인 의미·load closure·행동 review를 통과한다.
+9. **v1.9.1 block-preserving split:** 완료. Run authoring source를 분할했지만 packaged Full runtime bytes는 보존했다.
+10. **Strict Lite alpha:** default-off canary에서 실제 TTTC·질문·subagent·harness 비용과 Full promotion을 paired population으로 측정한다.
 
 ## 연구 산출물
 
@@ -50,4 +52,4 @@ Leanforge의 1차 성과는 최소한의 사용자 노력으로 완성된 신뢰
 
 ## 차단 사항
 
-현재 Full Assurance 제품 흐름에 확인된 blocker는 없다. Lite activation은 wrong-path, removable-gate dependence, installed identity, per-host coverage, endpoint-safe shadow tax, quality, user burden, prevalence-weighted value, binary reversibility가 모두 통과하고 별도 reviewed release가 승인될 때까지 닫혀 있다.
+현재 Full Assurance 제품 흐름에 확인된 blocker는 없다. Strict Lite alpha는 별도 candidate에서 default-off로만 존재하며, broad/default activation은 wrong-path, quality, user burden, measured TTTC, promotion recovery, and binary reversibility가 통과할 때까지 닫혀 있다.

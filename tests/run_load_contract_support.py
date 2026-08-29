@@ -303,7 +303,7 @@ ALLOWED_REFERENCE_SECTION_CONTEXT_COUNTS = {
     "run/SKILL.md": {
         ("# Leanforge:Run", "78e2201113d621a4f6e2d640343d58facdb8983a0f41e14c4f106901ab302d8e", "legacy"): 1,
         ("## Core principles", "49fa4f2fabfc8c04cb8da3f30c90fffadb57d30f6b5de071a3318f93dd6ce12d", "reference"): 3,
-        ("## Flow", "6e4fc763fa1d328683dbc12a9aa1f0d53ecea5743e1973e6d875ae44a3643824", "reference"): 1,
+        ("## Flow", "0ca68ea574973827eef5d8132554e7399c2f29e7bc843700c87d7f9e3d32245e", "reference"): 1,
         ("## Graph validation", "c8814c65fc7668994e730a71545df50126ea3a697641aa892f1184cd144671d4", "reference"): 1,
         ("## Input and preconditions", "a11c61bcb25649111b76ac4ab66a06f888a58e275d0b76f3fb275a0c539b0653", "reference"): 1,
     },
@@ -315,7 +315,7 @@ ALLOWED_REFERENCE_SECTION_CONTEXT_COUNTS = {
     },
     "run/references/graph-contract.md": {
         ("# graph-contract.md — the Execution Graph, from Run's side (parse contract)", "9bd951ffc25a8231eca06116efb2b7b80ece238d8165277b63dfc2b2c08d78a4", "reference"): 1,
-        ("## The graph — the only machine-parsed part of the 3-doc", "233f635dbe6b3fea792c3a902e1b491bae08866745aab9cbdc8f9e70eec1b105", "reference"): 1,
+        ("## The graph — the only machine-parsed part of the 3-doc", "374f1b93534b8078dc2a06c93c6655b5ebb6f976ca5aedc2d9f328bba462e354", "reference"): 1,
         ("## What is NOT in the graph (do not look for it here)", "be5d4eaeb22ec4a339b0ce03b5fe4314c3b4830dc0d1f8b8ea6c1d3fefad684b", "reference"): 1,
     },
     "run/references/harness-format.md": {
@@ -348,8 +348,8 @@ ALLOWED_REFERENCE_SECTION_CONTEXT_COUNTS = {
         ("# repo-lens-routing.md — repo-local review/explore lenses", "160fdcc6d380bf5c5c45a5f0b1b4569448f1913bbd206a86c6e1b9200b8c6183", "reference"): 1,
     },
     "run/references/reviewer-prompt.md": {
-        ("# reviewer-prompt.md — final review (spec + code + harness)", "c1048b9d252a184e36bb354e94f18a740be9eef5e1cc0fbc5ac0c07c26a4e279", "reference"): 4,
-        ("## Scope — four lenses, one pass", "14baa1ee8025f2e2f4705e5b869225835a0087c9ccba92b6ac5ee10aab79be01", "reference"): 2,
+        ("# reviewer-prompt.md — final review (spec + code + harness)", "59ab67c5a6aa91dd1edc3c8814f1f2ef5e929e734cd26f1a84de06aa509ce026", "reference"): 4,
+        ("## Scope — four lenses, one pass", "c1449b9bc3707a1eb6ad03d220eacf4342fa2c243dee85843b65b12578b0c36d", "reference"): 2,
     },
     "run/references/spec-review-prompt.md": {
         ("# spec-review-prompt.md — conditional mid-run spec review", "471f63041ebe01213ecaa8e299c7c8e4f84f8d13cf89434a1e4aac0d379316fd", "reference"): 3,

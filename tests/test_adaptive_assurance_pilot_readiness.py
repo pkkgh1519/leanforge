@@ -705,7 +705,7 @@ class AdaptiveAssurancePilotReadinessTests(unittest.TestCase):
             "reproducible private benchmark fixtures",
         )
 
-    def test_phase1_status_lf_and_dormant_activation_match_the_study(self):
+    def test_phase1_handoff_and_default_off_alpha_match_the_study(self):
         phase1 = normalized(PHASE1)
         status = normalized(STATUS)
         attributes = ATTRIBUTES.read_text(encoding="utf-8")
@@ -717,7 +717,7 @@ class AdaptiveAssurancePilotReadinessTests(unittest.TestCase):
                 "The first live activation, if separately approved, must be binary",
                 "It never activates Lite.",
                 "control is derived from the same candidate tree with only the live shadow hook disabled",
-                "claim actual Time to Trusted Change improvement",
+                "does not claim Time to Trusted Change improvement",
             ),
             "Phase 1 handoff",
         )
@@ -733,7 +733,8 @@ class AdaptiveAssurancePilotReadinessTests(unittest.TestCase):
         )
         self.assertIn("research/adaptive-assurance/** text eol=lf", attributes)
         self.assertIn("tests/test_product_north_star.py text eol=lf", attributes)
-        self.assertEqual("shadow", pilot["activation"])
+        self.assertEqual("default_off", pilot["activation"])
+        self.assertEqual(["strict_lite", "full_assurance"], pilot["live_topology"])
 
 
 if __name__ == "__main__":

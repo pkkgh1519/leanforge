@@ -206,6 +206,22 @@ class PrimeInstalledHostContractTests(unittest.TestCase):
     def test_current_contract_passes(self):
         self.assertEqual([], validate_prime_contract(self.documents))
 
+    def test_codex_default_prompts_fit_host_limit_and_preserve_skill_routing(self):
+        manifest = json.loads(self.documents["platform/codex/plugin.json"])
+        prompts = manifest["interface"]["defaultPrompt"]
+
+        self.assertTrue(prompts)
+        for prompt in prompts:
+            with self.subTest(prompt=prompt):
+                self.assertIsInstance(prompt, str)
+                self.assertTrue(prompt.strip())
+                self.assertLessEqual(len(prompt), 128)
+
+        combined = "\n".join(prompts)
+        for skill in ("$prime", "$run"):
+            with self.subTest(skill=skill):
+                self.assertIn(skill, combined)
+
     def test_generated_prime_contract_matches_canonical_after_build(self):
         canonical = read("src/skills/prime/SKILL.md")
         codex = read("codex/plugin/skills/prime/SKILL.md")

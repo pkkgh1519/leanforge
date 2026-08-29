@@ -55,3 +55,10 @@ boundary이며 부분적인 conditional load 전환은 남기지 않는다.
 이 단계의 이익은 행동 최적화가 아니라 다음 release가 선택할 수 있는 검증 가능한 source 경계를
 만드는 것이다. Full runtime은 같은 한 권을 계속 읽지만, 편집 정본은 페이지별로 봉인된 상태가 된다.
 경제성 주장은 후속 installed-host paired experiment 전에는 하지 않는다.
+
+## 후속 릴리스 경계
+
+`runtime_baseline`은 block split 릴리스에서 Full package가 변하지 않았음을 닫은 역사적 증거다.
+후속 릴리스는 `Run/SKILL.md`, load graph, semantic contract를 의도적으로 발전시킬 수 있으며,
+일상 build는 ordered blocks → compatibility monolith의 exact reconstruction만 강제한다. 넓은
+runtime snapshot 검사는 `--split-release-runtime-baseline`을 명시한 역사 검증에서만 수행한다.

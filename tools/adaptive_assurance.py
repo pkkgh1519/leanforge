@@ -49,6 +49,7 @@ SHADOW_KEYS = {
     "missing_lite_required_true",
     "violated_lite_required_false",
     "harness_sync",
+    "bounded_direct_execution",
 }
 DECISION_REASONS = (
     "first_cycle",
@@ -199,7 +200,9 @@ class Decision:
     lite_violated_false: tuple[str, ...]
     shadow_only: bool = True
 
-    def as_shadow_dict(self, cycle: str, harness_sync: bool) -> dict[str, Any]:
+    def as_shadow_dict(
+        self, cycle: str, harness_sync: bool, bounded_direct_execution: bool
+    ) -> dict[str, Any]:
         payload = {
             "schema_version": 1,
             "shadow_only": self.shadow_only,
@@ -210,6 +213,7 @@ class Decision:
             "missing_lite_required_true": list(self.lite_missing_true),
             "violated_lite_required_false": list(self.lite_violated_false),
             "harness_sync": harness_sync,
+            "bounded_direct_execution": bounded_direct_execution,
         }
         _exact_keys(payload, SHADOW_KEYS, "shadow payload")
         return payload
@@ -251,7 +255,9 @@ def shadow_payload(case: Any, contract: Any) -> dict[str, Any]:
     if not set(decision.reasons) <= set(contract["decision_reasons"]):
         raise ContractError("decision emitted an undeclared reason")
     return decision.as_shadow_dict(
-        case["cycle"], harness_sync_required(case, contract)
+        case["cycle"],
+        harness_sync_required(case, contract),
+        case["facts"]["bounded_direct_execution"],
     )
 
 

@@ -1,14 +1,27 @@
 {
   "schema_version": 1,
   "contract_id": "leanforge.adaptive-assurance-lite-pilot",
-  "activation": "shadow",
+  "activation": "default_off",
+  "activation_file": ".leanforge/adaptive-assurance-pilot.json",
+  "profile_file": ".leanforge/assurance-profile.json",
   "eligibility_contract": "leanforge.adaptive-assurance#lite",
-  "promotion_policy": "monotonic",
+  "live_topology": [
+    "strict_lite",
+    "full_assurance"
+  ],
+  "promotion_policy": "monotonic_to_full_assurance",
+  "activation_request": {
+    "schema_version": 1,
+    "pilot": "strict_lite_alpha"
+  },
   "prime": {
     "artifact_contract": "existing_3doc_thin",
     "preconditions": "keep",
     "intent_completeness_review": "skip",
-    "three_doc_gate": "skip",
+    "bounded_direct_execution": "required_before_intent_review_skip",
+    "plan_task_risk": "required_mechanical_or_none",
+    "promotion_backfill": "return_to_prime_review_reapprove_before_full_resume",
+    "three_doc_gate": "keep",
     "user_approval": "keep",
     "questions": "user_owned_only"
   },
@@ -16,29 +29,29 @@
     "git_preflight": "keep",
     "recovery_guard": "keep",
     "contract_validation": "keep",
-    "execution": "direct",
-    "worktree": "skip",
+    "execution": "existing_direct_route",
+    "worktree": "existing_direct_route",
     "task_verification": "targeted",
-    "integration_verification": "skip",
+    "integration_verification": "not_applicable_single_direct_task",
     "completion_verification": "full_once",
     "evidence_reuse": "exact_only",
     "runtime_smoke": "when_spec_declares_runnable_service",
-    "final_independent_review": "skip",
+    "final_independent_review": "keep_bounded_lite_scope",
+    "final_review_scope": "acceptance_diff_changed_paths_verification_promotion",
     "final_diff_check": "keep",
-    "harness_sync": "skip",
+    "harness_sync": "skip_when_no_durable_change",
     "user_integration_choice": "keep"
   },
-  "escalate_to_standard_on": [
+  "promote_to_full_on": [
     "changed_scope_expanded",
-    "multiple_write_areas_discovered",
-    "verification_gap_discovered"
-  ],
-  "escalate_to_assurance_on": [
     "destructive_behavior_discovered",
     "external_state_discovered",
     "hard_trigger_discovered",
+    "multiple_write_areas_discovered",
+    "profile_invalid_or_stale",
     "recovery_ambiguity_discovered",
     "security_or_data_boundary_discovered",
-    "user_intent_conflict_discovered"
+    "user_intent_conflict_discovered",
+    "verification_gap_discovered"
   ]
 }
