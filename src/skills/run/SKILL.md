@@ -122,22 +122,31 @@ other internal plumbing.
 Full Assurance is the default. Treat `strict_lite_alpha` as authoritative only when the exact enabled
 canary file, current valid Lite shadow snapshot, and exact `.leanforge/assurance-profile.json` agree;
 require a delta cycle, one local file-diff task, risk `MECHANICAL` or `NONE`, no regeneration barrier,
-and `harness_sync: false`. Missing, malformed, stale, contradictory, or unevaluable evidence silently
+`bounded_direct_execution: true`, and `harness_sync: false`. Validate the approved plan and graph
+authoritatively before work. Missing, malformed, stale, contradictory, or unevaluable evidence silently
 selects Full Assurance. Never ask the user to choose a profile.
 
-A valid alpha profile changes only two Full steps. It skips Prime's independent intent-completeness
-reviewer before this Run begins, and it may skip the later durable-harness synchronization only after
+A valid alpha profile omits two Full steps and narrows one retained review scope. It skips Prime's
+independent intent-completeness reviewer before this Run begins, and it may skip the later
+durable-harness synchronization only after
 completion verification and final-diff inspection prove that no architecture, durable/public contract,
 dependency, module, operations, or security knowledge changed. It still uses the already-existing direct
 route, never a fifth route; keeps its captured-evidence and commit requirements; runs full completion
-verification, runtime smoke when applicable, the fresh final review, recovery, final diff check, and the
-user-owned integration choice. Remove the current-cycle `.leanforge/assurance-profile.json` during
-successful archive.
+verification, runtime smoke when applicable, a bounded fresh final review, recovery, final
+diff check, and the user-owned integration choice. Remove the current-cycle
+`.leanforge/assurance-profile.json` during successful archive.
 
 Any newly discovered scope, verification, recovery, external-state, security/data, destructive,
 durable-change, or intent risk promotes monotonically to Full before dependent work; never drop back to
-Lite in the same cycle. Promotion runs every remaining normal Full step, including harness synchronization
-when it has not already completed.
+Lite in the same cycle. Halt and preserve the Run state, remove the profile, and return to Prime with
+the original user material, ELICIT decision surface, approved 3-doc, and newly discovered risk evidence.
+Prime re-enters ELICIT, runs the skipped intent-completeness review, closes findings with the user,
+regenerates and independently reviews the affected 3-doc, and obtains explicit reapproval. Only then
+may Run resume in Full and run every remaining Full step, including harness synchronization. Dependent
+work is forbidden before reapproval, and the same cycle can never re-enter Lite. If the original user
+material or ELICIT decision surface is unavailable, keep Run halted and preserved and ask the user to
+resume the original Prime context or re-supply the source material. Never reconstruct missing source
+context from the 3-doc, and never resume merely from the prior approval.
 
 ## Graph validation
 
@@ -244,8 +253,11 @@ worktrees, status, merge gates, wiring, verification, context budget, cleanup, a
    changed-scope documentation and navigation. Apply clobber guards, back up/rework an existing entry
    file only with user approval, and keep file generation silent.
 10. **Final review.** One fresh leaf reviews the full base diff for spec conformance, code quality,
-    evidence integrity, ceremony budget, and the harness when changed, using the structured final-review
-    bindings. A clear verdict means zero blocking findings.
+     evidence integrity, ceremony budget, and the harness when changed, using the structured final-review
+     bindings. A bounded Lite final review narrows this same independent pass to acceptance conformance,
+     the product diff and changed paths, verification evidence, and promotion handling; it does not apply
+     harness or broad cross-module lenses already proven inapplicable. A clear verdict means zero blocking
+     findings.
 
 <!-- leanforge:run-load {"from":"run/SKILL.md","to":"run/references/harness-review.md","kind":"optional_load","phase":"review","activation_contract_id":"RUN-REVIEW-TOPOLOGY","optional":true} -->
 

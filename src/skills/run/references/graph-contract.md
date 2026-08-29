@@ -36,6 +36,9 @@ regen_barriers:
   not judge → treat as *unclassified*, not `MECHANICAL`:** Run judges at read time and biases toward
   dispatch / stronger verification if any behavioral surface appears (degrade-don't-corrupt); the
   implementer still judges test ceremony at build time — no break.
+- **Strict Lite exception.** An authoritative `strict_lite_alpha` profile requires exactly one graph
+  task with explicit `MECHANICAL` or `NONE` risk and no regeneration barrier. Omitted or `RISKY` risk,
+  multiple tasks, or any barrier invalidates Lite before work and selects the existing Full flow.
 - **Runtime risk upgrade.** If the producer marked a task `MECHANICAL` / `NONE` but Run finds it is
   actually `RISKY` while implementing (an unexpectedly complex state change, an external-system
   integration), the orchestrator strengthens independent verification. It does **not** switch an

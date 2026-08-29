@@ -23,6 +23,7 @@ class AdaptiveAssurancePrimeHookTests(unittest.TestCase):
         self.assertIn("current Prime cycle's replaceable snapshot", body)
         self.assertIn("leave the sidecar absent", body)
         self.assertIn('"shadow_only": true', body)
+        self.assertIn('"bounded_direct_execution": true', body)
         self.assertIn("closed decision_reasons atom", body)
         self.assertIn("**Shadow means no authority.**", body)
         self.assertIn("must not change Prime's stage sequence", body)

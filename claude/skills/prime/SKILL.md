@@ -253,8 +253,11 @@ re-walk the touched neighborhood once, then escalate rather than loop. This requ
 separate from the optional evidence scout.
 
 A valid current-cycle `.leanforge/assurance-profile.json` with `profile: strict_lite_alpha` skips only
-this dispatch and its reference load. Missing, invalid, stale, or contradictory profile evidence uses
-Full Assurance. The 3-doc gate remains mandatory in both profiles, so Lite never replaces independent
+this dispatch and its reference load when it also records `bounded_direct_execution: true`. Bounded
+direct execution means the grounded delivery shape is one local file-diff task, existing targeted
+verification is sufficient, no regeneration is needed, and no risk above `MECHANICAL` / `NONE` is
+indicated. Missing, invalid, stale, contradictory, or uncertain profile evidence uses Full Assurance.
+The 3-doc gate remains mandatory in both profiles, so Lite never replaces independent
 execution-readiness review with self-judgment. Never mention the profile or ask the user to select it.
 
 ## SPEC + REVIEW(A) — write ground truth, verify fidelity — `references/output-format.md`
@@ -286,6 +289,13 @@ spec↔task coverage. Validate the full contract, not YAML syntax: root keys are
 `regen_barriers`; `tasks` is a list of objects with `id`, `depends`, and optional `risk`; barriers use
 `after`/`run`; every `depends`/`after` id names a graph task; the dependency graph is acyclic; and plan
 body and graph task-id sets match. Task ids live in `tasks[].id`, never as root keys.
+
+Under an active `strict_lite_alpha` profile, `risk` is not optional: the graph must contain exactly one
+task, its risk must be `MECHANICAL` or `NONE`, and `regen_barriers` must be empty. If PLAN cannot prove
+that shape, delete the profile and return to ELICIT. Give a fresh intent-completeness reviewer the chat
+session and current decision surface, close every finding with the user, regenerate any affected SPEC
+and PLAN content, and continue as Full before the 3-doc gate. Never preserve the omission after its
+bounded direct execution premise fails, and never perform dependent work before approval.
 
 ## HANDOFF — governing doc + assemble — `references/output-format.md`
 

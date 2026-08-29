@@ -153,6 +153,24 @@ class AdaptiveAssuranceTest(unittest.TestCase):
             with self.subTest(key=key):
                 self.assertFalse(adaptive.can_reuse_evidence(prior, changed, CONTRACT))
 
+    def test_lite_requires_bounded_direct_execution(self):
+        self.assertIn("bounded_direct_execution", CONTRACT["facts"])
+        self.assertIn(
+            "bounded_direct_execution", CONTRACT["lite"]["required_true"]
+        )
+
+        case = {
+            k: copy.deepcopy(v)
+            for k, v in CORPUS["cases"][0].items()
+            if k not in {"expected_mode", "expected_harness_sync"}
+        }
+        case["facts"]["bounded_direct_execution"] = False
+        decision = adaptive.route_case(case, CONTRACT)
+        self.assertEqual("standard", decision.mode)
+        self.assertEqual(
+            ("bounded_direct_execution",), decision.lite_missing_true
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

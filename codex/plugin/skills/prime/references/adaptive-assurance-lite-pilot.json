@@ -18,6 +18,9 @@
     "artifact_contract": "existing_3doc_thin",
     "preconditions": "keep",
     "intent_completeness_review": "skip",
+    "bounded_direct_execution": "required_before_intent_review_skip",
+    "plan_task_risk": "required_mechanical_or_none",
+    "promotion_backfill": "return_to_prime_review_reapprove_before_full_resume",
     "three_doc_gate": "keep",
     "user_approval": "keep",
     "questions": "user_owned_only"
@@ -33,7 +36,8 @@
     "completion_verification": "full_once",
     "evidence_reuse": "exact_only",
     "runtime_smoke": "when_spec_declares_runnable_service",
-    "final_independent_review": "keep",
+    "final_independent_review": "keep_bounded_lite_scope",
+    "final_review_scope": "acceptance_diff_changed_paths_verification_promotion",
     "final_diff_check": "keep",
     "harness_sync": "skip_when_no_durable_change",
     "user_integration_choice": "keep"

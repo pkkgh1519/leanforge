@@ -68,10 +68,17 @@ while identifying ceremony that a strictly eligible local reversible delta may n
   verification, one full completion verification, declared runtime smoke, final diff check, actual
   command/exit evidence, and user integration choice.
 - Strict Lite alpha omits only the Prime intent-completeness reviewer and a proven no-op harness
-  synchronization. It keeps the 3-doc gate, existing direct route, full completion verification, final
-  independent review, recovery, and user integration choice.
+  synchronization. It keeps the 3-doc gate, existing direct route, full completion verification,
+  bounded fresh independent review, recovery, and user integration choice.
+- Lite entry additionally requires grounded bounded direct execution and an explicit single-task
+  `MECHANICAL` / `NONE` plan risk with no regeneration barrier.
 - Any discovered scope, verification, external-state, recovery, security/data, destructive, or
-  user-intent risk promotes monotonically to the existing Full Assurance path.
+  user-intent risk promotes monotonically to the existing Full Assurance path. A PLAN-stage mismatch
+  returns to ELICIT before initial approval. A Run-stage discovery halts and preserves execution,
+  returns to Prime for intent review and affected 3-doc regeneration, and requires explicit reapproval
+  before Full execution resumes; dependent work and same-cycle Lite re-entry are forbidden. When a
+  fresh Run lacks the original Prime context, it stays halted until the user resumes that context or
+  re-supplies the source material; missing intent is never reconstructed from the approved 3-doc.
 
 These reductions are available only behind the default-off internal canary activation file.
 
@@ -119,7 +126,9 @@ be required only when durable project knowledge changes: architecture, public or
 dependencies, modules, operations, or security rules. Small internal fixes should leave lightweight
 per-change evidence instead of rewriting durable project documents merely because a cycle occurred.
 
-This policy is still advisory in the live workflow.
+The shadow recommendation remains advisory when the canary is disabled. Under the exact enabled canary
+and a current valid Lite profile, the no-durable-change harness decision is an operative Run rule; any
+uncertainty removes the profile and uses Full Assurance.
 
 ## Evidence reuse
 
@@ -143,10 +152,16 @@ The Strict Lite alpha canary is **default off** and internal. When enabled for a
 
 - skips only Prime's intent-completeness reviewer;
 - reuses the existing direct Run route rather than adding a route;
-- keeps completion verification, runtime smoke, final independent review, recovery, approval, and
-  integration ownership;
+- keeps full completion verification, runtime smoke, a bounded fresh independent review,
+  recovery, approval, and integration ownership;
 - skips harness synchronization only after proving no durable project knowledge changed;
-- promotes monotonically to Full Assurance on uncertainty or new risk.
+- promotes monotonically to Full Assurance on uncertainty or new risk and restores skipped Full gates
+  through Prime intent review, affected 3-doc regeneration and independent review, explicit reapproval,
+  and Full-only resume before dependent work continues.
+
+The default-off alpha keeps `schema_version: 1` as a fail-closed in-place extension. Older v1 shadow
+records without `bounded_direct_execution` are stale, are not backward-accepted, and remove any stale
+Lite profile.
 
 This candidate does not claim Time to Trusted Change improvement. Broader or default activation remains
 closed until installed-host paired measurement demonstrates net benefit and preserved safety.

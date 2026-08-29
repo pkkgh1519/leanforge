@@ -133,6 +133,9 @@ regen_barriers:
   pure scaffold with no behavioral surface; otherwise MECHANICAL. This is a derivation heuristic
   judged per task, not a fixed checklist. If a producer omits it, Run falls back to the implementer
   judging risk at build time (today's behavior) — no break.
+- **Strict Lite exception.** While the current canary profile is `strict_lite_alpha`, the graph has
+  exactly one task and that task must explicitly carry `risk: MECHANICAL` or `risk: NONE`; omitted or
+  `RISKY` risk and any regeneration barrier invalidate Lite and require Full promotion before approval.
 - Run derives waves by topological sort of `depends`, then dispatches in
   action-local batches sized from the runtime's currently free slots.
 - `regen_barriers` = cross-cutting steps between waves (timing: after task X). The

@@ -97,13 +97,18 @@ The record is deterministic and contains exactly:
   "hard_triggers": ["<closed hard trigger names>"],
   "missing_lite_required_true": ["<closed fact names>"],
   "violated_lite_required_false": ["<closed fact names>"],
-  "harness_sync": true
+  "harness_sync": true,
+  "bounded_direct_execution": true
 }
 ```
 
 After validating the complete record, write it atomically under `.leanforge/`; never incrementally edit
 the destination. Omit timestamps or environment-specific paths. `harness_sync` is advisory only: first
 cycle is always `true`; on a delta it is `true` only when a closed durable-change trigger is present.
+`bounded_direct_execution` is `true` only when the already-grounded delivery shape is one local
+file-diff task, needs no regeneration barrier, has existing sufficient targeted verification, and has
+no indication of risk above `MECHANICAL` / `NONE`. Uncertainty is `false`; do not ask a question only
+to improve this prediction.
 
 **Shadow means no authority.** This record must not change Prime's stage sequence, question policy,
 independent reviewers, 3-doc contents, user approval, Run routing/worktrees, verification topology,

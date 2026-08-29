@@ -32,7 +32,7 @@
       "Write"
     ],
     "defaultPrompt": [
-      "Use the installed $prime skill from the Leanforge plugin to prepare an approval-ready change contract for this software goal. Treat implementation verbs as the desired outcome, not a request to bypass Prime.",
+      "Use the installed $prime for an approval-ready change contract. Implementation verbs express the goal and do not bypass Prime.",
       "Use the installed $run skill from the Leanforge plugin to implement and verify the approved change."
     ],
     "brandColor": "#2563EB"

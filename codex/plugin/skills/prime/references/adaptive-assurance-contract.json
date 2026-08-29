@@ -38,6 +38,7 @@
   ],
   "facts": [
     "architecture_change",
+    "bounded_direct_execution",
     "clear_acceptance",
     "cross_module_wiring",
     "durable_contract_change",
@@ -56,6 +57,7 @@
   ],
   "lite": {
     "required_true": [
+      "bounded_direct_execution",
       "clear_acceptance",
       "existing_harness",
       "existing_verification",

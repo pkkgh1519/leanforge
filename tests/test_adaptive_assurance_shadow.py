@@ -53,6 +53,7 @@ class AdaptiveAssuranceShadowRunnerTest(unittest.TestCase):
                     "missing_lite_required_true",
                     "violated_lite_required_false",
                     "harness_sync",
+                    "bounded_direct_execution",
                 },
                 set(payload),
             )
@@ -61,6 +62,7 @@ class AdaptiveAssuranceShadowRunnerTest(unittest.TestCase):
             self.assertEqual(["lite_eligible"], payload["reasons"])
             self.assertTrue(payload["shadow_only"])
             self.assertFalse(payload["harness_sync"])
+            self.assertTrue(payload["bounded_direct_execution"])
 
     def test_malformed_case_discards_existing_output(self):
         with tempfile.TemporaryDirectory() as tmp:
